@@ -448,7 +448,14 @@ ${(order.items || []).map(product => `
 <li>${product.name} - $${product.price}</li>
 `).join("")}
 </ul>
+<strong>الحالة:</strong> ${order.status || "جديد"}
+<br>
 
+<select onchange="updateOrderStatus('${orderDoc.id}', this.value)">
+<option value="جديد">جديد</option>
+<option value="قيد المعالجة">قيد المعالجة</option>
+<option value="تم التسليم">تم التسليم</option>
+</select>
 <button onclick="deleteOrder('${orderDoc.id}')" style="background:#cc0000;">
 🗑️ حذف الطلب
 </button>
@@ -475,6 +482,15 @@ loadOrders();
 };
 
 loadOrders();
+window.updateOrderStatus = async function(id,status){
+
+await updateDoc(doc(db,"orders",id),{
+status: status
+});
+
+loadOrders();
+
+};
 </script>
 
 </body>
