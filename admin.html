@@ -76,7 +76,7 @@ background:#0044cc;
 <hr>
 
 <h2>المنتجات الحالية</h2>
-
+<button onclick="loadAdminProducts()">🔄 تحديث القائمة</button>
 <input id="adminSearch" placeholder="ابحث عن منتج في لوحة الإدارة...">
 
 <select id="adminCategoryFilter">
@@ -179,7 +179,7 @@ document.getElementById("cancelBtn").style.display = "none";
 
 }
 
-async function loadAdminProducts(){
+window.loadAdminProducts = async function(){
 
 const snapshot = await getDocs(collection(db,"products"));
 
@@ -196,7 +196,7 @@ id:item.id,
 
 showAdminProducts(adminProducts);
 
-}
+};
 
 function showAdminProducts(list){
 
