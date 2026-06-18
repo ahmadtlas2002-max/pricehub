@@ -63,8 +63,9 @@ background:#0044cc;
 <option value="laptop">لابتوبات</option>
 </select>
 
-<input id="image" placeholder="رابط الصورة">
+<input id="image" placeholder="رابط الصورة أو ارفع صورة من الجهاز">
 <input id="imageFile" type="file" accept="image/*">
+
 <img
 id="previewImage"
 style="
@@ -113,6 +114,7 @@ deleteDoc,
 doc,
 updateDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
 import {
 getStorage,
 ref,
@@ -147,23 +149,34 @@ const category = document.getElementById("category").value;
 const image = document.getElementById("image").value;
 const imageFile = document.getElementById("imageFile").files[0];
 
-let finalImage = image;
-
-if(imageFile){
-const imageRef = ref(storage, "products/" + Date.now() + "-" + imageFile.name);
-
-await uploadBytes(imageRef, imageFile);
-
-finalImage = await getDownloadURL(imageRef);
-}
-if(!name || !price || !rating || !image || !store){
+if(!name || !price || !rating || !store){
 document.getElementById("message").innerHTML = "املأ كل الحقول";
+return;
+}
+
+if(!image && !imageFile){
+document.getElementById("message").innerHTML = "ضع رابط صورة أو ارفع صورة";
 return;
 }
 
 if(rating < 0 || rating > 5){
 document.getElementById("message").innerHTML = "التقييم يجب أن يكون بين 0 و 5";
 return;
+}
+
+let finalImage = image;
+
+if(imageFile){
+document.getElementById("message").innerHTML = "جاري رفع الصورة...";
+
+const imageRef = ref(
+storage,
+"products/" + Date.now() + "-" + imageFile.name
+);
+
+await uploadBytes(imageRef,imageFile);
+
+finalImage = await getDownloadURL(imageRef);
 }
 
 const productData = {
@@ -198,6 +211,10 @@ document.getElementById("price").value = "";
 document.getElementById("store").value = "";
 document.getElementById("rating").value = "";
 document.getElementById("image").value = "";
+document.getElementById("imageFile").value = "";
+
+document.getElementById("previewImage").src = "";
+document.getElementById("previewImage").style.display = "none";
 
 document.getElementById("saveBtn").innerHTML = "إضافة المنتج";
 document.getElementById("cancelBtn").style.display = "none";
@@ -300,6 +317,12 @@ document.getElementById("category").value = product.category || "phone";
 document.getElementById("image").value = product.image || "";
 document.getElementById("store").value = "Firebase Store";
 
+if(product.image){
+const preview = document.getElementById("previewImage");
+preview.src = product.image;
+preview.style.display = "block";
+}
+
 document.getElementById("saveBtn").innerHTML = "تحديث المنتج";
 document.getElementById("cancelBtn").style.display = "block";
 
@@ -344,6 +367,27 @@ showAdminProducts(filtered);
 
 document.getElementById("adminSearch").addEventListener("input",applyAdminFilters);
 document.getElementById("adminCategoryFilter").addEventListener("change",applyAdminFilters);
+
+document.getElementById("imageFile").addEventListener("change",function(){
+
+const file = this.files[0];
+
+if(!file) return;
+
+const reader = new FileReader();
+
+reader.onload = function(e){
+
+const preview = document.getElementById("previewImage");
+
+preview.src = e.target.result;
+preview.style.display = "block";
+
+};
+
+reader.readAsDataURL(file);
+
+});
 
 window.cancelEdit = function(){
 
