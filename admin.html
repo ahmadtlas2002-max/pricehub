@@ -65,6 +65,14 @@ background:#0044cc;
 
 <input id="image" placeholder="رابط الصورة">
 <input id="imageFile" type="file" accept="image/*">
+<img
+id="previewImage"
+style="
+width:100%;
+margin-top:10px;
+display:none;
+border-radius:10px;
+">
 
 <button id="saveBtn" onclick="saveProduct()">إضافة المنتج</button>
 
@@ -105,6 +113,12 @@ deleteDoc,
 doc,
 updateDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+getStorage,
+ref,
+uploadBytes,
+getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
 const firebaseConfig = {
 apiKey: "AIzaSyA4jGrncraaaktuaDpsO7nz1-qmrqYKM3k",
@@ -118,6 +132,7 @@ measurementId: "G-HLCHBX5FF7"
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const storage = getStorage(app);
 
 let editingId = null;
 let adminProducts = [];
@@ -130,7 +145,17 @@ const store = document.getElementById("store").value;
 const rating = Number(document.getElementById("rating").value);
 const category = document.getElementById("category").value;
 const image = document.getElementById("image").value;
+const imageFile = document.getElementById("imageFile").files[0];
 
+let finalImage = image;
+
+if(imageFile){
+const imageRef = ref(storage, "products/" + Date.now() + "-" + imageFile.name);
+
+await uploadBytes(imageRef, imageFile);
+
+finalImage = await getDownloadURL(imageRef);
+}
 if(!name || !price || !rating || !image || !store){
 document.getElementById("message").innerHTML = "املأ كل الحقول";
 return;
@@ -146,7 +171,7 @@ name,
 price,
 rating,
 category,
-image,
+image: finalImage,
 stores:[
 store + " : $" + price
 ]
