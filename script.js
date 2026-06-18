@@ -344,24 +344,7 @@ setTimeout(function(){
 toast.style.display = "none";
 }, 2000);
 }
-setTimeout(async function(){
-
-if(window.loadFirebaseProducts){
-
-showToast("جاري تحميل المنتجات من Firebase...");
-
-await window.loadFirebaseProducts();
-
-showToast("تم تحميل المنتجات من Firebase ✅");
-
-}else{
-
-showToast("Firebase غير متصل، يتم عرض المنتجات المحلية");
-
-}
-
-},1000);
-window.setFirebaseProducts = function(firebaseProducts){
+{
 
 products = firebaseProducts.map(product => {
 
