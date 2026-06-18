@@ -1,380 +1,138 @@
-let products = [
-{
-name:"iPhone 16 Pro",
-price:999,
-rating:4.8,
-category:"phone",
-image:"https://picsum.photos/300/200?1",
-stores:["Amazon : $999","MediaMarkt : $1020","Elgiganten : $1040"]
-},
-{
-name:"Samsung Galaxy S25",
-price:899,
-rating:4.6,
-category:"phone",
-image:"https://picsum.photos/300/200?2",
-stores:["Amazon : $899","MediaMarkt : $920","Elgiganten : $940"]
-},
-{
-name:"PlayStation 5",
-price:499,
-rating:4.7,
-category:"gaming",
-image:"https://picsum.photos/300/200?3",
-stores:["Amazon : $499","MediaMarkt : $520"]
-},
-{
-name:"MacBook Pro",
-price:1799,
-rating:4.9,
-category:"laptop",
-image:"https://picsum.photos/300/200?4",
-stores:["Amazon : $1799","MediaMarkt : $1820","Elgiganten : $1850"]
-}
-];
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PriceHub</title>
 
-const container = document.getElementById("products");
-const search = document.getElementById("search");
+<link rel="stylesheet" href="style.css">
 
-let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
-let cart = JSON.parse(localStorage.getItem("cart")) || [];
+</head>
 
-function showProducts(list){
-container.innerHTML = "";
+<body>
 
-const countBox = document.getElementById("productCount");
-if(countBox){
-countBox.innerHTML = "عدد المنتجات: " + list.length;
-}
+<header>
+<h1>PriceHub</h1>
+<p>قارن الأسعار بين المتاجر</p>
+</header>
 
-list.forEach(product=>{
-const cheapestStore = product.stores[0];
+<div id="favCount" onclick="openFavorites()">
+❤️ المفضلة: 0
+</div>
 
-container.innerHTML += `
-<div class="card">
-<img src="${product.image}">
-<div class="content">
+<div id="cartCount" onclick="openCart()">
+🛒 السلة: 0
+</div>
+<button id="darkBtn" onclick="toggleDarkMode()">
+🌙 الوضع الليلي
+</button>
+<div class="statsBox">
 
-<h2>
-${product.name}
-<span style="cursor:pointer;float:left;" onclick="toggleFav('${product.name}')">❤️</span>
-</h2>
+<div class="stat">
+📦 المنتجات
+<span id="statProducts">0</span>
+</div>
 
-<div class="badge">🏆 أفضل سعر</div>
+<div class="stat">
+❤️ المفضلة
+<span id="statFavs">0</span>
+</div>
 
-<p class="price">$${product.price}</p>
+<div class="stat">
+🛒 السلة
+<span id="statCart">0</span>
+</div>
 
-<p class="rating">⭐ ${product.rating} / 5</p>
-
-<p class="bestStore">
-🏪 أفضل متجر:
-${cheapestStore}
-</p>
-
-${product.stores.map(store=>`
-<div class="store">${store}</div>
-`).join("")}
-
-<button onclick="showDetails('${product.name}')">عرض المنتج</button>
-<button onclick="addToCart('${product.name}')">🛒 أضف للسلة</button>
+<div class="stat">
+⭐ التقييم
+<span id="statRating">0</span>
+</div>
 
 </div>
+<div class="search">
+<input
+type="text"
+id="search"
+placeholder="ابحث عن منتج...">
 </div>
-`;
-});
-}
-
-showProducts(products);
-
-search.addEventListener("input",function(){
-
-const value = search.value.toLowerCase();
-
-const filtered = products.filter(product => {
-
-const nameMatch = product.name.toLowerCase().includes(value);
-
-const storeMatch = product.stores.some(store =>
-store.toLowerCase().includes(value)
-);
-
-return nameMatch || storeMatch;
-
-});
-
-showProducts(filtered);
-
-});
-
-function showDetails(name){
-
-const product = products.find(p => p.name === name);
-
-document.getElementById("popup").style.display = "block";
-document.getElementById("popupName").innerHTML = product.name;
-document.getElementById("popupImage").src = product.image;
-document.getElementById("popupPrice").innerHTML = "$" + product.price;
-
-let stores = "";
-
-product.stores.forEach(store=>{
-stores += `<p>${store}</p>`;
-});
-
-document.getElementById("popupStores").innerHTML = stores;
-
-}
-
-function closePopup(){
-document.getElementById("popup").style.display = "none";
-}
-
-function toggleFav(name){
-
-if(favorites.includes(name)){
-favorites = favorites.filter(item => item !== name);
-showToast(name + " تمت إزالته من المفضلة");
-}else{
-favorites.push(name);
-showToast(name + " تمت إضافته للمفضلة");
-}
-
-localStorage.setItem("favorites", JSON.stringify(favorites));
-
-updateFavCount();
-updateStats();
-
-}
-
-function updateFavCount(){
-document.getElementById("favCount").innerHTML =
-"❤️ المفضلة: " + favorites.length;
-}
-
-updateFavCount();
-
-function addToCart(name){
-
-const product = products.find(p => p.name === name);
-
-cart.push(product);
-
-localStorage.setItem("cart", JSON.stringify(cart));
-
-updateCartCount();
-updateStats();
-
-showToast("تمت إضافة المنتج للسلة");
-
-}
-
-function updateCartCount(){
-document.getElementById("cartCount").innerHTML =
-"🛒 السلة: " + cart.length;
-}
-
-updateCartCount();
-
-function sortLow(){
-const sorted = [...products].sort((a,b)=>a.price-b.price);
-showProducts(sorted);
-}
-
-function sortHigh(){
-const sorted = [...products].sort((a,b)=>b.price-a.price);
-showProducts(sorted);
-}
-
-function toggleDarkMode(){
-
-document.body.classList.toggle("dark");
-
-localStorage.setItem(
-"darkMode",
-document.body.classList.contains("dark")
-);
-
-}
-
-if(localStorage.getItem("darkMode") === "true"){
-document.body.classList.add("dark");
-}
-
-function openCart(){
-
-document.getElementById("cartPopup").style.display = "block";
-
-const cartItems = document.getElementById("cartItems");
-const cartTotal = document.getElementById("cartTotal");
-
-cartItems.innerHTML = "";
-
-let total = 0;
-
-if(cart.length === 0){
-cartItems.innerHTML = "<p>السلة فارغة</p>";
-cartTotal.innerHTML = "المجموع: $0";
-return;
-}
-
-cart.forEach((item,index)=>{
-total += item.price;
-
-cartItems.innerHTML += `
-<div class="cart-item">
-<span>${item.name} - $${item.price}</span>
-<button onclick="removeFromCart(${index})">حذف</button>
+<div class="sortBox">
+<button onclick="sortLow()">الأرخص أولاً</button>
+<button onclick="sortHigh()">الأغلى أولاً</button>
 </div>
-`;
-});
-
-cartTotal.innerHTML = "المجموع: $" + total;
-
-}
-
-function closeCart(){
-document.getElementById("cartPopup").style.display = "none";
-}
-
-function removeFromCart(index){
-
-cart.splice(index,1);
-
-localStorage.setItem("cart", JSON.stringify(cart));
-
-updateCartCount();
-updateStats();
-
-openCart();
-
-}
-
-function clearCart(){
-
-cart = [];
-
-localStorage.setItem("cart", JSON.stringify(cart));
-
-updateCartCount();
-updateStats();
-
-openCart();
-
-}
-
-function filterCategory(category){
-
-if(category === "all"){
-showProducts(products);
-return;
-}
-
-const filtered = products.filter(product =>
-product.category === category
-);
-
-showProducts(filtered);
-
-}
-
-function openFavorites(){
-
-document.getElementById("favPopup").style.display = "block";
-
-const favItems = document.getElementById("favItems");
-
-favItems.innerHTML = "";
-
-if(favorites.length === 0){
-favItems.innerHTML = "<p>لا يوجد منتجات في المفضلة</p>";
-return;
-}
-
-favorites.forEach((name,index)=>{
-favItems.innerHTML += `
-<div class="fav-item">
-<span>${name}</span>
-<button onclick="removeFromFavorites(${index})">حذف</button>
+<div class="container" id="products">
 </div>
-`;
-});
+<div class="filterBox">
+<button onclick="filterCategory('all')">الكل</button>
+<button onclick="filterCategory('phone')">الهواتف</button>
+<button onclick="filterCategory('gaming')">الألعاب</button>
+<button onclick="filterCategory('laptop')">اللابتوبات</button>
+</div>
+<div id="productCount">
+عدد المنتجات: 0
+</div>
 
-}
+<!-- نافذة تفاصيل المنتج -->
 
-function closeFavorites(){
-document.getElementById("favPopup").style.display = "none";
-}
+<div id="popup">
 
-function removeFromFavorites(index){
+<div class="popup-content">
 
-favorites.splice(index,1);
+<h2 id="popupName"></h2>
 
-localStorage.setItem("favorites", JSON.stringify(favorites));
+<img id="popupImage">
 
-updateFavCount();
-updateStats();
+<h3 id="popupPrice"></h3>
 
-openFavorites();
+<div id="popupStores"></div>
 
-}
+<br>
 
-function updateStats(){
+<button onclick="closePopup()">
+إغلاق
+</button>
 
-const statProducts = document.getElementById("statProducts");
-const statFavs = document.getElementById("statFavs");
-const statCart = document.getElementById("statCart");
-const statRating = document.getElementById("statRating");
+</div>
 
-if(!statProducts) return;
+</div>
 
-statProducts.innerHTML = products.length;
-statFavs.innerHTML = favorites.length;
-statCart.innerHTML = cart.length;
+<div id="cartPopup">
 
-const avg = products.reduce((sum,p)=>sum+p.rating,0) / products.length;
+<div class="popup-content">
 
-statRating.innerHTML = avg.toFixed(1);
+<h2>🛒 السلة</h2>
 
-}
+<div id="cartItems"></div>
 
-function showToast(message){
+<h3 id="cartTotal"></h3>
+<button onclick="clearCart()">
+🗑️ تفريغ السلة
+</button>
 
-const toast = document.getElementById("toast");
+<button onclick="closeCart()">
+إغلاق السلة
+</button>
 
-toast.innerHTML = message;
-toast.style.display = "block";
+</div>
 
-setTimeout(function(){
-toast.style.display = "none";
-}, 2000);
+</div>
+<div id="favPopup">
 
-}
+<div class="popup-content">
 
-window.setFirebaseProducts = function(firebaseProducts){
+<h2>❤️ المفضلة</h2>
 
-products = firebaseProducts.map(product => {
-return {
-name: product.name || "منتج بدون اسم",
-price: Number(product.price || 0),
-rating: Number(product.rating || 0),
-category: product.category || "other",
-image: product.image || "https://picsum.photos/300/200",
-stores: product.stores || ["Firebase Store : $" + Number(product.price || 0)]
-};
-});
+<div id="favItems"></div>
 
-showProducts(products);
-updateStats();
+<button onclick="closeFavorites()">
+إغلاق المفضلة
+</button>
 
-};
+</div>
 
-setTimeout(async function(){
+</div>
+<div id="toast"></div>
 
-if(window.loadFirebaseProducts){
-await window.loadFirebaseProducts();
-showToast("تم تحميل المنتجات من Firebase ✅");
-}
-
-},1000);
-
-updateStats();
+<script type="module" src="firebase.js?v=10000"></script>
+<script src="script.js?v=10000"></script>
+</body>
+</html>
