@@ -56,14 +56,21 @@ background:#0044cc;
 <input id="price" type="number" placeholder="السعر">
 <input id="store" placeholder="اسم المتجر">
 <input id="rating" type="number" step="0.1" placeholder="التقييم">
+
 <select id="category">
 <option value="phone">هواتف</option>
 <option value="gaming">ألعاب</option>
 <option value="laptop">لابتوبات</option>
 </select>
+
 <input id="image" placeholder="رابط الصورة">
 
-<button id="saveBtn" onclick="addProduct()">إضافة المنتج</button>
+<button id="saveBtn" onclick="saveProduct()">إضافة المنتج</button>
+
+<button id="cancelBtn" onclick="cancelEdit()" style="display:none;background:#777;">
+إلغاء التعديل
+</button>
+
 <p id="message"></p>
 
 <hr>
@@ -97,8 +104,10 @@ measurementId: "G-HLCHBX5FF7"
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+
 let editingId = null;
-window.addProduct = async function(){
+
+window.saveProduct = async function(){
 
 const name = document.getElementById("name").value;
 const price = Number(document.getElementById("price").value);
@@ -112,7 +121,7 @@ document.getElementById("message").innerHTML = "املأ كل الحقول";
 return;
 }
 
-await addDoc(collection(db,"products"),{
+const productData = {
 name,
 price,
 rating,
@@ -121,9 +130,31 @@ image,
 stores:[
 store + " : $" + price
 ]
-});
+};
+
+if(editingId){
+
+await updateDoc(doc(db,"products",editingId),productData);
+
+document.getElementById("message").innerHTML = "تم تحديث المنتج ✅";
+
+editingId = null;
+
+}else{
+
+await addDoc(collection(db,"products"),productData);
 
 document.getElementById("message").innerHTML = "تمت إضافة المنتج ✅";
+
+}
+
+clearForm();
+
+loadAdminProducts();
+
+};
+
+function clearForm(){
 
 document.getElementById("name").value = "";
 document.getElementById("price").value = "";
@@ -131,9 +162,10 @@ document.getElementById("store").value = "";
 document.getElementById("rating").value = "";
 document.getElementById("image").value = "";
 
-loadAdminProducts();
+document.getElementById("saveBtn").innerHTML = "إضافة المنتج";
+document.getElementById("cancelBtn").style.display = "none";
 
-};
+}
 
 async function loadAdminProducts(){
 
@@ -155,7 +187,6 @@ $${product.price}
 <button onclick="editProduct('${item.id}','${product.name}',${product.price},${product.rating},'${product.category}','${product.image}')">
 تعديل
 </button>
-
 <button onclick="deleteProduct('${item.id}')">
 حذف
 </button>
@@ -166,58 +197,46 @@ $${product.price}
 
 }
 
-if(editingId){
-
-await updateDoc(doc(db,"products",editingId),{
-name,
-price,
-rating,
-category,
-image,
-stores:[
-store + " : $" + price
-]
-});
-
-document.getElementById("message").innerHTML =
-"تم تحديث المنتج ✅";
-
-editingId = null;
-
-}else{
-
-await addDoc(collection(db,"products"),{
-name,
-price,
-rating,
-category,
-image,
-stores:[
-store + " : $" + price
-]
-});
-
-document.getElementById("message").innerHTML =
-"تمت إضافة المنتج ✅";
-
-}
-
-loadAdminProducts();
 window.editProduct = function(id,name,price,rating,category,image){
 
 editingId = id;
-document.getElementById("saveBtn").innerHTML = "إضافة المنتج";
-document.getElementById("saveBtn").innerHTML = "تحديث المنتج";
+
 document.getElementById("name").value = name;
 document.getElementById("price").value = price;
 document.getElementById("rating").value = rating;
 document.getElementById("category").value = category;
 document.getElementById("image").value = image;
 
-document.getElementById("message").innerHTML =
-"✏️ وضع التعديل مفعل";
+document.getElementById("store").value = "Firebase Store";
+
+document.getElementById("saveBtn").innerHTML = "تحديث المنتج";
+document.getElementById("cancelBtn").style.display = "block";
+
+document.getElementById("message").innerHTML = "✏️ وضع التعديل مفعل";
 
 };
+
+window.cancelEdit = function(){
+
+editingId = null;
+
+clearForm();
+
+document.getElementById("message").innerHTML = "تم إلغاء التعديل";
+
+};
+
+window.deleteProduct = async function(id){
+
+await deleteDoc(doc(db,"products",id));
+
+document.getElementById("message").innerHTML = "تم حذف المنتج ✅";
+
+loadAdminProducts();
+
+};
+
+loadAdminProducts();
 </script>
 
 </body>
