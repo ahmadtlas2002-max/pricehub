@@ -44,6 +44,14 @@ background:#0044cc;
 </head>
 
 <body>
+	<script>
+const adminPassword = prompt("أدخل كلمة مرور لوحة الإدارة");
+
+if(adminPassword !== "Hosen1980"){
+document.body.innerHTML = "<h1 style='text-align:center;margin-top:50px;'>غير مسموح بالدخول</h1>";
+throw new Error("Access denied");
+}
+</script>
 
 <div class="admin-box">
 <h1>لوحة إدارة PriceHub</h1>
@@ -64,7 +72,7 @@ background:#0044cc;
 </select>
 
 <input id="image" placeholder="رابط الصورة أو ارفع صورة من الجهاز">
-<input id="imageFile" type="file" accept="image/*">
+
 
 <img
 id="previewImage"
@@ -115,12 +123,7 @@ doc,
 updateDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-import {
-getStorage,
-ref,
-uploadBytes,
-getDownloadURL
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
 
 const firebaseConfig = {
 apiKey: "AIzaSyA4jGrncraaaktuaDpsO7nz1-qmrqYKM3k",
@@ -134,7 +137,7 @@ measurementId: "G-HLCHBX5FF7"
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const storage = getStorage(app);
+
 
 let editingId = null;
 let adminProducts = [];
