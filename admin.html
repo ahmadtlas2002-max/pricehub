@@ -47,9 +47,11 @@ background:#0044cc;
 
 <div class="admin-box">
 <h1>لوحة إدارة PriceHub</h1>
+
 <a href="index.html">
 <button type="button">⬅️ العودة للموقع</button>
 </a>
+
 <input id="name" placeholder="اسم المنتج">
 <input id="price" type="number" placeholder="السعر">
 <input id="store" placeholder="اسم المتجر">
@@ -63,10 +65,10 @@ background:#0044cc;
 
 <button onclick="addProduct()">إضافة المنتج</button>
 <p id="message"></p>
+
 <hr>
 
 <h2>المنتجات الحالية</h2>
-
 <div id="productsList"></div>
 </div>
 
@@ -129,6 +131,10 @@ document.getElementById("rating").value = "";
 document.getElementById("image").value = "";
 
 loadAdminProducts();
+
+};
+
+async function loadAdminProducts(){
 
 const list = document.getElementById("productsList");
 list.innerHTML = "";
