@@ -211,7 +211,7 @@ box.innerHTML += `
 <br>
 $${product.price}
 <br>
-<button onclick="editProduct('${product.id}','${product.name}',${product.price},${product.rating},'${product.category}','${product.image}')">
+<button onclick="editProductData('${product.id}')">
 تعديل
 </button>
 <button onclick="deleteProduct('${product.id}')">
@@ -224,15 +224,17 @@ $${product.price}
 
 }
 
-window.editProduct = function(id,name,price,rating,category,image){
+window.editProductData = function(id){
 
-editingId = id;
+const product = adminProducts.find(p => p.id === id);
 
-document.getElementById("name").value = name;
-document.getElementById("price").value = price;
-document.getElementById("rating").value = rating;
-document.getElementById("category").value = category;
-document.getElementById("image").value = image;
+editingId = product.id;
+
+document.getElementById("name").value = product.name;
+document.getElementById("price").value = product.price;
+document.getElementById("rating").value = product.rating;
+document.getElementById("category").value = product.category;
+document.getElementById("image").value = product.image;
 document.getElementById("store").value = "Firebase Store";
 
 document.getElementById("saveBtn").innerHTML = "تحديث المنتج";
@@ -241,15 +243,6 @@ document.getElementById("cancelBtn").style.display = "block";
 document.getElementById("message").innerHTML = "✏️ وضع التعديل مفعل";
 
 };
-
-window.cancelEdit = function(){
-
-editingId = null;
-clearForm();
-document.getElementById("message").innerHTML = "تم إلغاء التعديل";
-
-};
-
 window.deleteProduct = async function(id){
 
 await deleteDoc(doc(db,"products",id));
