@@ -97,10 +97,10 @@ ${product.name}
 <span style="cursor:pointer;float:left;" onclick="toggleFav('${product.name}')">❤️</span>
 </h2>
 
-${product.featured ? `<div class="badge">⭐ مميز</div>` : `<div class="badge">🏆 أفضل سعر</div>`}
-
-<p class="price">$${product.price}</p>
-<p class="rating">⭐ ${product.rating} / 5</p>
+${product.featured
+? `<div class="featured-badge">⭐ منتج مميز</div>`
+: `<div class="badge">🏆 أفضل سعر</div>`
+}
 
 <p class="bestStore">
 🏪 أفضل متجر:
@@ -337,6 +337,7 @@ const statProducts = document.getElementById("statProducts");
 const statFavs = document.getElementById("statFavs");
 const statCart = document.getElementById("statCart");
 const statRating = document.getElementById("statRating");
+const statFeatured = document.getElementById("statFeatured");
 
 if(!statProducts) return;
 
@@ -347,6 +348,9 @@ statCart.innerHTML = cart.length;
 if(products.length === 0){
 statRating.innerHTML = "0";
 return;
+if(statFeatured){
+statFeatured.innerHTML = products.filter(p => p.featured).length;
+}
 }
 
 const avg = products.reduce((sum,p)=>sum+p.rating,0) / products.length;
@@ -368,6 +372,9 @@ toast.style.display = "none";
 window.setFirebaseProducts = function(firebaseProducts){
 
 if(!firebaseProducts || firebaseProducts.length === 0){
+	products.sort((a,b)=>{
+return (b.featured === true) - (a.featured === true);
+});
 showProducts(products);
 updateStats();
 showToast("لا توجد منتجات في Firebase، يتم عرض المنتجات المحلية");
@@ -385,7 +392,9 @@ featured: product.featured || false,
 stores: product.stores || ["Firebase Store : $" + Number(product.price || 0)]
 };
 });
-
+products.sort((a,b)=>{
+return (b.featured === true) - (a.featured === true);
+});
 showProducts(products);
 updateStats();
 showFeaturedProduct();
