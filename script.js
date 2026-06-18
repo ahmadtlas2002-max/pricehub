@@ -44,9 +44,7 @@ let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
 function showFeaturedProduct(){
-
 const box = document.getElementById("featuredBox");
-
 if(!box) return;
 
 const featured = products.find(product => product.featured);
@@ -56,24 +54,17 @@ box.innerHTML = "";
 return;
 }
 
+const index = products.indexOf(featured);
+
 box.innerHTML = `
-<div style="
-width:90%;
-margin:20px auto;
-background:#fff3cd;
-padding:20px;
-border-radius:15px;
-text-align:center;
-box-shadow:0 3px 10px rgba(0,0,0,.1);
-">
+<div style="width:90%;margin:20px auto;background:#fff3cd;padding:20px;border-radius:15px;text-align:center;box-shadow:0 3px 10px rgba(0,0,0,.1);">
 <h2>⭐ المنتج المميز</h2>
 <img src="${featured.image}" style="width:100%;max-width:400px;border-radius:12px;">
 <h3>${featured.name}</h3>
 <p style="font-size:22px;color:green;font-weight:bold;">$${featured.price}</p>
-<button onclick="showDetails('${featured.name}')">عرض المنتج</button>
+<button onclick="showDetailsByIndex(${index})">عرض المنتج</button>
 </div>
 `;
-
 }
 
 function showProducts(list){
@@ -85,6 +76,7 @@ countBox.innerHTML = "عدد المنتجات: " + list.length;
 }
 
 list.forEach(product=>{
+const index = products.indexOf(product);
 const cheapestStore = product.stores[0];
 
 container.innerHTML += `
@@ -94,25 +86,23 @@ container.innerHTML += `
 
 <h2>
 ${product.name}
-<span style="cursor:pointer;float:left;" onclick="toggleFav('${product.name}')">❤️</span>
+<span style="cursor:pointer;float:left;" onclick="toggleFavByIndex(${index})">❤️</span>
 </h2>
 
 ${product.featured
 ? `<div class="featured-badge">⭐ منتج مميز</div>`
-: `<div class="badge">🏆 أفضل سعر</div>`
-}
+: `<div class="badge">🏆 أفضل سعر</div>`}
 
-<p class="bestStore">
-🏪 أفضل متجر:
-${cheapestStore}
-</p>
+<p class="price">$${product.price}</p>
+<p class="rating">⭐ ${product.rating} / 5</p>
 
-${product.stores.map(store=>`
-<div class="store">${store}</div>
-`).join("")}
+<p class="bestStore">🏪 أفضل متجر: ${cheapestStore}</p>
 
-<button onclick="showDetails('${product.name}')">عرض المنتج</button>
-<button onclick="addToCart('${product.name}')">🛒 أضف للسلة</button>
+${product.stores.map(store=>`<div class="store">${store}</div>`).join("")}
+
+<button onclick="showDetailsByIndex(${index})">عرض المنتج</button>
+<button onclick="addToCartByIndex(${index})">🛒 أضف للسلة</button>
+<button onclick="shareProductByIndex(${index})">📤 مشاركة</button>
 
 </div>
 </div>
@@ -122,26 +112,9 @@ ${product.stores.map(store=>`
 showFeaturedProduct();
 }
 
-showProducts(products);
-loadCompareOptions();
-search.addEventListener("input",function(){
-const value = search.value.toLowerCase();
-
-const filtered = products.filter(product => {
-const nameMatch = product.name.toLowerCase().includes(value);
-
-const storeMatch = product.stores.some(store =>
-store.toLowerCase().includes(value)
-);
-
-return nameMatch || storeMatch;
-});
-
-showProducts(filtered);
-});
-
-function showDetails(name){
-const product = products.find(p => p.name === name);
+function showDetailsByIndex(index){
+const product = products[index];
+if(!product) return;
 
 document.getElementById("popup").style.display = "block";
 document.getElementById("popupName").innerHTML = product.name;
@@ -149,7 +122,6 @@ document.getElementById("popupImage").src = product.image;
 document.getElementById("popupPrice").innerHTML = "$" + product.price;
 
 let stores = "";
-
 product.stores.forEach(store=>{
 stores += `<p>${store}</p>`;
 });
@@ -161,17 +133,19 @@ function closePopup(){
 document.getElementById("popup").style.display = "none";
 }
 
-function toggleFav(name){
-if(favorites.includes(name)){
-favorites = favorites.filter(item => item !== name);
-showToast(name + " تمت إزالته من المفضلة");
+function toggleFavByIndex(index){
+const product = products[index];
+if(!product) return;
+
+if(favorites.includes(product.name)){
+favorites = favorites.filter(item => item !== product.name);
+showToast(product.name + " تمت إزالته من المفضلة");
 }else{
-favorites.push(name);
-showToast(name + " تمت إضافته للمفضلة");
+favorites.push(product.name);
+showToast(product.name + " تمت إضافته للمفضلة");
 }
 
 localStorage.setItem("favorites", JSON.stringify(favorites));
-
 updateFavCount();
 updateStats();
 }
@@ -181,18 +155,15 @@ document.getElementById("favCount").innerHTML =
 "❤️ المفضلة: " + favorites.length;
 }
 
-updateFavCount();
-
-function addToCart(name){
-const product = products.find(p => p.name === name);
+function addToCartByIndex(index){
+const product = products[index];
+if(!product) return;
 
 cart.push(product);
-
 localStorage.setItem("cart", JSON.stringify(cart));
 
 updateCartCount();
 updateStats();
-
 showToast("تمت إضافة المنتج للسلة");
 }
 
@@ -201,25 +172,17 @@ document.getElementById("cartCount").innerHTML =
 "🛒 السلة: " + cart.length;
 }
 
-updateCartCount();
-
 function sortLow(){
-const sorted = [...products].sort((a,b)=>a.price-b.price);
-showProducts(sorted);
+showProducts([...products].sort((a,b)=>a.price-b.price));
 }
 
 function sortHigh(){
-const sorted = [...products].sort((a,b)=>b.price-a.price);
-showProducts(sorted);
+showProducts([...products].sort((a,b)=>b.price-a.price));
 }
 
 function toggleDarkMode(){
 document.body.classList.toggle("dark");
-
-localStorage.setItem(
-"darkMode",
-document.body.classList.contains("dark")
-);
+localStorage.setItem("darkMode", document.body.classList.contains("dark"));
 }
 
 if(localStorage.getItem("darkMode") === "true"){
@@ -233,7 +196,6 @@ const cartItems = document.getElementById("cartItems");
 const cartTotal = document.getElementById("cartTotal");
 
 cartItems.innerHTML = "";
-
 let total = 0;
 
 if(cart.length === 0){
@@ -244,7 +206,6 @@ return;
 
 cart.forEach((item,index)=>{
 total += item.price;
-
 cartItems.innerHTML += `
 <div class="cart-item">
 <span>${item.name} - $${item.price}</span>
@@ -262,23 +223,17 @@ document.getElementById("cartPopup").style.display = "none";
 
 function removeFromCart(index){
 cart.splice(index,1);
-
 localStorage.setItem("cart", JSON.stringify(cart));
-
 updateCartCount();
 updateStats();
-
 openCart();
 }
 
 function clearCart(){
 cart = [];
-
 localStorage.setItem("cart", JSON.stringify(cart));
-
 updateCartCount();
 updateStats();
-
 openCart();
 }
 
@@ -288,18 +243,13 @@ showProducts(products);
 return;
 }
 
-const filtered = products.filter(product =>
-product.category === category
-);
-
-showProducts(filtered);
+showProducts(products.filter(product => product.category === category));
 }
 
 function openFavorites(){
 document.getElementById("favPopup").style.display = "block";
 
 const favItems = document.getElementById("favItems");
-
 favItems.innerHTML = "";
 
 if(favorites.length === 0){
@@ -323,12 +273,9 @@ document.getElementById("favPopup").style.display = "none";
 
 function removeFromFavorites(index){
 favorites.splice(index,1);
-
 localStorage.setItem("favorites", JSON.stringify(favorites));
-
 updateFavCount();
 updateStats();
-
 openFavorites();
 }
 
@@ -355,13 +302,11 @@ return;
 }
 
 const avg = products.reduce((sum,p)=>sum+p.rating,0) / products.length;
-
 statRating.innerHTML = avg.toFixed(1);
 }
 
 function showToast(message){
 const toast = document.getElementById("toast");
-
 toast.innerHTML = message;
 toast.style.display = "block";
 
@@ -372,16 +317,7 @@ toast.style.display = "none";
 
 window.setFirebaseProducts = function(firebaseProducts){
 
-if(!firebaseProducts || firebaseProducts.length === 0){
-	products.sort((a,b)=>{
-return (b.featured === true) - (a.featured === true);
-});
-showProducts(products);
-updateStats();
-showToast("لا توجد منتجات في Firebase، يتم عرض المنتجات المحلية");
-return;
-}
-
+if(firebaseProducts && firebaseProducts.length > 0){
 products = firebaseProducts.map(product => {
 return {
 name: product.name || "منتج بدون اسم",
@@ -393,12 +329,15 @@ featured: product.featured || false,
 stores: product.stores || ["Firebase Store : $" + Number(product.price || 0)]
 };
 });
+}
+
 products.sort((a,b)=>{
 return (b.featured === true) - (a.featured === true);
 });
+
 showProducts(products);
 updateStats();
-showFeaturedProduct();
+loadCompareOptions();
 };
 
 setTimeout(async function(){
@@ -408,10 +347,7 @@ showToast("تم تحميل المنتجات من Firebase ✅");
 }
 },1000);
 
-updateStats();
-showFeaturedProduct();
 function loadCompareOptions(){
-
 const compare1 = document.getElementById("compare1");
 const compare2 = document.getElementById("compare2");
 
@@ -421,62 +357,87 @@ compare1.innerHTML = "";
 compare2.innerHTML = "";
 
 products.forEach(product=>{
-
-compare1.innerHTML += `
-<option value="${product.name}">
-${product.name}
-</option>
-`;
-
-compare2.innerHTML += `
-<option value="${product.name}">
-${product.name}
-</option>
-`;
-
+compare1.innerHTML += `<option value="${product.name}">${product.name}</option>`;
+compare2.innerHTML += `<option value="${product.name}">${product.name}</option>`;
 });
 
 document.getElementById("compareBox").style.display = "block";
-
 }
+
 function compareProducts(){
-
-const p1 = products.find(
-p => p.name === document.getElementById("compare1").value
-);
-
-const p2 = products.find(
-p => p.name === document.getElementById("compare2").value
-);
+const p1 = products.find(p => p.name === document.getElementById("compare1").value);
+const p2 = products.find(p => p.name === document.getElementById("compare2").value);
 
 if(!p1 || !p2) return;
 
+let cheaper = "";
+
+if(p1.price < p2.price){
+cheaper = p1.name + " هو الأرخص ✅";
+}else if(p2.price < p1.price){
+cheaper = p2.name + " هو الأرخص ✅";
+}else{
+cheaper = "السعر متساوي";
+}
+
 document.getElementById("compareResult").innerHTML = `
-<table border="1" width="100%">
+<h3>${cheaper}</h3>
+<table>
 <tr>
 <th>الميزة</th>
 <th>${p1.name}</th>
 <th>${p2.name}</th>
 </tr>
-
+<tr>
+<td>الصورة</td>
+<td><img src="${p1.image}" style="width:120px;border-radius:10px;"></td>
+<td><img src="${p2.image}" style="width:120px;border-radius:10px;"></td>
+</tr>
 <tr>
 <td>السعر</td>
 <td>$${p1.price}</td>
 <td>$${p2.price}</td>
 </tr>
-
 <tr>
 <td>التقييم</td>
 <td>${p1.rating}</td>
 <td>${p2.rating}</td>
 </tr>
-
 <tr>
 <td>التصنيف</td>
 <td>${p1.category}</td>
 <td>${p2.category}</td>
 </tr>
-
 </table>
 `;
 }
+
+function clearCompare(){
+document.getElementById("compareResult").innerHTML = "";
+}
+
+function shareProductByIndex(index){
+const product = products[index];
+if(!product) return;
+
+const text =
+product.name +
+"\nالسعر: $" + product.price +
+"\nالتقييم: " + product.rating;
+
+if(navigator.share){
+navigator.share({
+title: product.name,
+text: text
+});
+}else{
+navigator.clipboard.writeText(text);
+showToast("تم نسخ معلومات المنتج");
+}
+}
+
+showProducts(products);
+updateFavCount();
+updateCartCount();
+updateStats();
+loadCompareOptions();
