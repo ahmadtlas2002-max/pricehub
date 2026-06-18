@@ -456,7 +456,7 @@ showToast("اكتب الاسم ورقم الهاتف");
 return;
 }
 
-const total = cart.reduce((sum,item)=>sum + item.price,0);
+const total = cart.reduce((sum,item)=>sum + Number(item.price),0);
 
 const order = {
 customerName: name,
@@ -466,17 +466,29 @@ total: total,
 date: new Date().toLocaleString()
 };
 
-if(window.saveOrder){
-await window.saveOrder(order);
-showToast("تم حفظ الطلب في Firebase ✅");
-}else{
-showToast("Firebase غير متصل، لم يتم حفظ الطلب");
+try{
+
+if(!window.saveOrder){
+showToast("Firebase غير متصل");
 return;
 }
 
-clearCart();
+await window.saveOrder(order);
+
+showToast("تم حفظ الطلب ✅");
+
+cart = [];
+localStorage.setItem("cart", JSON.stringify(cart));
+updateCartCount();
+updateStats();
+openCart();
 
 document.getElementById("customerName").value = "";
 document.getElementById("customerPhone").value = "";
+
+}catch(error){
+console.error(error);
+showToast("فشل حفظ الطلب، افحص Firebase Rules");
+}
 
 }
