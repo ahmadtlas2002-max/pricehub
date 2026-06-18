@@ -3,7 +3,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import {
 getFirestore,
 collection,
-getDocs
+getDocs,
+addDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -42,5 +43,10 @@ stores: data.stores || [
 });
 
 window.setFirebaseProducts(firebaseProducts);
+
+};
+window.saveOrder = async function(order){
+
+await addDoc(collection(db,"orders"),order);
 
 };
