@@ -333,5 +333,42 @@ statRating.innerHTML = avg.toFixed(1);
 
 }
 
+function showToast(message){
+const toast = document.getElementById("toast");
+
+toast.innerHTML = message;
+toast.style.display = "block";
+
+setTimeout(function(){
+toast.style.display = "none";
+}, 2000);
+}
+
+window.setFirebaseProducts = function(firebaseProducts){
+
+products = firebaseProducts.map(product => {
+return {
+name: product.name || "منتج بدون اسم",
+price: Number(product.price || 0),
+rating: Number(product.rating || 0),
+category: product.category || "other",
+image: product.image || "https://picsum.photos/300/200",
+stores: product.stores || ["Firebase Store : $" + Number(product.price || 0)]
+};
+});
+
+showProducts(products);
 updateStats();
 
+};
+
+setTimeout(async function(){
+
+if(window.loadFirebaseProducts){
+await window.loadFirebaseProducts();
+showToast("تم تحميل المنتجات من Firebase ✅");
+}
+
+},1000);
+
+updateStats();
