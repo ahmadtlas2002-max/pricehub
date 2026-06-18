@@ -345,12 +345,13 @@ statProducts.innerHTML = products.length;
 statFavs.innerHTML = favorites.length;
 statCart.innerHTML = cart.length;
 
-if(products.length === 0){
-statRating.innerHTML = "0";
-return;
 if(statFeatured){
 statFeatured.innerHTML = products.filter(p => p.featured).length;
 }
+
+if(products.length === 0){
+statRating.innerHTML = "0";
+return;
 }
 
 const avg = products.reduce((sum,p)=>sum+p.rating,0) / products.length;
