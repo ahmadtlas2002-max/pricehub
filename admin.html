@@ -122,9 +122,7 @@ border-radius:10px;
 
 <h2>📦 الطلبات</h2>
 <button onclick="loadOrders()">🔄 تحديث الطلبات</button>
-<button onclick="deleteOrder('${item.id}')" style="background:#cc0000;">
-حذف الطلب
-</button>
+
 <div id="ordersList"></div>
 </div>
 
@@ -428,12 +426,13 @@ ordersList.innerHTML = "<p>لا توجد طلبات</p>";
 return;
 }
 
-snapshot.forEach((item)=>{
+snapshot.forEach((orderDoc)=>{
 
-const order = item.data();
+const order = orderDoc.data();
 
 ordersList.innerHTML += `
-<div style="background:#eee;padding:10px;margin:10px 0;border-radius:10px;">
+<div style="background:#eee;padding:15px;margin:10px 0;border-radius:12px;">
+
 <strong>العميل:</strong> ${order.customerName}
 <br>
 <strong>الهاتف:</strong> ${order.customerPhone}
@@ -441,13 +440,19 @@ ordersList.innerHTML += `
 <strong>المجموع:</strong> $${order.total}
 <br>
 <strong>التاريخ:</strong> ${order.date}
-<br>
+<br><br>
+
 <strong>المنتجات:</strong>
 <ul>
-${order.items.map(item=>`
-<li>${item.name} - $${item.price}</li>
+${(order.items || []).map(product => `
+<li>${product.name} - $${product.price}</li>
 `).join("")}
 </ul>
+
+<button onclick="deleteOrder('${orderDoc.id}')" style="background:#cc0000;">
+🗑️ حذف الطلب
+</button>
+
 </div>
 `;
 
@@ -455,7 +460,6 @@ ${order.items.map(item=>`
 
 };
 
-loadOrders();
 window.deleteOrder = async function(id){
 
 const ok = confirm("هل تريد حذف هذا الطلب؟");
@@ -469,6 +473,8 @@ await deleteDoc(doc(db,"orders",id));
 loadOrders();
 
 };
+
+loadOrders();
 </script>
 
 </body>
