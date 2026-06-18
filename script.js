@@ -123,7 +123,7 @@ showFeaturedProduct();
 }
 
 showProducts(products);
-
+loadCompareOptions();
 search.addEventListener("input",function(){
 const value = search.value.toLowerCase();
 
@@ -409,3 +409,73 @@ showToast("تم تحميل المنتجات من Firebase ✅");
 
 updateStats();
 showFeaturedProduct();
+function loadCompareOptions(){
+
+const compare1 = document.getElementById("compare1");
+const compare2 = document.getElementById("compare2");
+
+if(!compare1 || !compare2) return;
+
+compare1.innerHTML = "";
+compare2.innerHTML = "";
+
+products.forEach(product=>{
+
+compare1.innerHTML += `
+<option value="${product.name}">
+${product.name}
+</option>
+`;
+
+compare2.innerHTML += `
+<option value="${product.name}">
+${product.name}
+</option>
+`;
+
+});
+
+document.getElementById("compareBox").style.display = "block";
+
+}
+function compareProducts(){
+
+const p1 = products.find(
+p => p.name === document.getElementById("compare1").value
+);
+
+const p2 = products.find(
+p => p.name === document.getElementById("compare2").value
+);
+
+if(!p1 || !p2) return;
+
+document.getElementById("compareResult").innerHTML = `
+<table border="1" width="100%">
+<tr>
+<th>الميزة</th>
+<th>${p1.name}</th>
+<th>${p2.name}</th>
+</tr>
+
+<tr>
+<td>السعر</td>
+<td>$${p1.price}</td>
+<td>$${p2.price}</td>
+</tr>
+
+<tr>
+<td>التقييم</td>
+<td>${p1.rating}</td>
+<td>${p2.rating}</td>
+</tr>
+
+<tr>
+<td>التصنيف</td>
+<td>${p1.category}</td>
+<td>${p2.category}</td>
+</tr>
+
+</table>
+`;
+}
