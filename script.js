@@ -5,7 +5,8 @@ price:999,
 rating:4.8,
 category:"phone",
 image:"https://picsum.photos/300/200?1",
-stores:["Amazon : $999","MediaMarkt : $1020","Elgiganten : $1040"]
+stores:["Amazon : $999","MediaMarkt : $1020","Elgiganten : $1040"],
+featured:false
 },
 {
 name:"Samsung Galaxy S25",
@@ -13,7 +14,8 @@ price:899,
 rating:4.6,
 category:"phone",
 image:"https://picsum.photos/300/200?2",
-stores:["Amazon : $899","MediaMarkt : $920","Elgiganten : $940"]
+stores:["Amazon : $899","MediaMarkt : $920","Elgiganten : $940"],
+featured:false
 },
 {
 name:"PlayStation 5",
@@ -21,7 +23,8 @@ price:499,
 rating:4.7,
 category:"gaming",
 image:"https://picsum.photos/300/200?3",
-stores:["Amazon : $499","MediaMarkt : $520"]
+stores:["Amazon : $499","MediaMarkt : $520"],
+featured:false
 },
 {
 name:"MacBook Pro",
@@ -29,7 +32,8 @@ price:1799,
 rating:4.9,
 category:"laptop",
 image:"https://picsum.photos/300/200?4",
-stores:["Amazon : $1799","MediaMarkt : $1820","Elgiganten : $1850"]
+stores:["Amazon : $1799","MediaMarkt : $1820","Elgiganten : $1850"],
+featured:true
 }
 ];
 
@@ -38,6 +42,39 @@ const search = document.getElementById("search");
 
 let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+function showFeaturedProduct(){
+
+const box = document.getElementById("featuredBox");
+
+if(!box) return;
+
+const featured = products.find(product => product.featured);
+
+if(!featured){
+box.innerHTML = "";
+return;
+}
+
+box.innerHTML = `
+<div style="
+width:90%;
+margin:20px auto;
+background:#fff3cd;
+padding:20px;
+border-radius:15px;
+text-align:center;
+box-shadow:0 3px 10px rgba(0,0,0,.1);
+">
+<h2>⭐ المنتج المميز</h2>
+<img src="${featured.image}" style="width:100%;max-width:400px;border-radius:12px;">
+<h3>${featured.name}</h3>
+<p style="font-size:22px;color:green;font-weight:bold;">$${featured.price}</p>
+<button onclick="showDetails('${featured.name}')">عرض المنتج</button>
+</div>
+`;
+
+}
 
 function showProducts(list){
 container.innerHTML = "";
@@ -60,7 +97,7 @@ ${product.name}
 <span style="cursor:pointer;float:left;" onclick="toggleFav('${product.name}')">❤️</span>
 </h2>
 
-<div class="badge">🏆 أفضل سعر</div>
+${product.featured ? `<div class="badge">⭐ مميز</div>` : `<div class="badge">🏆 أفضل سعر</div>`}
 
 <p class="price">$${product.price}</p>
 <p class="rating">⭐ ${product.rating} / 5</p>
@@ -81,6 +118,8 @@ ${product.stores.map(store=>`
 </div>
 `;
 });
+
+showFeaturedProduct();
 }
 
 showProducts(products);
@@ -342,12 +381,14 @@ price: Number(product.price || 0),
 rating: Number(product.rating || 0),
 category: product.category || "other",
 image: product.image || "https://picsum.photos/300/200",
+featured: product.featured || false,
 stores: product.stores || ["Firebase Store : $" + Number(product.price || 0)]
 };
 });
 
 showProducts(products);
 updateStats();
+showFeaturedProduct();
 };
 
 setTimeout(async function(){
@@ -358,3 +399,4 @@ showToast("تم تحميل المنتجات من Firebase ✅");
 },1000);
 
 updateStats();
+showFeaturedProduct();
