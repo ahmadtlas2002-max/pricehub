@@ -29,12 +29,14 @@ querySnapshot.forEach((doc)=>{
 const data = doc.data();
 
 firebaseProducts.push({
-name:data.name,
-price:data.price,
-rating:data.rating,
-category:data.category,
-image:data.image,
-stores:data.stores || ["Firebase Store : $" + data.price]
+name: data.name || "",
+price: Number(data.price),
+rating: Number(data.rating),
+category: data.category || "",
+image: data.image || "https://picsum.photos/300/200",
+stores:[
+"Firebase Store : $" + Number(data.price)
+]
 });
 });
 
