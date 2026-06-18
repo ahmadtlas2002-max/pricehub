@@ -344,7 +344,6 @@ setTimeout(function(){
 toast.style.display = "none";
 }, 2000);
 }
-{
 
 window.setFirebaseProducts = function(firebaseProducts){
 
