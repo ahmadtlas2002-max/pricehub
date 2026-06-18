@@ -118,6 +118,11 @@ border-radius:10px;
 </select>
 
 <div id="productsList"></div>
+<hr>
+
+<h2>📦 الطلبات</h2>
+<button onclick="loadOrders()">🔄 تحديث الطلبات</button>
+<div id="ordersList"></div>
 </div>
 
 <script type="module">
@@ -408,6 +413,39 @@ location.reload();
 };
 
 loadAdminProducts();
+window.loadOrders = async function(){
+
+const ordersList = document.getElementById("ordersList");
+ordersList.innerHTML = "";
+
+const snapshot = await getDocs(collection(db,"orders"));
+
+if(snapshot.empty){
+ordersList.innerHTML = "<p>لا توجد طلبات</p>";
+return;
+}
+
+snapshot.forEach((item)=>{
+
+const order = item.data();
+
+ordersList.innerHTML += `
+<div style="background:#eee;padding:10px;margin:10px 0;border-radius:10px;">
+<strong>العميل:</strong> ${order.customerName}
+<br>
+<strong>الهاتف:</strong> ${order.customerPhone}
+<br>
+<strong>المجموع:</strong> $${order.total}
+<br>
+<strong>التاريخ:</strong> ${order.date}
+</div>
+`;
+
+});
+
+};
+
+loadOrders();
 </script>
 
 </body>
