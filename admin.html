@@ -122,6 +122,9 @@ border-radius:10px;
 
 <h2>📦 الطلبات</h2>
 <button onclick="loadOrders()">🔄 تحديث الطلبات</button>
+<button onclick="deleteOrder('${item.id}')" style="background:#cc0000;">
+حذف الطلب
+</button>
 <div id="ordersList"></div>
 </div>
 
@@ -438,6 +441,13 @@ ordersList.innerHTML += `
 <strong>المجموع:</strong> $${order.total}
 <br>
 <strong>التاريخ:</strong> ${order.date}
+<br>
+<strong>المنتجات:</strong>
+<ul>
+${order.items.map(item=>`
+<li>${item.name} - $${item.price}</li>
+`).join("")}
+</ul>
 </div>
 `;
 
@@ -446,6 +456,19 @@ ordersList.innerHTML += `
 };
 
 loadOrders();
+window.deleteOrder = async function(id){
+
+const ok = confirm("هل تريد حذف هذا الطلب؟");
+
+if(!ok){
+return;
+}
+
+await deleteDoc(doc(db,"orders",id));
+
+loadOrders();
+
+};
 </script>
 
 </body>
