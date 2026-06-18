@@ -117,11 +117,12 @@ const category = document.getElementById("category").value;
 const image = document.getElementById("image").value;
 
 if(!name || !price || !rating || !image || !store){
-	if(rating < 0 || rating > 5){
-document.getElementById("message").innerHTML = "التقييم يجب أن يكون بين 0 و 5";
+document.getElementById("message").innerHTML = "املأ كل الحقول";
 return;
 }
-document.getElementById("message").innerHTML = "املأ كل الحقول";
+
+if(rating < 0 || rating > 5){
+document.getElementById("message").innerHTML = "التقييم يجب أن يكون بين 0 و 5";
 return;
 }
 
