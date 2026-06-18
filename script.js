@@ -441,3 +441,42 @@ updateFavCount();
 updateCartCount();
 updateStats();
 loadCompareOptions();
+async function checkout(){
+
+if(cart.length === 0){
+showToast("السلة فارغة");
+return;
+}
+
+const name = document.getElementById("customerName").value;
+const phone = document.getElementById("customerPhone").value;
+
+if(!name || !phone){
+showToast("اكتب الاسم ورقم الهاتف");
+return;
+}
+
+const total = cart.reduce((sum,item)=>sum + item.price,0);
+
+const order = {
+customerName: name,
+customerPhone: phone,
+items: cart,
+total: total,
+date: new Date().toLocaleString()
+};
+
+if(window.saveOrder){
+await window.saveOrder(order);
+showToast("تم حفظ الطلب في Firebase ✅");
+}else{
+showToast("Firebase غير متصل، لم يتم حفظ الطلب");
+return;
+}
+
+clearCart();
+
+document.getElementById("customerName").value = "";
+document.getElementById("customerPhone").value = "";
+
+}
