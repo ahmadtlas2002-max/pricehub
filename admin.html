@@ -77,6 +77,13 @@ background:#0044cc;
 
 <h2>المنتجات الحالية</h2>
 <input id="adminSearch" placeholder="ابحث عن منتج في لوحة الإدارة...">
+<select id="adminCategoryFilter">
+<option value="all">كل التصنيفات</option>
+<option value="phone">هواتف</option>
+<option value="gaming">ألعاب</option>
+<option value="laptop">لابتوبات</option>
+</select>
+
 <div id="productsList"></div>
 </div>
 
@@ -107,6 +114,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 let editingId = null;
+let adminProducts = [];
 
 window.saveProduct = async function(){
 
@@ -175,25 +183,40 @@ document.getElementById("cancelBtn").style.display = "none";
 
 async function loadAdminProducts(){
 
-const list = document.getElementById("productsList");
-list.innerHTML = "";
-
 const snapshot = await getDocs(collection(db,"products"));
+
+adminProducts = [];
 
 snapshot.forEach((item)=>{
 
-const product = item.data();
+adminProducts.push({
+id:item.id,
+...item.data()
+});
 
-list.innerHTML += `
+});
+
+showAdminProducts(adminProducts);
+
+}
+
+function showAdminProducts(list){
+
+const box = document.getElementById("productsList");
+box.innerHTML = "";
+
+list.forEach(product=>{
+
+box.innerHTML += `
 <div style="background:#eee;padding:10px;margin:8px 0;border-radius:8px;">
 <strong>${product.name}</strong>
 <br>
 $${product.price}
 <br>
-<button onclick="editProduct('${item.id}','${product.name}',${product.price},${product.rating},'${product.category}','${product.image}')">
+<button onclick="editProduct('${product.id}','${product.name}',${product.price},${product.rating},'${product.category}','${product.image}')">
 تعديل
 </button>
-<button onclick="deleteProduct('${item.id}')">
+<button onclick="deleteProduct('${product.id}')">
 حذف
 </button>
 </div>
@@ -212,7 +235,6 @@ document.getElementById("price").value = price;
 document.getElementById("rating").value = rating;
 document.getElementById("category").value = category;
 document.getElementById("image").value = image;
-
 document.getElementById("store").value = "Firebase Store";
 
 document.getElementById("saveBtn").innerHTML = "تحديث المنتج";
@@ -241,6 +263,23 @@ document.getElementById("message").innerHTML = "تم حذف المنتج ✅";
 loadAdminProducts();
 
 };
+
+document.getElementById("adminCategoryFilter").addEventListener("change",function(){
+
+const category = this.value;
+
+if(category === "all"){
+showAdminProducts(adminProducts);
+return;
+}
+
+const filtered = adminProducts.filter(product =>
+product.category === category
+);
+
+showAdminProducts(filtered);
+
+});
 
 loadAdminProducts();
 </script>
