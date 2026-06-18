@@ -6,7 +6,6 @@
 <title>PriceHub</title>
 
 <link rel="stylesheet" href="style.css">
-
 </head>
 
 <body>
@@ -16,6 +15,14 @@
 <p>قارن الأسعار بين المتاجر</p>
 </header>
 
+<div id="featuredBox"></div>
+
+<a href="admin.html">
+<button style="width:90%;max-width:300px;display:block;margin:15px auto;background:#222;">
+⚙️ لوحة الإدارة
+</button>
+</a>
+
 <div id="favCount" onclick="openFavorites()">
 ❤️ المفضلة: 0
 </div>
@@ -23,116 +30,71 @@
 <div id="cartCount" onclick="openCart()">
 🛒 السلة: 0
 </div>
+
 <button id="darkBtn" onclick="toggleDarkMode()">
 🌙 الوضع الليلي
 </button>
+
 <div class="statsBox">
-
-<div class="stat">
-📦 المنتجات
-<span id="statProducts">0</span>
+<div class="stat">📦 المنتجات <span id="statProducts">0</span></div>
+<div class="stat">❤️ المفضلة <span id="statFavs">0</span></div>
+<div class="stat">🛒 السلة <span id="statCart">0</span></div>
+<div class="stat">⭐ التقييم <span id="statRating">0</span></div>
 </div>
 
-<div class="stat">
-❤️ المفضلة
-<span id="statFavs">0</span>
-</div>
-
-<div class="stat">
-🛒 السلة
-<span id="statCart">0</span>
-</div>
-
-<div class="stat">
-⭐ التقييم
-<span id="statRating">0</span>
-</div>
-
-</div>
 <div class="search">
-<input
-type="text"
-id="search"
-placeholder="ابحث عن منتج...">
+<input type="text" id="search" placeholder="ابحث عن منتج...">
 </div>
+
 <div class="sortBox">
 <button onclick="sortLow()">الأرخص أولاً</button>
 <button onclick="sortHigh()">الأغلى أولاً</button>
 </div>
-<div class="container" id="products">
-</div>
+
 <div class="filterBox">
 <button onclick="filterCategory('all')">الكل</button>
 <button onclick="filterCategory('phone')">الهواتف</button>
 <button onclick="filterCategory('gaming')">الألعاب</button>
 <button onclick="filterCategory('laptop')">اللابتوبات</button>
 </div>
-<div id="productCount">
-عدد المنتجات: 0
-</div>
 
-<!-- نافذة تفاصيل المنتج -->
+<div id="productCount">عدد المنتجات: 0</div>
+
+<div class="container" id="products"></div>
 
 <div id="popup">
-
 <div class="popup-content">
-
 <h2 id="popupName"></h2>
-
 <img id="popupImage">
-
 <h3 id="popupPrice"></h3>
-
 <div id="popupStores"></div>
-
 <br>
-
-<button onclick="closePopup()">
-إغلاق
-</button>
-
+<button onclick="closePopup()">إغلاق</button>
 </div>
-
 </div>
 
 <div id="cartPopup">
-
 <div class="popup-content">
-
 <h2>🛒 السلة</h2>
-
 <div id="cartItems"></div>
-
 <h3 id="cartTotal"></h3>
-<button onclick="clearCart()">
-🗑️ تفريغ السلة
-</button>
-
-<button onclick="closeCart()">
-إغلاق السلة
-</button>
-
+<button onclick="clearCart()">🗑️ تفريغ السلة</button>
+<button onclick="closeCart()">إغلاق السلة</button>
+</div>
 </div>
 
-</div>
 <div id="favPopup">
-
 <div class="popup-content">
-
 <h2>❤️ المفضلة</h2>
-
 <div id="favItems"></div>
-
-<button onclick="closeFavorites()">
-إغلاق المفضلة
-</button>
-
+<button onclick="closeFavorites()">إغلاق المفضلة</button>
+</div>
 </div>
 
-</div>
 <div id="toast"></div>
 
-<script type="module" src="firebase.js?v=13000"></script>
-<script src="script.js?v=13000"></script>
+<script type="module" src="firebase.js?v=14000"></script>
+<script src="script.js?v=14000"></script>
+
 </body>
 </html>
