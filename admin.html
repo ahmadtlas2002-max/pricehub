@@ -63,7 +63,7 @@ background:#0044cc;
 </select>
 <input id="image" placeholder="رابط الصورة">
 
-<button onclick="addProduct()">إضافة المنتج</button>
+<button id="saveBtn" onclick="addProduct()">إضافة المنتج</button>
 <p id="message"></p>
 
 <hr>
@@ -81,7 +81,8 @@ collection,
 addDoc,
 getDocs,
 deleteDoc,
-doc
+doc,
+updateDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -96,7 +97,7 @@ measurementId: "G-HLCHBX5FF7"
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-
+let editingId = null;
 window.addProduct = async function(){
 
 const name = document.getElementById("name").value;
@@ -151,7 +152,13 @@ list.innerHTML += `
 <br>
 $${product.price}
 <br>
-<button onclick="deleteProduct('${item.id}')">حذف</button>
+<button onclick="editProduct('${item.id}','${product.name}',${product.price},${product.rating},'${product.category}','${product.image}')">
+تعديل
+</button>
+
+<button onclick="deleteProduct('${item.id}')">
+حذف
+</button>
 </div>
 `;
 
@@ -159,17 +166,58 @@ $${product.price}
 
 }
 
-window.deleteProduct = async function(id){
+if(editingId){
 
-await deleteDoc(doc(db,"products",id));
+await updateDoc(doc(db,"products",editingId),{
+name,
+price,
+rating,
+category,
+image,
+stores:[
+store + " : $" + price
+]
+});
 
-document.getElementById("message").innerHTML = "تم حذف المنتج ✅";
+document.getElementById("message").innerHTML =
+"تم تحديث المنتج ✅";
+
+editingId = null;
+
+}else{
+
+await addDoc(collection(db,"products"),{
+name,
+price,
+rating,
+category,
+image,
+stores:[
+store + " : $" + price
+]
+});
+
+document.getElementById("message").innerHTML =
+"تمت إضافة المنتج ✅";
+
+}
 
 loadAdminProducts();
+window.editProduct = function(id,name,price,rating,category,image){
+
+editingId = id;
+document.getElementById("saveBtn").innerHTML = "إضافة المنتج";
+document.getElementById("saveBtn").innerHTML = "تحديث المنتج";
+document.getElementById("name").value = name;
+document.getElementById("price").value = price;
+document.getElementById("rating").value = rating;
+document.getElementById("category").value = category;
+document.getElementById("image").value = image;
+
+document.getElementById("message").innerHTML =
+"✏️ وضع التعديل مفعل";
 
 };
-
-loadAdminProducts();
 </script>
 
 </body>
