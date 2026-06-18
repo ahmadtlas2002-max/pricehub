@@ -334,44 +334,4 @@ statRating.innerHTML = avg.toFixed(1);
 }
 
 updateStats();
-function showToast(message){
-const toast = document.getElementById("toast");
 
-toast.innerHTML = message;
-toast.style.display = "block";
-
-setTimeout(function(){
-toast.style.display = "none";
-}, 2000);
-}
-
-window.setFirebaseProducts = function(firebaseProducts){
-
-products = firebaseProducts.map(product => {
-
-let fixedPrice = product.price;
-let fixedRating = product.rating;
-
-if(fixedPrice === undefined || fixedPrice === null){
-fixedPrice = 0;
-}
-
-if(fixedRating === undefined || fixedRating === null){
-fixedRating = 0;
-}
-
-return {
-name: product.name || "منتج بدون اسم",
-price: Number(fixedPrice),
-rating: Number(fixedRating),
-category: product.category || "other",
-image: product.image || "https://picsum.photos/300/200",
-stores: product.stores || ["Firebase Store : $" + Number(fixedPrice)]
-};
-
-});
-
-showProducts(products);
-updateStats();
-
-};
