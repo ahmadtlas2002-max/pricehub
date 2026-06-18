@@ -398,3 +398,29 @@ body.dark #compareResult table{
 background:#1e1e1e;
 color:white;
 }
+#compareBox{
+width:90%;
+max-width:1000px;
+margin:20px auto;
+background:white;
+padding:20px;
+border-radius:15px;
+box-shadow:0 3px 10px rgba(0,0,0,.1);
+}
+
+#compareResult{
+overflow-x:auto;
+margin-top:15px;
+}
+
+#compareResult table{
+width:100%;
+border-collapse:collapse;
+}
+
+#compareResult th,
+#compareResult td{
+border:1px solid #ddd;
+padding:10px;
+text-align:center;
+}
