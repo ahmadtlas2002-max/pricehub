@@ -77,7 +77,9 @@ background:#0044cc;
 
 <h2>المنتجات الحالية</h2>
 <p id="adminCount">عدد المنتجات: 0</p>
+
 <button onclick="loadAdminProducts()">🔄 تحديث القائمة</button>
+
 <input id="adminSearch" placeholder="ابحث عن منتج في لوحة الإدارة...">
 
 <select id="adminCategoryFilter">
@@ -150,16 +152,12 @@ store + " : $" + price
 };
 
 if(editingId){
-
 await updateDoc(doc(db,"products",editingId),productData);
 document.getElementById("message").innerHTML = "تم تحديث المنتج ✅";
 editingId = null;
-
 }else{
-
 await addDoc(collection(db,"products"),productData);
 document.getElementById("message").innerHTML = "تمت إضافة المنتج ✅";
-
 }
 
 clearForm();
@@ -195,31 +193,62 @@ id:item.id,
 
 });
 
-showAdminProducts(adminProducts);
+applyAdminFilters();
 
 };
 
 function showAdminProducts(list){
 
 const box = document.getElementById("productsList");
+
 document.getElementById("adminCount").innerHTML =
 "عدد المنتجات: " + list.length;
+
 box.innerHTML = "";
+
+if(list.length === 0){
+box.innerHTML = "<p>لا توجد منتجات مطابقة</p>";
+return;
+}
 
 list.forEach(product=>{
 
 box.innerHTML += `
-<div style="background:#eee;padding:10px;margin:8px 0;border-radius:8px;">
+<div style="
+background:#eee;
+padding:10px;
+margin:10px 0;
+border-radius:12px;
+box-shadow:0 2px 8px rgba(0,0,0,.1);
+">
+
+<img
+src="${product.image || 'https://picsum.photos/300/200'}"
+style="
+width:100%;
+max-height:150px;
+object-fit:cover;
+border-radius:8px;
+margin-bottom:10px;
+">
+
 <strong>${product.name}</strong>
 <br>
 $${product.price}
 <br>
+⭐ ${product.rating}
+<br>
+📦 ${product.category}
+<br>
+
 <button onclick="editProductData('${product.id}')">
 تعديل
 </button>
+
 <button onclick="deleteProduct('${product.id}')">
 حذف
 </button>
+
 </div>
 `;
 
@@ -231,13 +260,18 @@ window.editProductData = function(id){
 
 const product = adminProducts.find(p => p.id === id);
 
+if(!product){
+document.getElementById("message").innerHTML = "لم يتم العثور على المنتج";
+return;
+}
+
 editingId = product.id;
 
-document.getElementById("name").value = product.name;
-document.getElementById("price").value = product.price;
-document.getElementById("rating").value = product.rating;
-document.getElementById("category").value = product.category;
-document.getElementById("image").value = product.image;
+document.getElementById("name").value = product.name || "";
+document.getElementById("price").value = product.price || "";
+document.getElementById("rating").value = product.rating || "";
+document.getElementById("category").value = product.category || "phone";
+document.getElementById("image").value = product.image || "";
 document.getElementById("store").value = "Firebase Store";
 
 document.getElementById("saveBtn").innerHTML = "تحديث المنتج";
@@ -246,6 +280,7 @@ document.getElementById("cancelBtn").style.display = "block";
 document.getElementById("message").innerHTML = "✏️ وضع التعديل مفعل";
 
 };
+
 window.deleteProduct = async function(id){
 
 const ok = confirm("هل أنت متأكد من حذف المنتج؟");
@@ -256,19 +291,19 @@ return;
 
 await deleteDoc(doc(db,"products",id));
 
-document.getElementById("message").innerHTML =
-"تم حذف المنتج ✅";
+document.getElementById("message").innerHTML = "تم حذف المنتج ✅";
 
 loadAdminProducts();
 
 };
+
 function applyAdminFilters(){
 
 const searchText = document.getElementById("adminSearch").value.toLowerCase();
 const category = document.getElementById("adminCategoryFilter").value;
 
 let filtered = adminProducts.filter(product =>
-product.name.toLowerCase().includes(searchText)
+(product.name || "").toLowerCase().includes(searchText)
 );
 
 if(category !== "all"){
@@ -283,6 +318,16 @@ showAdminProducts(filtered);
 
 document.getElementById("adminSearch").addEventListener("input",applyAdminFilters);
 document.getElementById("adminCategoryFilter").addEventListener("change",applyAdminFilters);
+
+window.cancelEdit = function(){
+
+editingId = null;
+
+clearForm();
+
+document.getElementById("message").innerHTML = "تم إلغاء التعديل";
+
+};
 
 loadAdminProducts();
 </script>
