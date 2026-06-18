@@ -353,3 +353,48 @@ margin:10px 0;
 font-weight:bold;
 color:#008000;
 }
+.featured-badge{
+background:#ffd700;
+color:#000;
+padding:5px 10px;
+border-radius:20px;
+font-size:12px;
+font-weight:bold;
+display:inline-block;
+margin-bottom:10px;
+}
+#compareBox{
+width:90%;
+margin:20px auto;
+background:white;
+padding:20px;
+border-radius:15px;
+box-shadow:0 3px 10px rgba(0,0,0,.1);
+text-align:center;
+}
+
+#compareBox select{
+width:100%;
+padding:12px;
+margin:8px 0;
+border-radius:8px;
+border:1px solid #ccc;
+font-size:16px;
+}
+
+#compareResult table{
+margin-top:15px;
+border-collapse:collapse;
+background:white;
+}
+
+#compareResult th,
+#compareResult td{
+padding:10px;
+}
+
+body.dark #compareBox,
+body.dark #compareResult table{
+background:#1e1e1e;
+color:white;
+}
