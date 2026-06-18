@@ -44,7 +44,6 @@ throw new Error("Access denied");
 
 <label><input id="featured" type="checkbox"> ⭐ منتج مميز</label>
 <input id="image" placeholder="رابط الصورة">
-
 <img id="previewImage" style="width:100%;margin-top:10px;display:none;border-radius:10px;">
 
 <button id="saveBtn" onclick="saveProduct()">إضافة المنتج</button>
@@ -73,6 +72,15 @@ throw new Error("Access denied");
 <hr>
 
 <h2>📦 الطلبات</h2>
+<p id="orderStats"></p>
+
+<select id="orderStatusFilter">
+<option value="all">كل الطلبات</option>
+<option value="جديد">جديد</option>
+<option value="قيد المعالجة">قيد المعالجة</option>
+<option value="تم التسليم">تم التسليم</option>
+</select>
+
 <button onclick="loadOrders()">🔄 تحديث الطلبات</button>
 <div id="ordersList"></div>
 </div>
@@ -306,21 +314,56 @@ window.logoutAdmin = function(){
 location.reload();
 };
 
+function updateOrderStats(orders){
+
+const newOrders = orders.filter(o => (o.status || "جديد") === "جديد").length;
+const processing = orders.filter(o => o.status === "قيد المعالجة").length;
+const delivered = orders.filter(o => o.status === "تم التسليم").length;
+
+document.getElementById("orderStats").innerHTML =
+`🟡 جديد: ${newOrders}<br>🔵 قيد المعالجة: ${processing}<br>🟢 تم التسليم: ${delivered}`;
+
+}
+
 window.loadOrders = async function(){
 
 const ordersList = document.getElementById("ordersList");
 ordersList.innerHTML = "";
 
 const snapshot = await getDocs(collection(db,"orders"));
+const orders = [];
 
-if(snapshot.empty){
+snapshot.forEach((orderDoc)=>{
+orders.push({
+id: orderDoc.id,
+...orderDoc.data()
+});
+});
+
+updateOrderStats(orders);
+
+if(orders.length === 0){
 ordersList.innerHTML = "<p>لا توجد طلبات</p>";
 return;
 }
 
-snapshot.forEach((orderDoc)=>{
+const selectedStatus = document.getElementById("orderStatusFilter").value;
 
-const order = orderDoc.data();
+let visibleOrders = orders;
+
+if(selectedStatus !== "all"){
+visibleOrders = orders.filter(order =>
+(order.status || "جديد") === selectedStatus
+);
+}
+
+if(visibleOrders.length === 0){
+ordersList.innerHTML = "<p>لا توجد طلبات بهذه الحالة</p>";
+return;
+}
+
+visibleOrders.forEach((order)=>{
+
 const status = order.status || "جديد";
 
 ordersList.innerHTML += `
@@ -345,13 +388,13 @@ ${(order.items || []).map(product => `
 <strong>الحالة:</strong> ${status}
 <br>
 
-<select onchange="updateOrderStatus('${orderDoc.id}', this.value)">
+<select onchange="updateOrderStatus('${order.id}', this.value)">
 <option value="جديد" ${status === "جديد" ? "selected" : ""}>جديد</option>
 <option value="قيد المعالجة" ${status === "قيد المعالجة" ? "selected" : ""}>قيد المعالجة</option>
 <option value="تم التسليم" ${status === "تم التسليم" ? "selected" : ""}>تم التسليم</option>
 </select>
 
-<button onclick="deleteOrder('${orderDoc.id}')" style="background:#cc0000;">
+<button onclick="deleteOrder('${order.id}')" style="background:#cc0000;">
 🗑️ حذف الطلب
 </button>
 
@@ -381,6 +424,8 @@ await deleteDoc(doc(db,"orders",id));
 loadOrders();
 
 };
+
+document.getElementById("orderStatusFilter").addEventListener("change",loadOrders);
 
 loadAdminProducts();
 loadOrders();
