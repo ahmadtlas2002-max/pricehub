@@ -63,6 +63,11 @@ background:#0044cc;
 
 <button onclick="addProduct()">إضافة المنتج</button>
 <p id="message"></p>
+<hr>
+
+<h2>المنتجات الحالية</h2>
+
+<div id="productsList"></div>
 </div>
 
 <script type="module">
@@ -71,7 +76,10 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import {
 getFirestore,
 collection,
-addDoc
+addDoc,
+getDocs,
+deleteDoc,
+doc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -113,13 +121,49 @@ store + " : $" + price
 });
 
 document.getElementById("message").innerHTML = "تمت إضافة المنتج ✅";
-};
+
 document.getElementById("name").value = "";
 document.getElementById("price").value = "";
 document.getElementById("store").value = "";
 document.getElementById("rating").value = "";
 document.getElementById("image").value = "";
 
+loadAdminProducts();
+
+const list = document.getElementById("productsList");
+list.innerHTML = "";
+
+const snapshot = await getDocs(collection(db,"products"));
+
+snapshot.forEach((item)=>{
+
+const product = item.data();
+
+list.innerHTML += `
+<div style="background:#eee;padding:10px;margin:8px 0;border-radius:8px;">
+<strong>${product.name}</strong>
+<br>
+$${product.price}
+<br>
+<button onclick="deleteProduct('${item.id}')">حذف</button>
+</div>
+`;
+
+});
+
+}
+
+window.deleteProduct = async function(id){
+
+await deleteDoc(doc(db,"products",id));
+
+document.getElementById("message").innerHTML = "تم حذف المنتج ✅";
+
+loadAdminProducts();
+
+};
+
+loadAdminProducts();
 </script>
 
 </body>
