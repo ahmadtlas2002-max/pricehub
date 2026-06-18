@@ -346,6 +346,8 @@ toast.style.display = "none";
 }
 {
 
+window.setFirebaseProducts = function(firebaseProducts){
+
 products = firebaseProducts.map(product => {
 
 let fixedPrice = product.price;
