@@ -30,12 +30,13 @@ const data = doc.data();
 
 firebaseProducts.push({
 name: data.name || "",
-price: Number(data.price),
-rating: Number(data.rating),
-category: data.category || "",
+price: Number(data.price || 0),
+rating: Number(data.rating || 0),
+category: data.category || "other",
 image: data.image || "https://picsum.photos/300/200",
-stores:[
-"Firebase Store : $" + Number(data.price)
+featured: data.featured || false,
+stores: data.stores || [
+"Firebase Store : $" + Number(data.price || 0)
 ]
 });
 });
