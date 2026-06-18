@@ -63,7 +63,6 @@ ${product.name}
 <div class="badge">🏆 أفضل سعر</div>
 
 <p class="price">$${product.price}</p>
-
 <p class="rating">⭐ ${product.rating} / 5</p>
 
 <p class="bestStore">
@@ -87,11 +86,9 @@ ${product.stores.map(store=>`
 showProducts(products);
 
 search.addEventListener("input",function(){
-
 const value = search.value.toLowerCase();
 
 const filtered = products.filter(product => {
-
 const nameMatch = product.name.toLowerCase().includes(value);
 
 const storeMatch = product.stores.some(store =>
@@ -99,15 +96,12 @@ store.toLowerCase().includes(value)
 );
 
 return nameMatch || storeMatch;
-
 });
 
 showProducts(filtered);
-
 });
 
 function showDetails(name){
-
 const product = products.find(p => p.name === name);
 
 document.getElementById("popup").style.display = "block";
@@ -122,7 +116,6 @@ stores += `<p>${store}</p>`;
 });
 
 document.getElementById("popupStores").innerHTML = stores;
-
 }
 
 function closePopup(){
@@ -130,7 +123,6 @@ document.getElementById("popup").style.display = "none";
 }
 
 function toggleFav(name){
-
 if(favorites.includes(name)){
 favorites = favorites.filter(item => item !== name);
 showToast(name + " تمت إزالته من المفضلة");
@@ -143,7 +135,6 @@ localStorage.setItem("favorites", JSON.stringify(favorites));
 
 updateFavCount();
 updateStats();
-
 }
 
 function updateFavCount(){
@@ -154,7 +145,6 @@ document.getElementById("favCount").innerHTML =
 updateFavCount();
 
 function addToCart(name){
-
 const product = products.find(p => p.name === name);
 
 cart.push(product);
@@ -165,7 +155,6 @@ updateCartCount();
 updateStats();
 
 showToast("تمت إضافة المنتج للسلة");
-
 }
 
 function updateCartCount(){
@@ -186,14 +175,12 @@ showProducts(sorted);
 }
 
 function toggleDarkMode(){
-
 document.body.classList.toggle("dark");
 
 localStorage.setItem(
 "darkMode",
 document.body.classList.contains("dark")
 );
-
 }
 
 if(localStorage.getItem("darkMode") === "true"){
@@ -201,7 +188,6 @@ document.body.classList.add("dark");
 }
 
 function openCart(){
-
 document.getElementById("cartPopup").style.display = "block";
 
 const cartItems = document.getElementById("cartItems");
@@ -229,7 +215,6 @@ cartItems.innerHTML += `
 });
 
 cartTotal.innerHTML = "المجموع: $" + total;
-
 }
 
 function closeCart(){
@@ -237,7 +222,6 @@ document.getElementById("cartPopup").style.display = "none";
 }
 
 function removeFromCart(index){
-
 cart.splice(index,1);
 
 localStorage.setItem("cart", JSON.stringify(cart));
@@ -246,11 +230,9 @@ updateCartCount();
 updateStats();
 
 openCart();
-
 }
 
 function clearCart(){
-
 cart = [];
 
 localStorage.setItem("cart", JSON.stringify(cart));
@@ -259,11 +241,9 @@ updateCartCount();
 updateStats();
 
 openCart();
-
 }
 
 function filterCategory(category){
-
 if(category === "all"){
 showProducts(products);
 return;
@@ -274,11 +254,9 @@ product.category === category
 );
 
 showProducts(filtered);
-
 }
 
 function openFavorites(){
-
 document.getElementById("favPopup").style.display = "block";
 
 const favItems = document.getElementById("favItems");
@@ -298,7 +276,6 @@ favItems.innerHTML += `
 </div>
 `;
 });
-
 }
 
 function closeFavorites(){
@@ -306,7 +283,6 @@ document.getElementById("favPopup").style.display = "none";
 }
 
 function removeFromFavorites(index){
-
 favorites.splice(index,1);
 
 localStorage.setItem("favorites", JSON.stringify(favorites));
@@ -315,11 +291,9 @@ updateFavCount();
 updateStats();
 
 openFavorites();
-
 }
 
 function updateStats(){
-
 const statProducts = document.getElementById("statProducts");
 const statFavs = document.getElementById("statFavs");
 const statCart = document.getElementById("statCart");
@@ -331,14 +305,17 @@ statProducts.innerHTML = products.length;
 statFavs.innerHTML = favorites.length;
 statCart.innerHTML = cart.length;
 
+if(products.length === 0){
+statRating.innerHTML = "0";
+return;
+}
+
 const avg = products.reduce((sum,p)=>sum+p.rating,0) / products.length;
 
 statRating.innerHTML = avg.toFixed(1);
-
 }
 
 function showToast(message){
-
 const toast = document.getElementById("toast");
 
 toast.innerHTML = message;
@@ -347,10 +324,16 @@ toast.style.display = "block";
 setTimeout(function(){
 toast.style.display = "none";
 }, 2000);
-
 }
 
 window.setFirebaseProducts = function(firebaseProducts){
+
+if(!firebaseProducts || firebaseProducts.length === 0){
+showProducts(products);
+updateStats();
+showToast("لا توجد منتجات في Firebase، يتم عرض المنتجات المحلية");
+return;
+}
 
 products = firebaseProducts.map(product => {
 return {
@@ -365,16 +348,13 @@ stores: product.stores || ["Firebase Store : $" + Number(product.price || 0)]
 
 showProducts(products);
 updateStats();
-
 };
 
 setTimeout(async function(){
-
 if(window.loadFirebaseProducts){
 await window.loadFirebaseProducts();
 showToast("تم تحميل المنتجات من Firebase ✅");
 }
-
 },1000);
 
 updateStats();
