@@ -73,7 +73,7 @@ throw new Error("Access denied");
 
 <h2>📦 الطلبات</h2>
 <p id="orderStats"></p>
-
+<h3 id="totalRevenue">💰 إجمالي الأرباح: $0</h3>
 <select id="orderStatusFilter">
 <option value="all">كل الطلبات</option>
 <option value="جديد">جديد</option>
@@ -84,6 +84,9 @@ throw new Error("Access denied");
 <input id="orderSearch" placeholder="ابحث باسم العميل أو رقم الهاتف...">
 
 <button onclick="loadOrders()">🔄 تحديث الطلبات</button>
+<button onclick="exportOrdersCSV()" style="background:#008000;">
+⬇️ تصدير الطلبات CSV
+</button>
 <div id="ordersList"></div>
 </div>
 
@@ -301,12 +304,27 @@ location.reload();
 };
 
 function updateOrderStats(orders){
+
 const newOrders = orders.filter(o => (o.status || "جديد") === "جديد").length;
 const processing = orders.filter(o => o.status === "قيد المعالجة").length;
 const delivered = orders.filter(o => o.status === "تم التسليم").length;
 
+const revenue = orders.reduce((sum,order)=>{
+return sum + Number(order.total || 0);
+},0);
+
 document.getElementById("orderStats").innerHTML =
-`🟡 جديد: ${newOrders}<br>🔵 قيد المعالجة: ${processing}<br>🟢 تم التسليم: ${delivered}`;
+`
+🟡 جديد: ${newOrders}
+<br>
+🔵 قيد المعالجة: ${processing}
+<br>
+🟢 تم التسليم: ${delivered}
+`;
+
+document.getElementById("totalRevenue").innerHTML =
+"💰 إجمالي الأرباح: $" + revenue.toFixed(2);
+
 }
 
 window.loadOrders = async function(){
@@ -436,6 +454,26 @@ document.getElementById("orderSearch").addEventListener("input",loadOrders);
 
 loadAdminProducts();
 loadOrders();
+window.exportOrdersCSV = async function(){
+
+const snapshot = await getDocs(collection(db,"orders"));
+
+let csv = "العميل,الهاتف,المجموع,التاريخ,الحالة\n";
+
+snapshot.forEach((orderDoc)=>{
+const order = orderDoc.data();
+
+csv += `"${order.customerName || ""}","${order.customerPhone || ""}","${order.total || 0}","${order.date || ""}","${order.status || "جديد"}"\n`;
+});
+
+const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+const link = document.createElement("a");
+
+link.href = URL.createObjectURL(blob);
+link.download = "orders.csv";
+link.click();
+
+};
 </script>
 
 </body>
