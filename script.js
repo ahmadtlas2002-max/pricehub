@@ -450,13 +450,15 @@ const finalTotal = subtotal - discountAmount;
 const order = {
 customerName: name,
 customerPhone: phone,
+customerEmail: document.getElementById("userBox")?.innerText || "",
 items: cart,
 subtotal,
 discountPercent,
 discountAmount,
 coupon: appliedCoupon,
 total: finalTotal,
-date: new Date().toLocaleString()
+date: new Date().toLocaleString(),
+status: "جديد"
 };
 
 try{
@@ -532,3 +534,20 @@ updateFavCount();
 updateCartCount();
 updateStats();
 loadCompareOptions();
+const searchInput = document.getElementById("search");
+
+if(searchInput){
+
+searchInput.addEventListener("input", function(){
+
+const text = this.value.toLowerCase().trim();
+
+const filtered = products.filter(product =>
+(product.name || "").toLowerCase().includes(text)
+);
+
+showProducts(filtered);
+
+});
+
+}
