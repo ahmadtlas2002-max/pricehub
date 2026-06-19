@@ -21,7 +21,19 @@ measurementId: "G-HLCHBX5FF7"
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
+onAuthStateChanged(auth,(user)=>{
+const userBox = document.getElementById("userBox");
+
+if(!userBox) return;
+
+if(user){
+userBox.innerHTML = "👤 " + user.email;
+}else{
+userBox.innerHTML = "👤 غير مسجل الدخول";
+}
+});
 window.loadFirebaseProducts = async function(){
 
 const querySnapshot = await getDocs(collection(db,"products"));
@@ -55,7 +67,22 @@ window.saveOrder = async function(order){
 await addDoc(collection(db,"orders"),order);
 
 };
+window.loadCoupons = async function(){
 
+const snapshot = await getDocs(collection(db,"coupons"));
+
+const coupons = [];
+
+snapshot.forEach((couponDoc)=>{
+coupons.push({
+id: couponDoc.id,
+...couponDoc.data()
+});
+});
+
+return coupons;
+
+};
 window.updateProductStock = async function(id,newStock){
 
 await updateDoc(doc(db,"products",id),{
