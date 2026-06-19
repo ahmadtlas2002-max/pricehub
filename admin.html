@@ -112,6 +112,18 @@ throw new Error("Access denied");
 <button onclick="exportOrdersCSV()" style="background:#008000;">⬇️ تصدير الطلبات CSV</button>
 
 <div id="ordersList"></div>
+
+<hr>
+
+<h2>🎟️ إدارة الكوبونات</h2>
+
+<input id="couponCodeAdmin" placeholder="كود الكوبون مثل PRICE10">
+<input id="couponDiscountAdmin" type="number" placeholder="نسبة الخصم">
+
+<button onclick="addCouponAdmin()">إضافة كوبون</button>
+
+<div id="couponsList"></div>
+
 </div>
 
 <script type="module">
@@ -492,7 +504,13 @@ ordersList.innerHTML += `
 <strong>الهاتف:</strong> ${order.customerPhone}
 <br>
 <button onclick="copyPhone('${order.customerPhone || ""}')">📋 نسخ رقم الهاتف</button>
-<strong>المجموع:</strong> $${order.total}
+<strong>المجموع قبل الخصم:</strong> $${order.subtotal || order.total}
+<br>
+<strong>الكوبون:</strong> ${order.coupon || "لا يوجد"}
+<br>
+<strong>الخصم:</strong> ${order.discountPercent || 0}%
+<br>
+<strong>المجموع النهائي:</strong> $${order.total}
 <br>
 <strong>التاريخ:</strong> ${order.date}
 <br><br>
@@ -579,11 +597,68 @@ navigator.clipboard.writeText(phone);
 alert("تم نسخ رقم الهاتف ✅");
 };
 
+window.addCouponAdmin = async function(){
+const code = document.getElementById("couponCodeAdmin").value.trim().toUpperCase();
+const discount = Number(document.getElementById("couponDiscountAdmin").value);
+
+if(!code || discount <= 0){
+alert("اكتب الكود ونسبة الخصم");
+return;
+}
+
+await addDoc(collection(db,"coupons"),{
+code: code,
+discount: discount
+});
+
+document.getElementById("couponCodeAdmin").value = "";
+document.getElementById("couponDiscountAdmin").value = "";
+
+loadCouponsAdmin();
+};
+
+window.loadCouponsAdmin = async function(){
+const box = document.getElementById("couponsList");
+box.innerHTML = "";
+
+const snapshot = await getDocs(collection(db,"coupons"));
+
+if(snapshot.empty){
+box.innerHTML = "<p>لا توجد كوبونات</p>";
+return;
+}
+
+snapshot.forEach((couponDoc)=>{
+const coupon = couponDoc.data();
+
+box.innerHTML += `
+<div style="background:#eee;padding:10px;margin:8px 0;border-radius:8px;">
+<strong>${coupon.code}</strong>
+<br>
+خصم: ${coupon.discount}%
+<br>
+<button onclick="deleteCouponAdmin('${couponDoc.id}')" style="background:#cc0000;">
+حذف الكوبون
+</button>
+</div>
+`;
+});
+};
+
+window.deleteCouponAdmin = async function(id){
+const ok = confirm("هل تريد حذف هذا الكوبون؟");
+if(!ok) return;
+
+await deleteDoc(doc(db,"coupons",id));
+loadCouponsAdmin();
+};
+
 document.getElementById("orderStatusFilter").addEventListener("change",loadOrders);
 document.getElementById("orderSearch").addEventListener("input",loadOrders);
 
 loadAdminProducts();
 loadOrders();
+loadCouponsAdmin();
 
 setInterval(()=>{
 loadOrders();
