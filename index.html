@@ -31,11 +31,34 @@
 </button>
 </a>
 
-<a href="login.html">
-<button style="width:90%;max-width:300px;display:block;margin:10px auto;background:#673ab7;">
-👤 تسجيل الدخول
-</button>
-</a>
+<onAuthStateChanged(auth,(user)=>{
+
+const userBox = document.getElementById("userBox");
+const loginBtn = document.getElementById("loginBtn");
+
+if(user){
+
+if(userBox){
+userBox.innerHTML = "👤 " + user.email;
+}
+
+if(loginBtn){
+loginBtn.style.display = "none";
+}
+
+}else{
+
+if(userBox){
+userBox.innerHTML = "👤 غير مسجل الدخول";
+}
+
+if(loginBtn){
+loginBtn.style.display = "block";
+}
+
+}
+
+});
 
 <div id="favCount" onclick="openFavorites()">❤️ المفضلة: 0</div>
 <div id="cartCount" onclick="openCart()">🛒 السلة: 0</div>
@@ -120,8 +143,7 @@
 
 <div id="toast"></div>
 
-<script type="module" src="firebase.js?v=36000"></script>
-<script src="script.js?v=36000"></script>
-
+<script type="module" src="firebase.js?v=37000"></script>
+<script src="script.js?v=37000"></script>
 </body>
 </html>
