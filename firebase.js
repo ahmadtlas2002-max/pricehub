@@ -4,7 +4,9 @@ import {
 getFirestore,
 collection,
 getDocs,
-addDoc
+addDoc,
+doc,
+updateDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -26,16 +28,18 @@ const querySnapshot = await getDocs(collection(db,"products"));
 
 const firebaseProducts = [];
 
-querySnapshot.forEach((doc)=>{
-const data = doc.data();
+querySnapshot.forEach((productDoc)=>{
+const data = productDoc.data();
 
 firebaseProducts.push({
+id: productDoc.id,
 name: data.name || "",
 price: Number(data.price || 0),
 rating: Number(data.rating || 0),
 category: data.category || "other",
 image: data.image || "https://picsum.photos/300/200",
 featured: data.featured || false,
+stock: Number(data.stock || 0),
 stores: data.stores || [
 "Firebase Store : $" + Number(data.price || 0)
 ]
@@ -45,8 +49,17 @@ stores: data.stores || [
 window.setFirebaseProducts(firebaseProducts);
 
 };
+
 window.saveOrder = async function(order){
 
 await addDoc(collection(db,"orders"),order);
+
+};
+
+window.updateProductStock = async function(id,newStock){
+
+await updateDoc(doc(db,"products",id),{
+stock:newStock
+});
 
 };
