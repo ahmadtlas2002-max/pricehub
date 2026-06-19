@@ -77,6 +77,12 @@ throw new Error("Access denied");
 <option value="laptop">لابتوبات</option>
 </select>
 
+<select id="stockFilter">
+<option value="all">كل حالات المخزون</option>
+<option value="low">مخزون منخفض</option>
+<option value="out">غير متوفر</option>
+</select>
+
 <div id="productsList"></div>
 
 <hr>
@@ -302,6 +308,7 @@ loadAdminProducts();
 function applyAdminFilters(){
 const searchText = document.getElementById("adminSearch").value.toLowerCase();
 const category = document.getElementById("adminCategoryFilter").value;
+const stockFilter = document.getElementById("stockFilter").value;
 
 let filtered = adminProducts.filter(product =>
 (product.name || "").toLowerCase().includes(searchText)
@@ -309,6 +316,19 @@ let filtered = adminProducts.filter(product =>
 
 if(category !== "all"){
 filtered = filtered.filter(product => product.category === category);
+}
+
+if(stockFilter === "low"){
+filtered = filtered.filter(product =>
+Number(product.stock || 0) > 0 &&
+Number(product.stock || 0) <= 5
+);
+}
+
+if(stockFilter === "out"){
+filtered = filtered.filter(product =>
+Number(product.stock || 0) <= 0
+);
 }
 
 showAdminProducts(filtered);
@@ -325,6 +345,7 @@ document.getElementById("categoryStats").innerHTML =
 
 document.getElementById("adminSearch").addEventListener("input",applyAdminFilters);
 document.getElementById("adminCategoryFilter").addEventListener("change",applyAdminFilters);
+document.getElementById("stockFilter").addEventListener("change",applyAdminFilters);
 
 document.getElementById("image").addEventListener("input",function(){
 const preview = document.getElementById("previewImage");
