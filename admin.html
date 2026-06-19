@@ -137,7 +137,7 @@ const category = document.getElementById("category").value;
 const image = document.getElementById("image").value;
 const featured = document.getElementById("featured").checked;
 
-if(!name || !price || !rating || !store || !image || stock < 0){
+if(!name || !price || stock < 0 || !rating || !store || !image){
 document.getElementById("message").innerHTML = "املأ كل الحقول";
 return;
 }
@@ -150,12 +150,12 @@ return;
 const productData = {
 name,
 price,
+stock,
 rating,
 category,
 image,
 featured,
 stores:[store + " : $" + price]
-stock,
 };
 
 if(editingId){
@@ -174,6 +174,7 @@ loadAdminProducts();
 function clearForm(){
 document.getElementById("name").value = "";
 document.getElementById("price").value = "";
+document.getElementById("stock").value = "";
 document.getElementById("store").value = "";
 document.getElementById("rating").value = "";
 document.getElementById("image").value = "";
@@ -217,6 +218,8 @@ box.innerHTML += `
 <br>
 $${product.price}
 <br>
+📦 الكمية: ${product.stock || 0}
+<br>
 ⭐ ${product.rating}
 <br>
 📦 ${product.category}
@@ -241,6 +244,7 @@ editingId = product.id;
 
 document.getElementById("name").value = product.name || "";
 document.getElementById("price").value = product.price || "";
+document.getElementById("stock").value = product.stock || 0;
 document.getElementById("rating").value = product.rating || "";
 document.getElementById("category").value = product.category || "phone";
 document.getElementById("image").value = product.image || "";
@@ -387,11 +391,9 @@ ordersList.innerHTML += `
 <div class="order-card">
 <strong>العميل:</strong> ${order.customerName}
 <br>
-	<button onclick="copyPhone('${order.customerPhone}')">
-📋 نسخ رقم الهاتف
-</button>
 <strong>الهاتف:</strong> ${order.customerPhone}
 <br>
+<button onclick="copyPhone('${order.customerPhone || ""}')">📋 نسخ رقم الهاتف</button>
 <strong>المجموع:</strong> $${order.total}
 <br>
 <strong>التاريخ:</strong> ${order.date}
@@ -474,18 +476,16 @@ link.download = "orders.csv";
 link.click();
 };
 
+window.copyPhone = function(phone){
+navigator.clipboard.writeText(phone);
+alert("تم نسخ رقم الهاتف ✅");
+};
+
 document.getElementById("orderStatusFilter").addEventListener("change",loadOrders);
 document.getElementById("orderSearch").addEventListener("input",loadOrders);
 
 loadAdminProducts();
 loadOrders();
-window.copyPhone = function(phone){
-
-navigator.clipboard.writeText(phone);
-
-alert("تم نسخ رقم الهاتف ✅");
-
-};
 </script>
 
 </body>
