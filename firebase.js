@@ -23,16 +23,33 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-onAuthStateChanged(auth,(user)=>{
-const userBox = document.getElementById("userBox");
+oonAuthStateChanged(auth,(user)=>{
 
-if(!userBox) return;
+const userBox = document.getElementById("userBox");
+const loginBtn = document.getElementById("loginBtn");
 
 if(user){
+
+if(userBox){
 userBox.innerHTML = "👤 " + user.email;
+}
+
+if(loginBtn){
+loginBtn.style.display = "none";
+}
+
 }else{
+
+if(userBox){
 userBox.innerHTML = "👤 غير مسجل الدخول";
 }
+
+if(loginBtn){
+loginBtn.style.display = "block";
+}
+
+}
+
 });
 window.loadFirebaseProducts = async function(){
 
