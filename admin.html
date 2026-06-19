@@ -28,6 +28,13 @@ throw new Error("Access denied");
 <div class="admin-box">
 <h1>لوحة إدارة PriceHub</h1>
 
+<div style="background:#eef;padding:15px;border-radius:12px;margin:10px 0;">
+<h3>📊 ملخص الإدارة</h3>
+<p id="dashboardProducts">المنتجات: 0</p>
+<p id="dashboardOrders">الطلبات: 0</p>
+<p id="dashboardRevenue">الأرباح: $0</p>
+</div>
+
 <a href="index.html"><button type="button">⬅️ العودة للموقع</button></a>
 <button onclick="logoutAdmin()" style="background:#cc0000;">تسجيل الخروج</button>
 
@@ -74,6 +81,7 @@ throw new Error("Access denied");
 <h2>📦 الطلبات</h2>
 <p id="orderStats"></p>
 <h3 id="totalRevenue">💰 إجمالي الأرباح: $0</h3>
+
 <select id="orderStatusFilter">
 <option value="all">كل الطلبات</option>
 <option value="جديد">جديد</option>
@@ -84,9 +92,8 @@ throw new Error("Access denied");
 <input id="orderSearch" placeholder="ابحث باسم العميل أو رقم الهاتف...">
 
 <button onclick="loadOrders()">🔄 تحديث الطلبات</button>
-<button onclick="exportOrdersCSV()" style="background:#008000;">
-⬇️ تصدير الطلبات CSV
-</button>
+<button onclick="exportOrdersCSV()" style="background:#008000;">⬇️ تصدير الطلبات CSV</button>
+
 <div id="ordersList"></div>
 </div>
 
@@ -184,6 +191,9 @@ adminProducts.push({id:item.id,...item.data()});
 
 applyAdminFilters();
 updateCategoryStats();
+
+document.getElementById("dashboardProducts").innerHTML =
+"المنتجات: " + adminProducts.length;
 };
 
 function showAdminProducts(list){
@@ -304,7 +314,6 @@ location.reload();
 };
 
 function updateOrderStats(orders){
-
 const newOrders = orders.filter(o => (o.status || "جديد") === "جديد").length;
 const processing = orders.filter(o => o.status === "قيد المعالجة").length;
 const delivered = orders.filter(o => o.status === "تم التسليم").length;
@@ -314,17 +323,16 @@ return sum + Number(order.total || 0);
 },0);
 
 document.getElementById("orderStats").innerHTML =
-`
-🟡 جديد: ${newOrders}
-<br>
-🔵 قيد المعالجة: ${processing}
-<br>
-🟢 تم التسليم: ${delivered}
-`;
+`🟡 جديد: ${newOrders}<br>🔵 قيد المعالجة: ${processing}<br>🟢 تم التسليم: ${delivered}`;
 
 document.getElementById("totalRevenue").innerHTML =
 "💰 إجمالي الأرباح: $" + revenue.toFixed(2);
 
+document.getElementById("dashboardOrders").innerHTML =
+"الطلبات: " + orders.length;
+
+document.getElementById("dashboardRevenue").innerHTML =
+"الأرباح: $" + revenue.toFixed(2);
 }
 
 window.loadOrders = async function(){
@@ -399,14 +407,8 @@ ${(order.items || []).map(product => `
 <option value="تم التسليم" ${status === "تم التسليم" ? "selected" : ""}>تم التسليم</option>
 </select>
 
-<button onclick="printOrder(this)">
-🖨️ طباعة الطلب
-</button>
-
-<button onclick="deleteOrder('${order.id}')" style="background:#cc0000;">
-🗑️ حذف الطلب
-</button>
-
+<button onclick="printOrder(this)">🖨️ طباعة الطلب</button>
+<button onclick="deleteOrder('${order.id}')" style="background:#cc0000;">🗑️ حذف الطلب</button>
 </div>
 `;
 });
@@ -436,9 +438,7 @@ const printWindow = window.open("", "", "width=600,height=600");
 
 printWindow.document.write(`
 <html>
-<head>
-<title>طباعة الطلب</title>
-</head>
+<head><title>طباعة الطلب</title></head>
 <body style="font-family:Arial;direction:rtl;">
 ${content}
 </body>
@@ -449,13 +449,7 @@ printWindow.document.close();
 printWindow.print();
 };
 
-document.getElementById("orderStatusFilter").addEventListener("change",loadOrders);
-document.getElementById("orderSearch").addEventListener("input",loadOrders);
-
-loadAdminProducts();
-loadOrders();
 window.exportOrdersCSV = async function(){
-
 const snapshot = await getDocs(collection(db,"orders"));
 
 let csv = "العميل,الهاتف,المجموع,التاريخ,الحالة\n";
@@ -472,8 +466,13 @@ const link = document.createElement("a");
 link.href = URL.createObjectURL(blob);
 link.download = "orders.csv";
 link.click();
-
 };
+
+document.getElementById("orderStatusFilter").addEventListener("change",loadOrders);
+document.getElementById("orderSearch").addEventListener("input",loadOrders);
+
+loadAdminProducts();
+loadOrders();
 </script>
 
 </body>
