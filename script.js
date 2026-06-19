@@ -47,6 +47,9 @@ const search = document.getElementById("search");
 let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
+let discountPercent = 0;
+let appliedCoupon = "";
+
 function showFeaturedProduct(){
 const box = document.getElementById("featuredBox");
 if(!box) return;
@@ -99,7 +102,6 @@ ${product.featured
 : `<div class="badge">🏆 أفضل سعر</div>`}
 
 <p class="price">$${product.price}</p>
-
 <p>📦 المخزون: ${product.stock > 0 ? product.stock : "غير متوفر"}</p>
 <p class="rating">⭐ ${product.rating} / 5</p>
 <p class="bestStore">🏪 أفضل متجر: ${cheapestStore}</p>
@@ -231,7 +233,7 @@ return;
 }
 
 cart.forEach((item,index)=>{
-total += item.price;
+total += Number(item.price || 0);
 cartItems.innerHTML += `
 <div class="cart-item">
 <span>${item.name} - $${item.price}</span>
@@ -240,7 +242,49 @@ cartItems.innerHTML += `
 `;
 });
 
-cartTotal.innerHTML = "المجموع: $" + total;
+let finalTotal = total;
+
+if(discountPercent > 0){
+const discountAmount = total * discountPercent / 100;
+finalTotal = total - discountAmount;
+
+cartTotal.innerHTML =
+"المجموع قبل الخصم: $" + total.toFixed(2) +
+"<br>الخصم: " + discountPercent + "%" +
+"<br>المجموع النهائي: $" + finalTotal.toFixed(2);
+}else{
+cartTotal.innerHTML = "المجموع: $" + total.toFixed(2);
+}
+}
+
+function applyCoupon(){
+const couponInput = document.getElementById("couponCode");
+const couponMessage = document.getElementById("couponMessage");
+
+if(!couponInput || !couponMessage) return;
+
+const code = couponInput.value.trim().toUpperCase();
+
+if(code === "PRICE10"){
+discountPercent = 10;
+appliedCoupon = code;
+couponMessage.innerHTML = "تم تطبيق خصم 10% ✅";
+openCart();
+return;
+}
+
+if(code === "SAVE20"){
+discountPercent = 20;
+appliedCoupon = code;
+couponMessage.innerHTML = "تم تطبيق خصم 20% ✅";
+openCart();
+return;
+}
+
+discountPercent = 0;
+appliedCoupon = "";
+couponMessage.innerHTML = "كود الخصم غير صحيح";
+openCart();
 }
 
 function closeCart(){
@@ -257,6 +301,8 @@ openCart();
 
 function clearCart(){
 cart = [];
+discountPercent = 0;
+appliedCoupon = "";
 localStorage.setItem("cart", JSON.stringify(cart));
 updateCartCount();
 updateStats();
@@ -491,13 +537,19 @@ showToast("اكتب الاسم ورقم الهاتف");
 return;
 }
 
-const total = cart.reduce((sum,item)=>sum + Number(item.price),0);
+const subtotal = cart.reduce((sum,item)=>sum + Number(item.price || 0),0);
+const discountAmount = subtotal * discountPercent / 100;
+const finalTotal = subtotal - discountAmount;
 
 const order = {
 customerName: name,
 customerPhone: phone,
 items: cart,
-total: total,
+subtotal: subtotal,
+discountPercent: discountPercent,
+discountAmount: discountAmount,
+coupon: appliedCoupon,
+total: finalTotal,
 date: new Date().toLocaleString()
 };
 
@@ -537,6 +589,9 @@ await window.updateProductStock(item.id,newStock);
 showToast("تم حفظ الطلب ✅");
 
 cart = [];
+discountPercent = 0;
+appliedCoupon = "";
+
 localStorage.setItem("cart", JSON.stringify(cart));
 updateCartCount();
 updateStats();
@@ -548,6 +603,12 @@ await window.loadFirebaseProducts();
 
 document.getElementById("customerName").value = "";
 document.getElementById("customerPhone").value = "";
+
+const couponInput = document.getElementById("couponCode");
+const couponMessage = document.getElementById("couponMessage");
+
+if(couponInput) couponInput.value = "";
+if(couponMessage) couponMessage.innerHTML = "";
 
 }catch(error){
 console.error(error);
