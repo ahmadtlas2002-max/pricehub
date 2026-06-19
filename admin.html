@@ -40,6 +40,7 @@ throw new Error("Access denied");
 
 <input id="name" placeholder="اسم المنتج">
 <input id="price" type="number" placeholder="السعر">
+<input id="stock" type="number" placeholder="الكمية المتوفرة">
 <input id="store" placeholder="اسم المتجر">
 <input id="rating" type="number" step="0.1" placeholder="التقييم">
 
@@ -129,13 +130,14 @@ let adminProducts = [];
 window.saveProduct = async function(){
 const name = document.getElementById("name").value;
 const price = Number(document.getElementById("price").value);
+const stock = Number(document.getElementById("stock").value);
 const store = document.getElementById("store").value;
 const rating = Number(document.getElementById("rating").value);
 const category = document.getElementById("category").value;
 const image = document.getElementById("image").value;
 const featured = document.getElementById("featured").checked;
 
-if(!name || !price || !rating || !store || !image){
+if(!name || !price || !rating || !store || !image || stock < 0){
 document.getElementById("message").innerHTML = "املأ كل الحقول";
 return;
 }
@@ -153,6 +155,7 @@ category,
 image,
 featured,
 stores:[store + " : $" + price]
+stock,
 };
 
 if(editingId){
@@ -384,6 +387,9 @@ ordersList.innerHTML += `
 <div class="order-card">
 <strong>العميل:</strong> ${order.customerName}
 <br>
+	<button onclick="copyPhone('${order.customerPhone}')">
+📋 نسخ رقم الهاتف
+</button>
 <strong>الهاتف:</strong> ${order.customerPhone}
 <br>
 <strong>المجموع:</strong> $${order.total}
@@ -473,6 +479,13 @@ document.getElementById("orderSearch").addEventListener("input",loadOrders);
 
 loadAdminProducts();
 loadOrders();
+window.copyPhone = function(phone){
+
+navigator.clipboard.writeText(phone);
+
+alert("تم نسخ رقم الهاتف ✅");
+
+};
 </script>
 
 </body>
