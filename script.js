@@ -6,7 +6,8 @@ rating:4.8,
 category:"phone",
 image:"https://picsum.photos/300/200?1",
 stores:["Amazon : $999","MediaMarkt : $1020","Elgiganten : $1040"],
-featured:false
+featured:false,
+stock:5
 },
 {
 name:"Samsung Galaxy S25",
@@ -15,7 +16,8 @@ rating:4.6,
 category:"phone",
 image:"https://picsum.photos/300/200?2",
 stores:["Amazon : $899","MediaMarkt : $920","Elgiganten : $940"],
-featured:false
+featured:false,
+stock:4
 },
 {
 name:"PlayStation 5",
@@ -24,7 +26,8 @@ rating:4.7,
 category:"gaming",
 image:"https://picsum.photos/300/200?3",
 stores:["Amazon : $499","MediaMarkt : $520"],
-featured:false
+featured:false,
+stock:3
 },
 {
 name:"MacBook Pro",
@@ -33,7 +36,8 @@ rating:4.9,
 category:"laptop",
 image:"https://picsum.photos/300/200?4",
 stores:["Amazon : $1799","MediaMarkt : $1820","Elgiganten : $1850"],
-featured:true
+featured:true,
+stock:2
 }
 ];
 
@@ -62,6 +66,7 @@ box.innerHTML = `
 <img src="${featured.image}" style="width:100%;max-width:400px;border-radius:12px;">
 <h3>${featured.name}</h3>
 <p style="font-size:22px;color:green;font-weight:bold;">$${featured.price}</p>
+<p>📦 المخزون: ${featured.stock > 0 ? featured.stock : "غير متوفر"}</p>
 <button onclick="showDetailsByIndex(${index})">عرض المنتج</button>
 </div>
 `;
@@ -94,6 +99,12 @@ ${product.featured
 : `<div class="badge">🏆 أفضل سعر</div>`}
 
 <p class="price">$${product.price}</p>
+
+<p>
+📦 المخزون:
+${product.stock > 0 ? product.stock : "غير متوفر"}
+</p>
+
 <p class="rating">⭐ ${product.rating} / 5</p>
 
 <p class="bestStore">🏪 أفضل متجر: ${cheapestStore}</p>
@@ -101,7 +112,12 @@ ${product.featured
 ${product.stores.map(store=>`<div class="store">${store}</div>`).join("")}
 
 <button onclick="showDetailsByIndex(${index})">عرض المنتج</button>
-<button onclick="addToCartByIndex(${index})">🛒 أضف للسلة</button>
+
+${product.stock > 0
+? `<button onclick="addToCartByIndex(${index})">🛒 أضف للسلة</button>`
+: `<button disabled style="background:#999;">غير متوفر</button>`
+}
+
 <button onclick="shareProductByIndex(${index})">📤 مشاركة</button>
 
 </div>
@@ -122,9 +138,12 @@ document.getElementById("popupImage").src = product.image;
 document.getElementById("popupPrice").innerHTML = "$" + product.price;
 
 let stores = "";
+
 product.stores.forEach(store=>{
 stores += `<p>${store}</p>`;
 });
+
+stores += `<p>📦 المخزون: ${product.stock > 0 ? product.stock : "غير متوفر"}</p>`;
 
 document.getElementById("popupStores").innerHTML = stores;
 }
@@ -158,6 +177,11 @@ document.getElementById("favCount").innerHTML =
 function addToCartByIndex(index){
 const product = products[index];
 if(!product) return;
+
+if(product.stock <= 0){
+showToast("هذا المنتج غير متوفر");
+return;
+}
 
 cart.push(product);
 localStorage.setItem("cart", JSON.stringify(cart));
@@ -326,6 +350,7 @@ rating: Number(product.rating || 0),
 category: product.category || "other",
 image: product.image || "https://picsum.photos/300/200",
 featured: product.featured || false,
+stock: Number(product.stock || 0),
 stores: product.stores || ["Firebase Store : $" + Number(product.price || 0)]
 };
 });
@@ -408,6 +433,11 @@ document.getElementById("compareResult").innerHTML = `
 <td>${p1.category}</td>
 <td>${p2.category}</td>
 </tr>
+<tr>
+<td>المخزون</td>
+<td>${p1.stock > 0 ? p1.stock : "غير متوفر"}</td>
+<td>${p2.stock > 0 ? p2.stock : "غير متوفر"}</td>
+</tr>
 </table>
 `;
 }
@@ -423,7 +453,8 @@ if(!product) return;
 const text =
 product.name +
 "\nالسعر: $" + product.price +
-"\nالتقييم: " + product.rating;
+"\nالتقييم: " + product.rating +
+"\nالمخزون: " + (product.stock > 0 ? product.stock : "غير متوفر");
 
 if(navigator.share){
 navigator.share({
@@ -441,6 +472,7 @@ updateFavCount();
 updateCartCount();
 updateStats();
 loadCompareOptions();
+
 async function checkout(){
 
 if(cart.length === 0){
