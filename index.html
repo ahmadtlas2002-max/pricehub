@@ -31,34 +31,15 @@
 </button>
 </a>
 
-<onAuthStateChanged(auth,(user)=>{
+<a href="login.html" id="loginBtn">
+<button style="width:90%;max-width:300px;display:block;margin:10px auto;background:#673ab7;">
+👤 تسجيل الدخول
+</button>
+</a>
 
-const userBox = document.getElementById("userBox");
-const loginBtn = document.getElementById("loginBtn");
-
-if(user){
-
-if(userBox){
-userBox.innerHTML = "👤 " + user.email;
-}
-
-if(loginBtn){
-loginBtn.style.display = "none";
-}
-
-}else{
-
-if(userBox){
-userBox.innerHTML = "👤 غير مسجل الدخول";
-}
-
-if(loginBtn){
-loginBtn.style.display = "block";
-}
-
-}
-
-});
+<div id="userBox" style="width:90%;max-width:300px;margin:10px auto;background:white;padding:12px;border-radius:10px;text-align:center;font-weight:bold;">
+👤 غير مسجل الدخول
+</div>
 
 <div id="favCount" onclick="openFavorites()">❤️ المفضلة: 0</div>
 <div id="cartCount" onclick="openCart()">🛒 السلة: 0</div>
@@ -143,7 +124,7 @@ loginBtn.style.display = "block";
 
 <div id="toast"></div>
 
-<script type="module" src="firebase.js?v=37000"></script>
-<script src="script.js?v=37000"></script>
+<script type="module" src="firebase.js?v=38000"></script>
+<script src="script.js?v=38000"></script>
 </body>
 </html>
