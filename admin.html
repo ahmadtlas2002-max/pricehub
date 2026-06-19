@@ -81,6 +81,8 @@ throw new Error("Access denied");
 <option value="تم التسليم">تم التسليم</option>
 </select>
 
+<input id="orderSearch" placeholder="ابحث باسم العميل أو رقم الهاتف...">
+
 <button onclick="loadOrders()">🔄 تحديث الطلبات</button>
 <div id="ordersList"></div>
 </div>
@@ -348,17 +350,23 @@ return;
 }
 
 const selectedStatus = document.getElementById("orderStatusFilter").value;
+const searchText = document.getElementById("orderSearch").value.toLowerCase();
 
 let visibleOrders = orders;
 
 if(selectedStatus !== "all"){
-visibleOrders = orders.filter(order =>
+visibleOrders = visibleOrders.filter(order =>
 (order.status || "جديد") === selectedStatus
 );
 }
 
+visibleOrders = visibleOrders.filter(order =>
+(order.customerName || "").toLowerCase().includes(searchText) ||
+(order.customerPhone || "").toLowerCase().includes(searchText)
+);
+
 if(visibleOrders.length === 0){
-ordersList.innerHTML = "<p>لا توجد طلبات بهذه الحالة</p>";
+ordersList.innerHTML = "<p>لا توجد طلبات مطابقة</p>";
 return;
 }
 
@@ -426,6 +434,7 @@ loadOrders();
 };
 
 document.getElementById("orderStatusFilter").addEventListener("change",loadOrders);
+document.getElementById("orderSearch").addEventListener("input",loadOrders);
 
 loadAdminProducts();
 loadOrders();
