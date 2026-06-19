@@ -31,6 +31,8 @@ throw new Error("Access denied");
 <div style="background:#eef;padding:15px;border-radius:12px;margin:10px 0;">
 <h3>📊 ملخص الإدارة</h3>
 <p id="dashboardProducts">المنتجات: 0</p>
+<p id="dashboardOutOfStock">غير متوفر: 0</p>
+<p id="dashboardLowStock">مخزون منخفض: 0</p>
 <p id="dashboardOrders">الطلبات: 0</p>
 <p id="dashboardRevenue">الأرباح: $0</p>
 </div>
@@ -198,6 +200,21 @@ updateCategoryStats();
 
 document.getElementById("dashboardProducts").innerHTML =
 "المنتجات: " + adminProducts.length;
+
+const outOfStock = adminProducts.filter(product =>
+Number(product.stock || 0) <= 0
+).length;
+
+document.getElementById("dashboardOutOfStock").innerHTML =
+"غير متوفر: " + outOfStock;
+
+const lowStock = adminProducts.filter(product =>
+Number(product.stock || 0) > 0 &&
+Number(product.stock || 0) <= 5
+).length;
+
+document.getElementById("dashboardLowStock").innerHTML =
+"مخزون منخفض: " + lowStock;
 };
 
 function showAdminProducts(list){
@@ -219,6 +236,17 @@ box.innerHTML += `
 $${product.price}
 <br>
 📦 الكمية: ${product.stock || 0}
+
+${Number(product.stock || 0) <= 5 && Number(product.stock || 0) > 0
+? `<br><span style="color:red;font-weight:bold;">⚠️ مخزون منخفض</span>`
+: ""
+}
+
+${Number(product.stock || 0) <= 0
+? `<br><span style="color:#900;font-weight:bold;">❌ غير متوفر</span>`
+: ""
+}
+
 <br>
 ⭐ ${product.rating}
 <br>
