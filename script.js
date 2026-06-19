@@ -100,13 +100,8 @@ ${product.featured
 
 <p class="price">$${product.price}</p>
 
-<p>
-📦 المخزون:
-${product.stock > 0 ? product.stock : "غير متوفر"}
-</p>
-
+<p>📦 المخزون: ${product.stock > 0 ? product.stock : "غير متوفر"}</p>
 <p class="rating">⭐ ${product.rating} / 5</p>
-
 <p class="bestStore">🏪 أفضل متجر: ${cheapestStore}</p>
 
 ${product.stores.map(store=>`<div class="store">${store}</div>`).join("")}
@@ -180,6 +175,13 @@ if(!product) return;
 
 if(product.stock <= 0){
 showToast("هذا المنتج غير متوفر");
+return;
+}
+
+const quantityInCart = cart.filter(item => item.name === product.name).length;
+
+if(quantityInCart >= product.stock){
+showToast("لا يوجد كمية إضافية من هذا المنتج");
 return;
 }
 
@@ -344,6 +346,7 @@ window.setFirebaseProducts = function(firebaseProducts){
 if(firebaseProducts && firebaseProducts.length > 0){
 products = firebaseProducts.map(product => {
 return {
+id: product.id || "",
 name: product.name || "منتج بدون اسم",
 price: Number(product.price || 0),
 rating: Number(product.rating || 0),
@@ -506,17 +509,31 @@ return;
 }
 
 await window.saveOrder(order);
-for(const item of cart){
 
-if(item.id && window.updateProductStock){
+const stockUpdates = {};
 
-const newStock = Math.max(Number(item.stock || 0) - 1, 0);
+cart.forEach(item=>{
+if(item.id){
+if(!stockUpdates[item.id]){
+stockUpdates[item.id] = {
+id:item.id,
+stock:Number(item.stock || 0),
+quantity:0
+};
+}
+stockUpdates[item.id].quantity++;
+}
+});
 
+for(const key in stockUpdates){
+const item = stockUpdates[key];
+const newStock = Math.max(item.stock - item.quantity, 0);
+
+if(window.updateProductStock){
 await window.updateProductStock(item.id,newStock);
-
+}
 }
 
-}
 showToast("تم حفظ الطلب ✅");
 
 cart = [];
@@ -524,6 +541,10 @@ localStorage.setItem("cart", JSON.stringify(cart));
 updateCartCount();
 updateStats();
 openCart();
+
+if(window.loadFirebaseProducts){
+await window.loadFirebaseProducts();
+}
 
 document.getElementById("customerName").value = "";
 document.getElementById("customerPhone").value = "";
