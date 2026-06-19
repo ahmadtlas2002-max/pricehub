@@ -506,7 +506,17 @@ return;
 }
 
 await window.saveOrder(order);
+for(const item of cart){
 
+if(item.id && window.updateProductStock){
+
+const newStock = Math.max(Number(item.stock || 0) - 1, 0);
+
+await window.updateProductStock(item.id,newStock);
+
+}
+
+}
 showToast("تم حفظ الطلب ✅");
 
 cart = [];
