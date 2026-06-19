@@ -9,6 +9,11 @@ doc,
 updateDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+import {
+getAuth,
+onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
 const firebaseConfig = {
 apiKey: "AIzaSyA4jGrncraaaktuaDpsO7nz1-qmrqYKM3k",
 authDomain: "pricehub-6d3c4.firebaseapp.com",
@@ -23,38 +28,21 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-oonAuthStateChanged(auth,(user)=>{
-
+onAuthStateChanged(auth,(user)=>{
 const userBox = document.getElementById("userBox");
 const loginBtn = document.getElementById("loginBtn");
 
 if(user){
-
-if(userBox){
-userBox.innerHTML = "👤 " + user.email;
-}
-
-if(loginBtn){
-loginBtn.style.display = "none";
-}
-
+if(userBox) userBox.innerHTML = "👤 " + user.email;
+if(loginBtn) loginBtn.style.display = "none";
 }else{
-
-if(userBox){
-userBox.innerHTML = "👤 غير مسجل الدخول";
+if(userBox) userBox.innerHTML = "👤 غير مسجل الدخول";
+if(loginBtn) loginBtn.style.display = "block";
 }
-
-if(loginBtn){
-loginBtn.style.display = "block";
-}
-
-}
-
 });
+
 window.loadFirebaseProducts = async function(){
-
 const querySnapshot = await getDocs(collection(db,"products"));
-
 const firebaseProducts = [];
 
 querySnapshot.forEach((productDoc)=>{
@@ -69,25 +57,19 @@ category: data.category || "other",
 image: data.image || "https://picsum.photos/300/200",
 featured: data.featured || false,
 stock: Number(data.stock || 0),
-stores: data.stores || [
-"Firebase Store : $" + Number(data.price || 0)
-]
+stores: data.stores || ["Firebase Store : $" + Number(data.price || 0)]
 });
 });
 
 window.setFirebaseProducts(firebaseProducts);
-
 };
 
 window.saveOrder = async function(order){
-
 await addDoc(collection(db,"orders"),order);
-
 };
+
 window.loadCoupons = async function(){
-
 const snapshot = await getDocs(collection(db,"coupons"));
-
 const coupons = [];
 
 snapshot.forEach((couponDoc)=>{
@@ -98,12 +80,10 @@ id: couponDoc.id,
 });
 
 return coupons;
-
 };
-window.updateProductStock = async function(id,newStock){
 
+window.updateProductStock = async function(id,newStock){
 await updateDoc(doc(db,"products",id),{
 stock:newStock
 });
-
 };
