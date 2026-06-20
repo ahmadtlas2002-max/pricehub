@@ -37,7 +37,6 @@ throw new Error("Access denied");
 <p id="dashboardLowStock">مخزون منخفض: 0</p>
 <p id="dashboardOrders">الطلبات: 0</p>
 <p id="dashboardRevenue">الأرباح: $0</p>
-<p id="dashboardVisits">الزيارات: 0</p>
 <p id="topProduct">الأكثر مبيعًا: لا يوجد</p>
 
 <p id="newOrderAlert" style="display:none;background:#ffeb3b;padding:10px;border-radius:8px;font-weight:bold;">
@@ -85,4 +84,453 @@ throw new Error("Access denied");
 <option value="phone">هواتف</option>
 <option value="gaming">ألعاب</option>
 <option value="laptop">لابتوبات</option>
-</select
+</select>
+
+<select id="stockFilter">
+<option value="all">كل حالات المخزون</option>
+<option value="low">مخزون منخفض</option>
+<option value="out">غير متوفر</option>
+</select>
+
+<div id="productsList"></div>
+
+<hr>
+
+<h2>📦 الطلبات</h2>
+<p id="orderStats"></p>
+<h3 id="totalRevenue">💰 إجمالي الأرباح: $0</h3>
+
+<select id="orderStatusFilter">
+<option value="all">كل الطلبات</option>
+<option value="جديد">جديد</option>
+<option value="قيد المعالجة">قيد المعالجة</option>
+<option value="تم التسليم">تم التسليم</option>
+</select>
+
+<input id="orderSearch" placeholder="ابحث باسم العميل أو رقم الهاتف...">
+
+<button onclick="loadOrders()">🔄 تحديث الطلبات</button>
+<button onclick="exportOrdersCSV()" style="background:#008000;">⬇️ تصدير الطلبات CSV</button>
+
+<div id="ordersList"></div>
+
+<hr>
+
+<h2>🎟️ إدارة الكوبونات</h2>
+
+<input id="couponCodeAdmin" placeholder="كود الكوبون مثل PRICE10">
+<input id="couponDiscountAdmin" type="number" placeholder="نسبة الخصم">
+
+<button onclick="addCouponAdmin()">إضافة كوبون</button>
+
+<div id="couponsList"></div>
+
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+getFirestore,
+collection,
+addDoc,
+getDocs,
+deleteDoc,
+doc,
+updateDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+apiKey: "AIzaSyA4jGrncraaaktuaDpsO7nz1-qmrqYKM3k",
+authDomain: "pricehub-6d3c4.firebaseapp.com",
+projectId: "pricehub-6d3c4",
+storageBucket: "pricehub-6d3c4.firebasestorage.app",
+messagingSenderId: "991179979836",
+appId: "1:991179979836:web:cb23f4d31e55364d1ed739",
+measurementId: "G-HLCHBX5FF7"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let editingId = null;
+let adminProducts = [];
+let lastOrdersCount = 0;
+let ordersChart = null;
+
+window.saveProduct = async function(){
+const name = document.getElementById("name").value;
+const price = Number(document.getElementById("price").value);
+const stock = Number(document.getElementById("stock").value);
+const store = document.getElementById("store").value;
+const rating = Number(document.getElementById("rating").value);
+const category = document.getElementById("category").value;
+const image = document.getElementById("image").value;
+const featured = document.getElementById("featured").checked;
+
+if(!name || !price || stock < 0 || !rating || !store || !image){
+document.getElementById("message").innerHTML = "املأ كل الحقول";
+return;
+}
+
+if(rating < 0 || rating > 5){
+document.getElementById("message").innerHTML = "التقييم يجب أن يكون بين 0 و 5";
+return;
+}
+
+const productData = {
+name,
+price,
+stock,
+rating,
+category,
+image,
+featured,
+stores:[store + " : $" + price]
+};
+
+if(editingId){
+await updateDoc(doc(db,"products",editingId),productData);
+document.getElementById("message").innerHTML = "تم تحديث المنتج ✅";
+editingId = null;
+}else{
+await addDoc(collection(db,"products"),productData);
+document.getElementById("message").innerHTML = "تمت إضافة المنتج ✅";
+}
+
+clearForm();
+loadAdminProducts();
+};
+
+function clearForm(){
+document.getElementById("name").value = "";
+document.getElementById("price").value = "";
+document.getElementById("stock").value = "";
+document.getElementById("store").value = "";
+document.getElementById("rating").value = "";
+document.getElementById("image").value = "";
+document.getElementById("featured").checked = false;
+document.getElementById("previewImage").src = "";
+document.getElementById("previewImage").style.display = "none";
+document.getElementById("saveBtn").innerHTML = "إضافة المنتج";
+document.getElementById("cancelBtn").style.display = "none";
+}
+
+window.loadAdminProducts = async function(){
+const snapshot = await getDocs(collection(db,"products"));
+adminProducts = [];
+
+snapshot.forEach((item)=>{
+adminProducts.push({id:item.id,...item.data()});
+});
+
+applyAdminFilters();
+updateCategoryStats();
+
+document.getElementById("dashboardProducts").innerHTML =
+"المنتجات: " + adminProducts.length;
+
+document.getElementById("dashboardOutOfStock").innerHTML =
+"غير متوفر: " + adminProducts.filter(p => Number(p.stock || 0) <= 0).length;
+
+document.getElementById("dashboardLowStock").innerHTML =
+"مخزون منخفض: " + adminProducts.filter(p => Number(p.stock || 0) > 0 && Number(p.stock || 0) <= 5).length;
+};
+
+function showAdminProducts(list){
+const box = document.getElementById("productsList");
+document.getElementById("adminCount").innerHTML = "عدد المنتجات: " + list.length;
+box.innerHTML = "";
+
+if(list.length === 0){
+box.innerHTML = "<p>لا توجد منتجات مطابقة</p>";
+return;
+}
+
+list.forEach(product=>{
+box.innerHTML += `
+<div style="background:#eee;padding:10px;margin:10px 0;border-radius:12px;">
+<img src="${product.image || 'https://picsum.photos/300/200'}" style="width:100%;max-height:150px;object-fit:cover;border-radius:8px;margin-bottom:10px;">
+<strong>${product.name}</strong><br>
+$${product.price}<br>
+📦 الكمية: ${product.stock || 0}<br>
+⭐ ${product.rating}<br>
+📦 ${product.category}<br>
+${product.featured ? "⭐ منتج مميز<br>" : ""}
+<button onclick="editProductData('${product.id}')">تعديل</button>
+<button onclick="deleteProduct('${product.id}')">حذف</button>
+</div>
+`;
+});
+}
+
+window.editProductData = function(id){
+const product = adminProducts.find(p => p.id === id);
+if(!product) return;
+
+editingId = product.id;
+document.getElementById("name").value = product.name || "";
+document.getElementById("price").value = product.price || "";
+document.getElementById("stock").value = product.stock || 0;
+document.getElementById("rating").value = product.rating || "";
+document.getElementById("category").value = product.category || "phone";
+document.getElementById("image").value = product.image || "";
+document.getElementById("store").value = "Firebase Store";
+document.getElementById("featured").checked = product.featured || false;
+
+if(product.image){
+document.getElementById("previewImage").src = product.image;
+document.getElementById("previewImage").style.display = "block";
+}
+
+document.getElementById("saveBtn").innerHTML = "تحديث المنتج";
+document.getElementById("cancelBtn").style.display = "block";
+};
+
+window.deleteProduct = async function(id){
+if(!confirm("هل أنت متأكد من حذف المنتج؟")) return;
+await deleteDoc(doc(db,"products",id));
+loadAdminProducts();
+};
+
+function applyAdminFilters(){
+const searchText = document.getElementById("adminSearch").value.toLowerCase();
+const category = document.getElementById("adminCategoryFilter").value;
+const stockFilter = document.getElementById("stockFilter").value;
+
+let filtered = adminProducts.filter(p => (p.name || "").toLowerCase().includes(searchText));
+
+if(category !== "all") filtered = filtered.filter(p => p.category === category);
+if(stockFilter === "low") filtered = filtered.filter(p => Number(p.stock || 0) > 0 && Number(p.stock || 0) <= 5);
+if(stockFilter === "out") filtered = filtered.filter(p => Number(p.stock || 0) <= 0);
+
+showAdminProducts(filtered);
+}
+
+function updateCategoryStats(){
+document.getElementById("categoryStats").innerHTML =
+`📱 الهواتف: ${adminProducts.filter(p => p.category === "phone").length}<br>
+🎮 الألعاب: ${adminProducts.filter(p => p.category === "gaming").length}<br>
+💻 اللابتوبات: ${adminProducts.filter(p => p.category === "laptop").length}`;
+}
+
+document.getElementById("adminSearch").addEventListener("input",applyAdminFilters);
+document.getElementById("adminCategoryFilter").addEventListener("change",applyAdminFilters);
+document.getElementById("stockFilter").addEventListener("change",applyAdminFilters);
+
+window.cancelEdit = function(){
+editingId = null;
+clearForm();
+};
+
+window.logoutAdmin = function(){
+location.reload();
+};
+
+function updateOrderStats(orders){
+const newOrders = orders.filter(o => (o.status || "جديد") === "جديد").length;
+const processing = orders.filter(o => o.status === "قيد المعالجة").length;
+const delivered = orders.filter(o => o.status === "تم التسليم").length;
+
+const revenue = orders.reduce((sum,o)=>sum + Number(o.total || 0),0);
+
+const sales = {};
+orders.forEach(order=>{
+(order.items || []).forEach(item=>{
+sales[item.name] = (sales[item.name] || 0) + 1;
+});
+});
+
+let topName = "لا يوجد";
+let topCount = 0;
+
+for(const name in sales){
+if(sales[name] > topCount){
+topName = name;
+topCount = sales[name];
+}
+}
+
+document.getElementById("topProduct").innerHTML =
+"🏆 الأكثر مبيعًا: " + topName + " (" + topCount + " مبيعات)";
+
+document.getElementById("orderStats").innerHTML =
+`🟡 جديد: ${newOrders}<br>🔵 قيد المعالجة: ${processing}<br>🟢 تم التسليم: ${delivered}`;
+
+document.getElementById("totalRevenue").innerHTML =
+"💰 إجمالي الأرباح: $" + revenue.toFixed(2);
+
+document.getElementById("dashboardOrders").innerHTML =
+"الطلبات: " + orders.length;
+
+document.getElementById("dashboardRevenue").innerHTML =
+"الأرباح: $" + revenue.toFixed(2);
+}
+
+function updateOrdersChart(orders){
+const ctx = document.getElementById("ordersChart");
+if(!ctx) return;
+
+if(ordersChart) ordersChart.destroy();
+
+ordersChart = new Chart(ctx,{
+type:"bar",
+data:{
+labels:["جديد","قيد المعالجة","تم التسليم"],
+datasets:[{
+label:"عدد الطلبات",
+data:[
+orders.filter(o => (o.status || "جديد") === "جديد").length,
+orders.filter(o => o.status === "قيد المعالجة").length,
+orders.filter(o => o.status === "تم التسليم").length
+]
+}]
+}
+});
+}
+
+window.loadOrders = async function(){
+const ordersList = document.getElementById("ordersList");
+ordersList.innerHTML = "";
+
+const snapshot = await getDocs(collection(db,"orders"));
+const orders = [];
+
+snapshot.forEach(orderDoc=>{
+orders.push({id:orderDoc.id,...orderDoc.data()});
+});
+
+updateOrderStats(orders);
+updateOrdersChart(orders);
+
+const selectedStatus = document.getElementById("orderStatusFilter").value;
+const searchText = document.getElementById("orderSearch").value.toLowerCase();
+
+let visibleOrders = orders;
+
+if(selectedStatus !== "all"){
+visibleOrders = visibleOrders.filter(o => (o.status || "جديد") === selectedStatus);
+}
+
+visibleOrders = visibleOrders.filter(o =>
+(o.customerName || "").toLowerCase().includes(searchText) ||
+(o.customerPhone || "").toLowerCase().includes(searchText)
+);
+
+if(visibleOrders.length === 0){
+ordersList.innerHTML = "<p>لا توجد طلبات</p>";
+return;
+}
+
+visibleOrders.forEach(order=>{
+const status = order.status || "جديد";
+
+ordersList.innerHTML += `
+<div class="order-card">
+<strong>العميل:</strong> ${order.customerName || ""}<br>
+<strong>الهاتف:</strong> ${order.customerPhone || ""}<br>
+<strong>المجموع النهائي:</strong> $${order.total || 0}<br>
+<strong>التاريخ:</strong> ${order.date || ""}<br><br>
+<strong>المنتجات:</strong>
+<ul>
+${(order.items || []).map(p => `<li>${p.name} - $${p.price}</li>`).join("")}
+</ul>
+
+<strong>الحالة:</strong> ${status}<br>
+
+<select onchange="updateOrderStatus('${order.id}', this.value)">
+<option value="جديد" ${status === "جديد" ? "selected" : ""}>جديد</option>
+<option value="قيد المعالجة" ${status === "قيد المعالجة" ? "selected" : ""}>قيد المعالجة</option>
+<option value="تم التسليم" ${status === "تم التسليم" ? "selected" : ""}>تم التسليم</option>
+</select>
+
+<button onclick="deleteOrder('${order.id}')" style="background:#cc0000;">🗑️ حذف الطلب</button>
+</div>
+`;
+});
+};
+
+window.updateOrderStatus = async function(id,status){
+await updateDoc(doc(db,"orders",id),{status});
+loadOrders();
+};
+
+window.deleteOrder = async function(id){
+if(!confirm("هل تريد حذف هذا الطلب؟")) return;
+await deleteDoc(doc(db,"orders",id));
+loadOrders();
+};
+
+window.exportOrdersCSV = async function(){
+const snapshot = await getDocs(collection(db,"orders"));
+let csv = "العميل,الهاتف,المجموع,التاريخ,الحالة\n";
+
+snapshot.forEach(orderDoc=>{
+const o = orderDoc.data();
+csv += `"${o.customerName || ""}","${o.customerPhone || ""}","${o.total || 0}","${o.date || ""}","${o.status || "جديد"}"\n`;
+});
+
+const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+const link = document.createElement("a");
+link.href = URL.createObjectURL(blob);
+link.download = "orders.csv";
+link.click();
+};
+
+window.addCouponAdmin = async function(){
+const code = document.getElementById("couponCodeAdmin").value.trim().toUpperCase();
+const discount = Number(document.getElementById("couponDiscountAdmin").value);
+
+if(!code || discount <= 0){
+alert("اكتب الكود ونسبة الخصم");
+return;
+}
+
+await addDoc(collection(db,"coupons"),{code,discount});
+document.getElementById("couponCodeAdmin").value = "";
+document.getElementById("couponDiscountAdmin").value = "";
+loadCouponsAdmin();
+};
+
+window.loadCouponsAdmin = async function(){
+const box = document.getElementById("couponsList");
+box.innerHTML = "";
+
+const snapshot = await getDocs(collection(db,"coupons"));
+
+if(snapshot.empty){
+box.innerHTML = "<p>لا توجد كوبونات</p>";
+return;
+}
+
+snapshot.forEach(couponDoc=>{
+const coupon = couponDoc.data();
+
+box.innerHTML += `
+<div style="background:#eee;padding:10px;margin:8px 0;border-radius:8px;">
+<strong>${coupon.code}</strong><br>
+خصم: ${coupon.discount}%<br>
+<button onclick="deleteCouponAdmin('${couponDoc.id}')" style="background:#cc0000;">حذف الكوبون</button>
+</div>
+`;
+});
+};
+
+window.deleteCouponAdmin = async function(id){
+if(!confirm("هل تريد حذف هذا الكوبون؟")) return;
+await deleteDoc(doc(db,"coupons",id));
+loadCouponsAdmin();
+};
+
+document.getElementById("orderStatusFilter").addEventListener("change",loadOrders);
+document.getElementById("orderSearch").addEventListener("input",loadOrders);
+
+loadAdminProducts();
+loadOrders();
+loadCouponsAdmin();
+
+setInterval(loadOrders,30000);
+</script>
+
+</body>
+</html>
