@@ -579,3 +579,10 @@ alert("افتح الموقع من Chrome ثم اختر Add to Home Screen");
 
 });
 }
+setTimeout(function(){
+if(window.addVisit){
+window.addVisit().catch(function(error){
+console.log("Visit counter error:", error);
+});
+}
+},1500);
