@@ -127,17 +127,12 @@ throw new Error("Access denied");
 <hr>
 
 <h2>⭐ إدارة التقييمات</h2>
-
+<div style="background:#eef;padding:12px;border-radius:10px;margin:10px 0;">
+<p id="reviewsCount">عدد التقييمات: 0</p>
+<p id="reviewsAverage">متوسط التقييم: 0 / 5</p>
+<p id="mostReviewedProduct">الأكثر تقييمًا: لا يوجد</p>
+</div>
 <button onclick="loadReviewsAdmin()">🔄 تحديث التقييمات</button>
-
-<div id="reviewsAdminList"></div>
-<hr>
-
-<h2>⭐ إدارة التقييمات</h2>
-
-<button onclick="loadReviewsAdmin()">
-🔄 تحديث التقييمات
-</button>
 
 <div id="reviewsAdminList"></div>
 </div>
@@ -530,20 +525,308 @@ box.innerHTML += `
 `;
 });
 };
-window.deleteReview = async function(id){
-
-if(!confirm("حذف التقييم؟")) return;
-
-await deleteDoc(doc(db,"reviews",id));
-
-loadReviewsAdmin();
-
-};
-
 window.deleteCouponAdmin = async function(id){
 if(!confirm("هل تريد حذف هذا الكوبون؟")) return;
 await deleteDoc(doc(db,"coupons",id));
 loadCouponsAdmin();
+};
+
+window.loadReviewsAdmin = async function(){
+const box = document.getElementById("reviewsAdminList");
+
+if(!box) return;
+
+box.innerHTML = "جاري التحميل...";
+
+try{
+const snapshot = await getDocs(collection(db,"reviews"));
+
+const reviewsArray = [];
+
+snapshot.forEach(reviewDoc=>{
+reviewsArray.push({
+id: reviewDoc.id,
+...reviewDoc.data()
+});
+});
+
+updateReviewsStats(reviewsArray);
+
+if(reviewsArray.length === 0){
+box.innerHTML = "<p>لا توجد تقييمات</p>";
+return;
+}
+
+box.innerHTML = "";
+
+reviewsArray.forEach(review=>{
+box.innerHTML += `
+<div style="background:#eee;padding:12px;margin:10px 0;border-radius:10px;">
+<strong>المنتج:</strong> ${review.productName || ""}<br>
+<strong>التقييم:</strong> ⭐ ${review.rating || 0}<br>
+<strong>المستخدم:</strong> ${review.email || ""}<br>
+<strong>التعليق:</strong> ${review.text || ""}<br><br>
+
+<button style="background:#cc0000;" onclick="deleteReview('${review.id}')">
+حذف
+</button>
+</div>
+`;
+});
+
+}catch(error){
+console.error(error);
+box.innerHTML = "<p style='color:red;'>حدث خطأ في تحميل التقييمات. تأكد من Firebase Rules.</p>";
+}
+};
+
+function updateReviewsStats(reviews){
+const reviewsCount = document.getElementById("reviewsCount");
+const reviewsAverage = document.getElementById("reviewsAverage");
+const mostReviewedProduct = document.getElementById("mostReviewedProduct");
+
+if(!reviewsCount || !reviewsAverage || !mostReviewedProduct) return;
+
+reviewsCount.innerHTML = "عدد التقييمات: " + reviews.length;
+
+const avg = reviews.length
+? reviews.reduce((sum,r)=>sum + Number(r.rating || 0),0) / reviews.length
+: 0;
+
+reviewsAverage.innerHTML =
+"متوسط التقييم: " + avg.toFixed(1) + " / 5";
+
+const counts = {};
+
+reviews.forEach(r=>{
+const name = r.productName || "غير معروف";
+counts[name] = (counts[name] || 0) + 1;
+});
+
+let topProduct = "لا يوجد";
+let topCount = 0;
+
+for(const name in counts){
+if(counts[name] > topCount){
+topProduct = name;
+topCount = counts[name];
+}
+}
+
+mostReviewedProduct.innerHTML =
+"الأكثر تقييمًا: " + topProduct + " (" + topCount + ")";
+}
+
+window.deleteReview = async function(id){
+if(!confirm("حذف التقييم؟")) return;
+
+try{
+await deleteDoc(doc(db,"reviews",id));
+loadReviewsAdmin();
+}catch(error){
+console.error(error);
+alert("فشل حذف التقييم. تأكد من Firebase Rules.");
+}
+};
+
+document.getElementById("orderStatusFilter").value;
+const searchText = document.getElementById("orderSearch").value.toLowerCase();
+
+let visibleOrders = orders;
+
+if(selectedStatus !== "all"){
+visibleOrders = visibleOrders.filter(o => (o.status || "جديد") === selectedStatus);
+}
+
+visibleOrders = visibleOrders.filter(o =>
+(o.customerName || "").toLowerCase().includes(searchText) ||
+(o.customerPhone || "").toLowerCase().includes(searchText)
+);
+
+if(visibleOrders.length === 0){
+ordersList.innerHTML = "<p>لا توجد طلبات</p>";
+return;
+}
+
+visibleOrders.forEach(order=>{
+const status = order.status || "جديد";
+
+ordersList.innerHTML += `
+<div class="order-card">
+<strong>العميل:</strong> ${order.customerName || ""}<br>
+<strong>الهاتف:</strong> ${order.customerPhone || ""}<br>
+<strong>المجموع النهائي:</strong> $${order.total || 0}<br>
+<strong>التاريخ:</strong> ${order.date || ""}<br><br>
+<strong>المنتجات:</strong>
+<ul>
+${(order.items || []).map(p => `<li>${p.name} - $${p.price}</li>`).join("")}
+</ul>
+
+<strong>الحالة:</strong> ${status}<br>
+
+<select onchange="updateOrderStatus('${order.id}', this.value)">
+<option value="جديد" ${status === "جديد" ? "selected" : ""}>جديد</option>
+<option value="قيد المعالجة" ${status === "قيد المعالجة" ? "selected" : ""}>قيد المعالجة</option>
+<option value="تم التسليم" ${status === "تم التسليم" ? "selected" : ""}>تم التسليم</option>
+</select>
+
+<button onclick="deleteOrder('${order.id}')" style="background:#cc0000;">🗑️ حذف الطلب</button>
+</div>
+`;
+});
+};
+
+window.updateOrderStatus = async function(id,status){
+await updateDoc(doc(db,"orders",id),{status});
+loadOrders();
+};
+
+window.deleteOrder = async function(id){
+if(!confirm("هل تريد حذف هذا الطلب؟")) return;
+await deleteDoc(doc(db,"orders",id));
+loadOrders();
+};
+
+window.exportOrdersCSV = async function(){
+const snapshot = await getDocs(collection(db,"orders"));
+let csv = "العميل,الهاتف,المجموع,التاريخ,الحالة\n";
+
+snapshot.forEach(orderDoc=>{
+const o = orderDoc.data();
+csv += `"${o.customerName || ""}","${o.customerPhone || ""}","${o.total || 0}","${o.date || ""}","${o.status || "جديد"}"\n`;
+});
+
+const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+const link = document.createElement("a");
+link.href = URL.createObjectURL(blob);
+link.download = "orders.csv";
+link.click();
+};
+
+window.addCouponAdmin = async function(){
+const code = document.getElementById("couponCodeAdmin").value.trim().toUpperCase();
+const discount = Number(document.getElementById("couponDiscountAdmin").value);
+
+if(!code || discount <= 0){
+alert("اكتب الكود ونسبة الخصم");
+return;
+}
+
+await addDoc(collection(db,"coupons"),{code,discount});
+document.getElementById("couponCodeAdmin").value = "";
+document.getElementById("couponDiscountAdmin").value = "";
+loadCouponsAdmin();
+};
+
+window.loadCouponsAdmin = async function(){
+const box = document.getElementById("couponsList");
+box.innerHTML = "";
+
+const snapshot = await getDocs(collection(db,"coupons"));
+
+if(snapshot.empty){
+box.innerHTML = "<p>لا توجد كوبونات</p>";
+return;
+}
+
+snapshot.forEach(couponDoc=>{
+const coupon = couponDoc.data();
+
+box.innerHTML += `
+<div style="background:#eee;padding:10px;margin:8px 0;border-radius:8px;">
+<strong>${coupon.code}</strong><br>
+خصم: ${coupon.discount}%<br>
+<button onclick="deleteCouponAdmin('${couponDoc.id}')" style="background:#cc0000;">حذف الكوبون</button>
+</div>
+`;
+});
+};
+window.deleteCouponAdmin = async function(id){
+if(!confirm("هل تريد حذف هذا الكوبون؟")) return;
+await deleteDoc(doc(db,"coupons",id));
+loadCouponsAdmin();
+};
+
+window.loadReviewsAdmin = async function(){
+
+const box = document.getElementById("reviewsAdminList");
+box.innerHTML = "جاري التحميل...";
+
+const snapshot = await getDocs(collection(db,"reviews"));
+let reviewsArray = [];
+
+snapshot.forEach(reviewDoc=>{
+reviewsArray.push({
+id: reviewDoc.id,
+...reviewDoc.data()
+});
+});
+
+updateReviewsStats(reviewsArray);
+
+box.innerHTML = "";
+
+if(reviewsArray.length === 0){
+box.innerHTML = "<p>لا توجد تقييمات</p>";
+return;
+}
+
+reviewsArray.forEach(review=>{
+
+box.innerHTML += `
+<div style="background:#eee;padding:12px;margin:10px 0;border-radius:10px;">
+<strong>المنتج:</strong> ${review.productName || ""}<br>
+<strong>التقييم:</strong> ⭐ ${review.rating || 0}<br>
+<strong>المستخدم:</strong> ${review.email || ""}<br>
+<strong>التعليق:</strong> ${review.text || ""}<br><br>
+
+<button style="background:#cc0000;" onclick="deleteReview('${review.id}')">
+حذف
+</button>
+</div>
+`;
+
+});
+
+};
+
+function updateReviewsStats(reviews){
+
+document.getElementById("reviewsCount").innerHTML =
+"عدد التقييمات: " + reviews.length;
+
+const avg = reviews.length
+? reviews.reduce((sum,r)=>sum + Number(r.rating || 0),0) / reviews.length
+: 0;
+
+document.getElementById("reviewsAverage").innerHTML =
+"متوسط التقييم: " + avg.toFixed(1) + " / 5";
+
+const counts = {};
+
+reviews.forEach(r=>{
+const name = r.productName || "غير معروف";
+counts[name] = (counts[name] || 0) + 1;
+});
+
+let topProduct = "لا يوجد";
+let topCount = 0;
+
+for(const name in counts){
+if(counts[name] > topCount){
+topProduct = name;
+topCount = counts[name];
+}
+}
+
+document.getElementById("mostReviewedProduct").innerHTML =
+"الأكثر تقييمًا: " + topProduct + " (" + topCount + ")";
+}
+
+window.deleteReview = async function(id){
+if(!confirm("حذف التقييم؟")) return;
+await deleteDoc(doc(db,"reviews",id));
+loadReviewsAdmin();
 };
 
 document.getElementById("orderStatusFilter").addEventListener("change",loadOrders);
@@ -555,43 +838,6 @@ loadCouponsAdmin();
 loadReviewsAdmin();
 
 setInterval(loadOrders,30000);
-window.loadReviewsAdmin = async function(){
-
-const box = document.getElementById("reviewsAdminList");
-box.innerHTML = "جاري التحميل...";
-
-const snapshot = await getDocs(collection(db,"reviews"));
-
-box.innerHTML = "";
-
-if(snapshot.empty){
-box.innerHTML = "<p>لا توجد تقييمات</p>";
-return;
-}
-
-snapshot.forEach(reviewDoc=>{
-const review = reviewDoc.data();
-
-box.innerHTML += `
-<div style="background:#eee;padding:12px;margin:10px 0;border-radius:10px;">
-<strong>المنتج:</strong> ${review.productName || ""}<br>
-<strong>التقييم:</strong> ⭐ ${review.rating || 0}<br>
-<strong>المستخدم:</strong> ${review.email || ""}<br>
-<strong>التعليق:</strong> ${review.text || ""}<br><br>
-
-<button style="background:#cc0000;" onclick="deleteReview('${reviewDoc.id}')">
-حذف
-</button>
-</div>
-`;
-});
-};
-
-window.deleteReview = async function(id){
-if(!confirm("حذف التقييم؟")) return;
-await deleteDoc(doc(db,"reviews",id));
-loadReviewsAdmin();
-};
 </script>
 
 </body>
