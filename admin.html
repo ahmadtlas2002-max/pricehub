@@ -111,6 +111,7 @@ throw new Error("Access denied");
 </select>
 
 <input id="orderSearch" placeholder="ابحث باسم العميل أو رقم الهاتف...">
+<input id="orderDateFilter" type="date">
 
 <button onclick="loadOrders()">🔄 تحديث الطلبات</button>
 <button onclick="exportOrdersCSV()" style="background:#008000;">⬇️ تصدير الطلبات CSV</button>
@@ -428,6 +429,7 @@ updateOrdersChart(orders);
 
 const selectedStatus = document.getElementById("orderStatusFilter").value;
 const searchText = document.getElementById("orderSearch").value.toLowerCase();
+const selectedDate = document.getElementById("orderDateFilter").value;
 
 let visibleOrders = orders;
 
@@ -439,6 +441,24 @@ visibleOrders = visibleOrders.filter(o =>
 (o.customerName || "").toLowerCase().includes(searchText) ||
 (o.customerPhone || "").toLowerCase().includes(searchText)
 );
+if(selectedDate){
+visibleOrders = visibleOrders.filter(o => {
+
+if(!o.date) return false;
+
+const orderDate = new Date(o.date);
+
+if(isNaN(orderDate)) return true;
+
+const formatted =
+orderDate.getFullYear() + "-" +
+String(orderDate.getMonth()+1).padStart(2,"0") + "-" +
+String(orderDate.getDate()).padStart(2,"0");
+
+return formatted === selectedDate;
+
+});
+}
 
 if(visibleOrders.length === 0){
 ordersList.innerHTML = "<p>لا توجد طلبات</p>";
@@ -643,7 +663,7 @@ alert("فشل حذف التقييم. تأكد من Firebase Rules.");
 };
 document.getElementById("orderStatusFilter").addEventListener("change",loadOrders);
 document.getElementById("orderSearch").addEventListener("input",loadOrders);
-
+document.getElementById("orderDateFilter").addEventListener("change",loadOrders);
 loadAdminProducts();
 loadOrders();
 loadCouponsAdmin();
