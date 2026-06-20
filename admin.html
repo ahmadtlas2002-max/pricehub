@@ -124,7 +124,22 @@ throw new Error("Access denied");
 <button onclick="addCouponAdmin()">إضافة كوبون</button>
 
 <div id="couponsList"></div>
+<hr>
 
+<h2>⭐ إدارة التقييمات</h2>
+
+<button onclick="loadReviewsAdmin()">🔄 تحديث التقييمات</button>
+
+<div id="reviewsAdminList"></div>
+<hr>
+
+<h2>⭐ إدارة التقييمات</h2>
+
+<button onclick="loadReviewsAdmin()">
+🔄 تحديث التقييمات
+</button>
+
+<div id="reviewsAdminList"></div>
 </div>
 
 <script type="module">
@@ -515,6 +530,15 @@ box.innerHTML += `
 `;
 });
 };
+window.deleteReview = async function(id){
+
+if(!confirm("حذف التقييم؟")) return;
+
+await deleteDoc(doc(db,"reviews",id));
+
+loadReviewsAdmin();
+
+};
 
 window.deleteCouponAdmin = async function(id){
 if(!confirm("هل تريد حذف هذا الكوبون؟")) return;
@@ -528,8 +552,46 @@ document.getElementById("orderSearch").addEventListener("input",loadOrders);
 loadAdminProducts();
 loadOrders();
 loadCouponsAdmin();
+loadReviewsAdmin();
 
 setInterval(loadOrders,30000);
+window.loadReviewsAdmin = async function(){
+
+const box = document.getElementById("reviewsAdminList");
+box.innerHTML = "جاري التحميل...";
+
+const snapshot = await getDocs(collection(db,"reviews"));
+
+box.innerHTML = "";
+
+if(snapshot.empty){
+box.innerHTML = "<p>لا توجد تقييمات</p>";
+return;
+}
+
+snapshot.forEach(reviewDoc=>{
+const review = reviewDoc.data();
+
+box.innerHTML += `
+<div style="background:#eee;padding:12px;margin:10px 0;border-radius:10px;">
+<strong>المنتج:</strong> ${review.productName || ""}<br>
+<strong>التقييم:</strong> ⭐ ${review.rating || 0}<br>
+<strong>المستخدم:</strong> ${review.email || ""}<br>
+<strong>التعليق:</strong> ${review.text || ""}<br><br>
+
+<button style="background:#cc0000;" onclick="deleteReview('${reviewDoc.id}')">
+حذف
+</button>
+</div>
+`;
+});
+};
+
+window.deleteReview = async function(id){
+if(!confirm("حذف التقييم؟")) return;
+await deleteDoc(doc(db,"reviews",id));
+loadReviewsAdmin();
+};
 </script>
 
 </body>
