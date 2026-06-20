@@ -32,6 +32,7 @@ let cart = JSON.parse(localStorage.getItem("cart")) || [];
 let coupons = [];
 let discountPercent = 0;
 let appliedCoupon = "";
+let currentReviewProduct = "";
 let currentLang = localStorage.getItem("lang") || "ar";
 
 function showProducts(list){
@@ -103,7 +104,8 @@ document.getElementById("popup").style.display = "block";
 document.getElementById("popupName").innerHTML = product.name;
 document.getElementById("popupImage").src = product.image;
 document.getElementById("popupPrice").innerHTML = "$" + product.price;
-
+currentReviewProduct = product.name;
+loadProductReviews(product.name);
 let stores = "";
 product.stores.forEach(store=> stores += `<p>${store}</p>`);
 stores += `<p>📦 ${currentLang === "en" ? "Stock" : "المخزون"}: ${product.stock > 0 ? product.stock : currentLang === "en" ? "Unavailable" : "غير متوفر"}</p>`;
@@ -679,3 +681,76 @@ window.loadFirebaseProducts();
 }
 
 applyLanguage();
+async function loadProductReviews(productName){
+const reviewsBox = document.getElementById("reviewsBox");
+if(!reviewsBox) return;
+
+reviewsBox.innerHTML = "جاري تحميل التقييمات...";
+
+if(!window.loadReviews){
+reviewsBox.innerHTML = "التقييمات غير متصلة";
+return;
+}
+
+const reviews = await window.loadReviews(productName);
+
+if(reviews.length === 0){
+reviewsBox.innerHTML = "<p>لا توجد تقييمات بعد</p>";
+return;
+}
+
+reviewsBox.innerHTML = "";
+
+reviews.forEach(review=>{
+reviewsBox.innerHTML += `
+<div style="background:#eee;padding:10px;margin:8px 0;border-radius:8px;">
+<strong>${"⭐".repeat(Number(review.rating || 5))}</strong>
+<p>${review.text || ""}</p>
+<small>${review.email || "مستخدم"} - ${review.date || ""}</small>
+</div>
+`;
+});
+}
+
+async function addReview(){
+const rating = document.getElementById("reviewRating").value;
+const text = document.getElementById("reviewText").value.trim();
+
+if(!currentReviewProduct){
+showToast("افتح منتج أولاً");
+return;
+}
+
+if(!text){
+showToast("اكتب تعليقك");
+return;
+}
+
+const email = (document.getElementById("userBox")?.innerText || "")
+.replace("👤","")
+.trim();
+
+if(!email || email === "غير مسجل الدخول"){
+showToast("سجل الدخول أولاً حتى تكتب تقييم");
+return;
+}
+
+if(!window.saveReview){
+showToast("Firebase غير متصل بالتقييمات");
+return;
+}
+
+const review = {
+productName: currentReviewProduct,
+rating: Number(rating),
+text,
+email,
+date: new Date().toLocaleString()
+};
+
+await window.saveReview(review);
+
+document.getElementById("reviewText").value = "";
+showToast("تم إرسال التقييم ✅");
+loadProductReviews(currentReviewProduct);
+}
