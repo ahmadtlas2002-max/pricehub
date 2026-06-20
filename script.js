@@ -611,5 +611,33 @@ applyLanguage();
 if(window.loadFirebaseProducts){
 window.loadFirebaseProducts();
 }
+const buttons = document.querySelectorAll("button");
+
+buttons.forEach(btn=>{
+const text = btn.innerText;
+
+if(isEnglish){
+btn.innerText = text
+.replace("لوحة الإدارة","Admin Panel")
+.replace("تتبع الطلب","Track Order")
+.replace("تسجيل الدخول","Login")
+.replace("طلباتي","My Orders")
+.replace("تثبيت PriceHub","Install PriceHub")
+.replace("الوضع الليلي","Dark Mode")
+.replace("الأرخص أولاً","Lowest Price")
+.replace("الأغلى أولاً","Highest Price")
+.replace("الكل","All")
+.replace("الهواتف","Phones")
+.replace("الألعاب","Gaming")
+.replace("اللابتوبات","Laptops")
+.replace("مقارنة","Compare")
+.replace("مسح المقارنة","Clear Compare")
+.replace("تأكيد الطلب","Checkout")
+.replace("تفريغ السلة","Clear Cart")
+.replace("إغلاق السلة","Close Cart");
+}else{
+location.reload();
+}
+});
 }
 applyLanguage();
