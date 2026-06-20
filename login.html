@@ -30,6 +30,7 @@ margin:8px 0;
 border-radius:8px;
 border:1px solid #ccc;
 font-size:16px;
+box-sizing:border-box;
 }
 
 button{
@@ -51,21 +52,19 @@ background:#cc0000;
 <h1>👤 حساب المستخدم</h1>
 
 <a href="index.html">
-<button>⬅️ العودة للموقع</button>
+<button type="button">⬅️ العودة للموقع</button>
 </a>
 
 <input id="email" type="email" placeholder="البريد الإلكتروني">
 <input id="password" type="password" placeholder="كلمة المرور">
 
-<button onclick="registerUser()">إنشاء حساب</button>
-<button onclick="loginUser()">تسجيل الدخول</button>
-<button onclick="resetPassword()" style="background:#ff9800;">
-🔑 نسيت كلمة المرور
-</button>
-<button class="logout" onclick="logoutUser()">تسجيل الخروج</button>
+<button type="button" onclick="registerUser()">إنشاء حساب</button>
+<button type="button" onclick="loginUser()">تسجيل الدخول</button>
+<button type="button" onclick="resetPassword()" style="background:#ff9800;">🔑 نسيت كلمة المرور</button>
+<button type="button" class="logout" onclick="logoutUser()">تسجيل الخروج</button>
 
 <p id="message"></p>
-<p id="userStatus"></p>
+<p id="userStatus">غير مسجل الدخول</p>
 </div>
 
 <script type="module">
@@ -93,66 +92,94 @@ measurementId: "G-HLCHBX5FF7"
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
+const emailInput = document.getElementById("email");
+const passwordInput = document.getElementById("password");
+const message = document.getElementById("message");
+const status = document.getElementById("userStatus");
+
+function getEmail(){
+return emailInput.value.trim();
+}
+
+function getPassword(){
+return passwordInput.value.trim();
+}
+
 window.registerUser = async function(){
-const email = document.getElementById("email").value;
-const password = document.getElementById("password").value;
+const email = getEmail();
+const password = getPassword();
+
+if(!email || !email.includes("@")){
+message.innerHTML = "اكتب بريد إلكتروني صحيح";
+return;
+}
+
+if(password.length < 6){
+message.innerHTML = "كلمة المرور يجب أن تكون 6 أحرف على الأقل";
+return;
+}
 
 try{
 await createUserWithEmailAndPassword(auth,email,password);
-document.getElementById("message").innerHTML = "تم إنشاء الحساب ✅";
+message.innerHTML = "تم إنشاء الحساب ✅";
 }catch(error){
-document.getElementById("message").innerHTML = error.message;
+message.innerHTML = error.message;
 }
 };
 
 window.loginUser = async function(){
-const email = document.getElementById("email").value;
-const password = document.getElementById("password").value;
+const email = getEmail();
+const password = getPassword();
+
+if(!email || !password){
+message.innerHTML = "اكتب البريد وكلمة المرور";
+return;
+}
 
 try{
 await signInWithEmailAndPassword(auth,email,password);
-document.getElementById("message").innerHTML = "تم تسجيل الدخول ✅";
+message.innerHTML = "تم تسجيل الدخول ✅";
+window.location.href = "profile.html";
 }catch(error){
-document.getElementById("message").innerHTML = error.message;
+message.innerHTML = error.message;
 }
 };
 
 window.logoutUser = async function(){
+try{
 await signOut(auth);
 localStorage.removeItem("userEmail");
-document.getElementById("message").innerHTML = "تم تسجيل الخروج";
-};
-window.resetPassword = async function(){
-
-const email = document.getElementById("email").value;
-if(!email || !email.includes("@")){
-document.getElementById("message").innerHTML = "اكتب بريد إلكتروني صحيح";
-return;
+message.innerHTML = "تم تسجيل الخروج";
+}catch(error){
+message.innerHTML = error.message;
 }
-if(!email){
-document.getElementById("message").innerHTML = "اكتب البريد الإلكتروني أولاً";
+};
+
+window.resetPassword = async function(){
+const email = getEmail();
+
+if(!email || !email.includes("@")){
+message.innerHTML = "اكتب بريد إلكتروني صحيح";
 return;
 }
 
 try{
 await sendPasswordResetEmail(auth,email);
-document.getElementById("message").innerHTML = "تم إرسال رابط إعادة تعيين كلمة المرور ✅";
+message.innerHTML = "تم إرسال رابط إعادة تعيين كلمة المرور ✅";
 }catch(error){
-document.getElementById("message").innerHTML = error.message;
+message.innerHTML = error.message;
 }
-
 };
-onAuthStateChanged(auth,(user)=>{
-const status = document.getElementById("userStatus");
 
+onAuthStateChanged(auth,function(user){
 if(user){
 localStorage.setItem("userEmail", user.email);
 status.innerHTML = "مسجل الدخول: " + user.email;
 }else{
+localStorage.removeItem("userEmail");
 status.innerHTML = "غير مسجل الدخول";
 }
 });
-
 </script>
 
 </body>
