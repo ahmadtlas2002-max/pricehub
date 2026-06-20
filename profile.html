@@ -1,82 +1,3 @@
-<!DOCTYPE html>
-<html lang="ar">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>حسابي - PriceHub</title>
-
-<style>
-body{
-font-family:Arial;
-background:#f5f5f5;
-padding:20px;
-direction:rtl;
-}
-
-.box{
-background:white;
-max-width:500px;
-margin:auto;
-padding:20px;
-border-radius:15px;
-text-align:center;
-box-shadow:0 5px 15px rgba(0,0,0,.1);
-}
-
-button{
-width:100%;
-padding:12px;
-margin:10px 0;
-border:none;
-border-radius:8px;
-background:#0066ff;
-color:white;
-font-size:18px;
-cursor:pointer;
-}
-
-button:hover{
-opacity:.9;
-}
-
-#memberBadge{
-background:#fff3cd;
-padding:10px;
-border-radius:10px;
-font-weight:bold;
-margin:10px 0;
-}
-</style>
-</head>
-
-<body>
-
-<div class="box">
-
-<h1>👤 حسابي</h1>
-
-<p id="userEmail">غير مسجل الدخول</p>
-
-<p id="memberBadge">🥉 عضو جديد</p>
-
-<p id="ordersCount">📦 عدد الطلبات: 0</p>
-
-<p id="favCountProfile">❤️ المفضلة: 0</p>
-
-<a href="myorders.html">
-<button>📦 طلباتي</button>
-</a>
-
-<a href="index.html">
-<button>🏠 العودة للرئيسية</button>
-</a>
-
-<button onclick="logoutProfile()" style="background:#cc0000;">
-🚪 تسجيل الخروج
-</button>
-
-</div>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
@@ -85,6 +6,12 @@ getFirestore,
 collection,
 getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+import {
+getAuth,
+onAuthStateChanged,
+signOut
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
 apiKey: "AIzaSyA4jGrncraaaktuaDpsO7nz1-qmrqYKM3k",
@@ -98,14 +25,10 @@ measurementId: "G-HLCHBX5FF7"
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
-const email = localStorage.getItem("userEmail");
-
-if(email){
-document.getElementById("userEmail").innerHTML = "📧 " + email;
-}
-
-window.logoutProfile = function(){
+window.logoutProfile = async function(){
+await signOut(auth);
 localStorage.removeItem("userEmail");
 window.location.href = "login.html";
 };
@@ -123,11 +46,15 @@ document.getElementById("memberBadge").innerHTML = "🥈 عضو نشط";
 document.getElementById("memberBadge").innerHTML = "🥉 عضو جديد";
 }
 
-async function loadOrdersCount(){
-if(!email){
+onAuthStateChanged(auth, async(user)=>{
+if(!user){
+document.getElementById("userEmail").innerHTML = "غير مسجل الدخول";
 document.getElementById("ordersCount").innerHTML = "📦 عدد الطلبات: 0";
 return;
 }
+
+localStorage.setItem("userEmail", user.email);
+document.getElementById("userEmail").innerHTML = "📧 " + user.email;
 
 const snapshot = await getDocs(collection(db,"orders"));
 
@@ -136,16 +63,12 @@ let count = 0;
 snapshot.forEach(doc=>{
 const order = doc.data();
 
-if(order.customerEmail === email){
+if(order.customerEmail === user.email){
 count++;
 }
 });
 
 document.getElementById("ordersCount").innerHTML =
 "📦 عدد الطلبات: " + count;
-}
-
-loadOrdersCount();
+});
 </script>
-</body>
-</html>
