@@ -73,16 +73,15 @@ ${product.stock > 0
 </div>
 `;
 });
-
-showFeaturedProduct();
-applyLanguage();
-}
 setTimeout(()=>{
 list.forEach(product=>{
 const index = products.indexOf(product);
 loadCardReviews(product.name,index);
 });
 },500);
+showFeaturedProduct();
+applyLanguage();
+
 function showFeaturedProduct(){
 const box = document.getElementById("featuredBox");
 if(!box) return;
@@ -782,7 +781,7 @@ box.innerHTML = "لا توجد تقييمات بعد";
 return;
 }
 
-cconst avgRating = reviews.reduce((sum,r)=>sum + Number(r.rating || 0),0) / reviews.length;
+const avgRating = reviews.reduce((sum,r)=>sum + Number(r.rating || 0),0) / reviews.length;
 const lastReviews = reviews.slice(-3).reverse();
 
 box.innerHTML =
