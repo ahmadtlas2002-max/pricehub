@@ -586,3 +586,31 @@ installBtn.style.display = "none";
 });
 
 }
+let deferredPrompt = null;
+
+window.addEventListener("beforeinstallprompt", function(e){
+e.preventDefault();
+deferredPrompt = e;
+
+const installBtn = document.getElementById("installBtn");
+if(installBtn){
+installBtn.style.display = "block";
+}
+});
+
+const installBtn = document.getElementById("installBtn");
+
+if(installBtn){
+installBtn.addEventListener("click", async function(){
+
+if(deferredPrompt){
+deferredPrompt.prompt();
+await deferredPrompt.userChoice;
+deferredPrompt = null;
+installBtn.style.display = "none";
+}else{
+alert("إذا لم يظهر التثبيت، افتح الموقع من Chrome ثم من القائمة اختر Add to Home Screen");
+}
+
+});
+}
