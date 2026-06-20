@@ -3,144 +3,139 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0066ff">
+<title>طلباتي - PriceHub</title>
 
-<title>PriceHub</title>
+<style>
+body{
+font-family:Arial;
+background:#f5f5f5;
+padding:20px;
+direction:rtl;
+}
 
-<link rel="stylesheet" href="style.css?v=33000">
-<link rel="manifest" href="manifest.json">
+.box{
+background:white;
+max-width:700px;
+margin:auto;
+padding:20px;
+border-radius:15px;
+box-shadow:0 5px 15px rgba(0,0,0,.1);
+}
+
+.order{
+background:#eee;
+padding:15px;
+margin:10px 0;
+border-radius:10px;
+}
+
+.status{
+padding:5px 10px;
+border-radius:8px;
+color:white;
+display:inline-block;
+}
+</style>
 </head>
 
 <body>
 
-<header>
-<h1>PriceHub</h1>
-<p>قارن الأسعار بين المتاجر</p>
-</header>
+<div class="box">
+<h1>📦 طلباتي</h1>
 
-<div id="featuredBox"></div>
-
-<a href="admin.html">
-<button style="width:90%;max-width:300px;display:block;margin:15px auto;background:#222;">
-⚙️ لوحة الإدارة
-</button>
+<a href="index.html">
+<button>⬅️ العودة للرئيسية</button>
 </a>
 
-<a href="track.html">
-<button style="width:90%;max-width:300px;display:block;margin:10px auto;background:#008000;">
-📦 تتبع الطلب
-</button>
-</a>
-
-<a href="login.html" id="loginBtn">
-<button style="width:90%;max-width:300px;display:block;margin:10px auto;background:#673ab7;">
-👤 تسجيل الدخول
-</button>
-</a>
-<a href="myorders.html">
-<button style="width:90%;max-width:300px;display:block;margin:10px auto;background:#ff9800;">
-📦 طلباتي
-</button>
-<button id="installBtn" style="
-width:90%;
-max-width:300px;
-display:block;
-margin:10px auto;
-background:#009688;
-color:white;
-display:none;
-">
-📲 تثبيت PriceHub
-</button>
-</a>
-<div id="userBox" style="width:90%;max-width:300px;margin:10px auto;background:white;padding:12px;border-radius:10px;text-align:center;font-weight:bold;">
-👤 غير مسجل الدخول
+<div id="orders"></div>
 </div>
 
-<div id="favCount" onclick="openFavorites()">❤️ المفضلة: 0</div>
-<div id="cartCount" onclick="openCart()">🛒 السلة: 0</div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
-<button id="darkBtn" onclick="toggleDarkMode()">🌙 الوضع الليلي</button>
+import {
+getFirestore,
+collection,
+getDocs
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-<div class="statsBox">
-<div class="stat">📦 المنتجات <span id="statProducts">0</span></div>
-<div class="stat">⭐ مميزة <span id="statFeatured">0</span></div>
-<div class="stat">❤️ المفضلة <span id="statFavs">0</span></div>
-<div class="stat">🛒 السلة <span id="statCart">0</span></div>
-<div class="stat">⭐ التقييم <span id="statRating">0</span></div>
+import {
+getAuth,
+onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const firebaseConfig = {
+apiKey: "AIzaSyA4jGrncraaaktuaDpsO7nz1-qmrqYKM3k",
+authDomain: "pricehub-6d3c4.firebaseapp.com",
+projectId: "pricehub-6d3c4",
+storageBucket: "pricehub-6d3c4.firebasestorage.app",
+messagingSenderId: "991179979836",
+appId: "1:991179979836:web:cb23f4d31e55364d1ed739",
+measurementId: "G-HLCHBX5FF7"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+onAuthStateChanged(auth, async(user)=>{
+const box = document.getElementById("orders");
+
+if(!user){
+box.innerHTML = "<h3>⚠️ يجب تسجيل الدخول أولاً</h3>";
+return;
+}
+
+const snapshot = await getDocs(collection(db,"orders"));
+
+let html = "";
+let found = false;
+
+snapshot.forEach(doc=>{
+const order = doc.data();
+
+if(order.customerEmail === user.email){
+found = true;
+
+let color = "#2196f3";
+
+if(order.status === "قيد المعالجة"){
+color = "#ff9800";
+}
+
+if(order.status === "تم التسليم"){
+color = "#28a745";
+}
+
+html += `
+<div class="order">
+<h3>
+<span class="status" style="background:${color}">
+${order.status || "جديد"}
+</span>
+</h3>
+
+<p>💰 المجموع: $${order.total || 0}</p>
+<p>📅 التاريخ: ${order.date || ""}</p>
+
+<h4>المنتجات:</h4>
+<ul>
+${(order.items || []).map(item =>
+`<li>${item.name} - $${item.price}</li>`
+).join("")}
+</ul>
 </div>
+`;
+}
+});
 
-<div class="search">
-<input type="text" id="search" placeholder="ابحث عن منتج...">
-</div>
+if(!found){
+html = "<h3>لا توجد طلبات مرتبطة بحسابك</h3>";
+}
 
-<div class="sortBox">
-<button onclick="sortLow()">الأرخص أولاً</button>
-<button onclick="sortHigh()">الأغلى أولاً</button>
-</div>
+box.innerHTML = html;
+});
+</script>
 
-<div class="filterBox">
-<button onclick="filterCategory('all')">الكل</button>
-<button onclick="filterCategory('phone')">الهواتف</button>
-<button onclick="filterCategory('gaming')">الألعاب</button>
-<button onclick="filterCategory('laptop')">اللابتوبات</button>
-</div>
-
-<div id="productCount">عدد المنتجات: 0</div>
-
-<div id="compareBox">
-<h2 style="text-align:center;">📊 مقارنة المنتجات</h2>
-<select id="compare1"></select>
-<select id="compare2"></select>
-<button onclick="compareProducts()">مقارنة</button>
-<button onclick="clearCompare()" style="background:#777;">مسح المقارنة</button>
-<div id="compareResult"></div>
-</div>
-
-<div class="container" id="products"></div>
-
-<div id="popup">
-<div class="popup-content">
-<h2 id="popupName"></h2>
-<img id="popupImage">
-<h3 id="popupPrice"></h3>
-<div id="popupStores"></div>
-<br>
-<button onclick="closePopup()">إغلاق</button>
-</div>
-</div>
-
-<div id="cartPopup">
-<div class="popup-content">
-<h2>🛒 السلة</h2>
-<div id="cartItems"></div>
-
-<h3 id="cartTotal"></h3>
-
-<input id="couponCode" placeholder="كود الخصم">
-<button onclick="applyCoupon()">🎟️ تطبيق الكوبون</button>
-<p id="couponMessage"></p>
-
-<input id="customerName" placeholder="اسم العميل">
-<input id="customerPhone" placeholder="رقم الهاتف">
-
-<button onclick="checkout()">✅ تأكيد الطلب</button>
-<button onclick="clearCart()">🗑️ تفريغ السلة</button>
-<button onclick="closeCart()">إغلاق السلة</button>
-</div>
-</div>
-
-<div id="favPopup">
-<div class="popup-content">
-<h2>❤️ المفضلة</h2>
-<div id="favItems"></div>
-<button onclick="closeFavorites()">إغلاق المفضلة</button>
-</div>
-</div>
-
-<div id="toast"></div>
-
-<script type="module" src="firebase.js?v=41000"></script>
-<script src="script.js?v=41000"></script>
 </body>
 </html>
