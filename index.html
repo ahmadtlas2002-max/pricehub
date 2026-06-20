@@ -32,9 +32,9 @@
 </button>
 </a>
 
-<a href="login.html" id="loginBtn">
+<a href="profile.html" id="loginBtn">
 <button style="width:90%;max-width:300px;display:block;margin:10px auto;background:#673ab7;">
-👤 تسجيل الدخول
+👤 حسابي
 </button>
 </a>
 
@@ -62,7 +62,7 @@
 <button id="darkBtn" onclick="toggleDarkMode()">🌙 الوضع الليلي</button>
 
 <div class="statsBox">
-	
+
 <div class="stat">📦 المنتجات <span id="statProducts">0</span></div>
 <div class="stat">⭐ مميزة <span id="statFeatured">0</span></div>
 <div class="stat">❤️ المفضلة <span id="statFavs">0</span></div>
@@ -105,6 +105,23 @@
 <img id="popupImage">
 <h3 id="popupPrice"></h3>
 <div id="popupStores"></div>
+<hr>
+
+<h3>⭐ التقييمات</h3>
+
+<div id="reviewsBox"></div>
+
+<select id="reviewRating">
+<option value="5">⭐⭐⭐⭐⭐</option>
+<option value="4">⭐⭐⭐⭐</option>
+<option value="3">⭐⭐⭐</option>
+<option value="2">⭐⭐</option>
+<option value="1">⭐</option>
+</select>
+
+<textarea id="reviewText" placeholder="اكتب تعليقك" style="width:100%;height:80px;margin:10px 0;"></textarea>
+
+<button onclick="addReview()">إرسال التقييم</button>
 <br>
 <button onclick="closePopup()">إغلاق</button>
 </div>
@@ -139,7 +156,7 @@
 
 <div id="toast"></div>
 
-<script type="module" src="firebase.js?v=54000"></script>
-<script src="script.js?v=54000"></script>
+<script type="module" src="firebase.js?v=55000"></script>
+<script src="script.js?v=55000"></script>
 </body>
 </html>
