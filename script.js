@@ -81,7 +81,7 @@ loadCardReviews(product.name,index);
 },500);
 showFeaturedProduct();
 applyLanguage();
-
+}
 function showFeaturedProduct(){
 const box = document.getElementById("featuredBox");
 if(!box) return;
