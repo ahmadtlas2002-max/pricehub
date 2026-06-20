@@ -607,7 +607,9 @@ function toggleLanguage(){
 currentLang = currentLang === "ar" ? "en" : "ar";
 localStorage.setItem("lang", currentLang);
 applyLanguage();
-location.reload();
-}
 
+if(window.loadFirebaseProducts){
+window.loadFirebaseProducts();
+}
+}
 applyLanguage();
