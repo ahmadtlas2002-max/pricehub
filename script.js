@@ -55,6 +55,9 @@ ${product.featured ? `<div class="featured-badge">⭐ ${currentLang === "en" ? "
 <p class="price">$${product.price}</p>
 <p>📦 ${currentLang === "en" ? "Stock" : "المخزون"}: ${product.stock > 0 ? product.stock : currentLang === "en" ? "Unavailable" : "غير متوفر"}</p>
 <p class="rating">⭐ ${product.rating} / 5</p>
+<div id="cardReviews-${index}" style="font-size:14px;background:#f1f1f1;padding:8px;border-radius:8px;margin:8px 0;">
+جاري تحميل آخر التقييمات...
+</div>
 <p class="bestStore">🏪 ${currentLang === "en" ? "Best Store" : "أفضل متجر"}: ${cheapestStore}</p>
 
 ${product.stores.map(store=>`<div class="store">${store}</div>`).join("")}
@@ -74,7 +77,12 @@ ${product.stock > 0
 showFeaturedProduct();
 applyLanguage();
 }
-
+setTimeout(()=>{
+list.forEach(product=>{
+const index = products.indexOf(product);
+loadCardReviews(product.name,index);
+});
+},500);
 function showFeaturedProduct(){
 const box = document.getElementById("featuredBox");
 if(!box) return;
@@ -757,4 +765,26 @@ await window.saveReview(review);
 document.getElementById("reviewText").value = "";
 showToast("تم إرسال التقييم ✅");
 loadProductReviews(currentReviewProduct);
+}
+async function loadCardReviews(productName,index){
+const box = document.getElementById("cardReviews-" + index);
+if(!box) return;
+
+if(!window.loadReviews){
+box.innerHTML = "لا توجد تقييمات";
+return;
+}
+
+const reviews = await window.loadReviews(productName);
+
+if(reviews.length === 0){
+box.innerHTML = "لا توجد تقييمات بعد";
+return;
+}
+
+const lastReviews = reviews.slice(-3).reverse();
+
+box.innerHTML = lastReviews.map(r =>
+`<div>⭐ ${r.rating}/5 - ${r.text || ""}</div>`
+).join("");
 }
