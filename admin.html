@@ -37,6 +37,9 @@ throw new Error("Access denied");
 <p id="dashboardLowStock">مخزون منخفض: 0</p>
 <p id="dashboardOrders">الطلبات: 0</p>
 <p id="dashboardRevenue">الأرباح: $0</p>
+<p id="todayRevenue">أرباح اليوم: $0</p>
+<p id="monthRevenue">أرباح هذا الشهر: $0</p>
+<p id="avgOrderValue">متوسط الطلب: $0</p>
 <p id="topProduct">الأكثر مبيعًا: لا يوجد</p>
 
 <p id="newOrderAlert" style="display:none;background:#ffeb3b;padding:10px;border-radius:8px;font-weight:bold;">
@@ -349,7 +352,39 @@ const processing = orders.filter(o => o.status === "قيد المعالجة").le
 const delivered = orders.filter(o => o.status === "تم التسليم").length;
 
 const revenue = orders.reduce((sum,o)=>sum + Number(o.total || 0),0);
+const today = new Date();
+const todayKey = today.toISOString().slice(0,10);
+const monthKey = today.toISOString().slice(0,7);
 
+let todayRevenue = 0;
+let monthRevenue = 0;
+
+orders.forEach(o=>{
+const orderDate = new Date(o.date);
+if(!isNaN(orderDate)){
+const orderDay = orderDate.toISOString().slice(0,10);
+const orderMonth = orderDate.toISOString().slice(0,7);
+
+if(orderDay === todayKey){
+todayRevenue += Number(o.total || 0);
+}
+
+if(orderMonth === monthKey){
+monthRevenue += Number(o.total || 0);
+}
+}
+});
+
+const avgOrderValue = orders.length ? revenue / orders.length : 0;
+
+document.getElementById("todayRevenue").innerHTML =
+"أرباح اليوم: $" + todayRevenue.toFixed(2);
+
+document.getElementById("monthRevenue").innerHTML =
+"أرباح هذا الشهر: $" + monthRevenue.toFixed(2);
+
+document.getElementById("avgOrderValue").innerHTML =
+"متوسط الطلب: $" + avgOrderValue.toFixed(2);
 const sales = {};
 orders.forEach(order=>{
 (order.items || []).forEach(item=>{
