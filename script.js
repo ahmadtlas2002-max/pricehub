@@ -586,3 +586,28 @@ console.log("Visit counter error:", error);
 });
 }
 },1500);
+let currentLang = localStorage.getItem("lang") || "ar";
+
+function applyLanguage(){
+const isEnglish = currentLang === "en";
+
+document.documentElement.lang = isEnglish ? "en" : "ar";
+document.body.style.direction = isEnglish ? "ltr" : "rtl";
+
+const title = document.querySelector("header h1");
+const subtitle = document.querySelector("header p");
+const search = document.getElementById("search");
+
+if(title) title.innerHTML = "PriceHub";
+if(subtitle) subtitle.innerHTML = isEnglish ? "Compare prices between stores" : "قارن الأسعار بين المتاجر";
+if(search) search.placeholder = isEnglish ? "Search for a product..." : "ابحث عن منتج...";
+}
+
+function toggleLanguage(){
+currentLang = currentLang === "ar" ? "en" : "ar";
+localStorage.setItem("lang", currentLang);
+applyLanguage();
+location.reload();
+}
+
+applyLanguage();
