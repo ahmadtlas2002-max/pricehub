@@ -119,12 +119,16 @@ document.getElementById("message").innerHTML = error.message;
 
 window.logoutUser = async function(){
 await signOut(auth);
+localStorage.removeItem("userEmail");
 document.getElementById("message").innerHTML = "تم تسجيل الخروج";
 };
 window.resetPassword = async function(){
 
 const email = document.getElementById("email").value;
-
+if(!email || !email.includes("@")){
+document.getElementById("message").innerHTML = "اكتب بريد إلكتروني صحيح";
+return;
+}
 if(!email){
 document.getElementById("message").innerHTML = "اكتب البريد الإلكتروني أولاً";
 return;
@@ -142,11 +146,13 @@ onAuthStateChanged(auth,(user)=>{
 const status = document.getElementById("userStatus");
 
 if(user){
+localStorage.setItem("userEmail", user.email);
 status.innerHTML = "مسجل الدخول: " + user.email;
 }else{
 status.innerHTML = "غير مسجل الدخول";
 }
 });
+
 </script>
 
 </body>
