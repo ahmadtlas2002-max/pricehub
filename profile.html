@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>حسابي</title>
+<title>حسابي - PriceHub</title>
 
 <style>
 body{
@@ -20,6 +20,7 @@ margin:auto;
 padding:20px;
 border-radius:15px;
 text-align:center;
+box-shadow:0 5px 15px rgba(0,0,0,.1);
 }
 
 button{
@@ -33,6 +34,18 @@ color:white;
 font-size:18px;
 cursor:pointer;
 }
+
+button:hover{
+opacity:.9;
+}
+
+#memberBadge{
+background:#fff3cd;
+padding:10px;
+border-radius:10px;
+font-weight:bold;
+margin:10px 0;
+}
 </style>
 </head>
 
@@ -44,6 +57,12 @@ cursor:pointer;
 
 <p id="userEmail">غير مسجل الدخول</p>
 
+<p id="memberBadge">🥉 عضو جديد</p>
+
+<p id="ordersCount">📦 عدد الطلبات: 0</p>
+
+<p id="favCountProfile">❤️ المفضلة: 0</p>
+
 <a href="myorders.html">
 <button>📦 طلباتي</button>
 </a>
@@ -51,9 +70,11 @@ cursor:pointer;
 <a href="index.html">
 <button>🏠 العودة للرئيسية</button>
 </a>
+
 <button onclick="logoutProfile()" style="background:#cc0000;">
 🚪 تسجيل الخروج
 </button>
+
 </div>
 
 <script>
@@ -63,9 +84,30 @@ if(email){
 document.getElementById("userEmail").innerHTML =
 "📧 " + email;
 }
+
 function logoutProfile(){
 localStorage.removeItem("userEmail");
 window.location.href = "login.html";
+}
+
+const favs = JSON.parse(localStorage.getItem("favorites")) || [];
+
+document.getElementById("favCountProfile").innerHTML =
+"❤️ المفضلة: " + favs.length;
+
+const orders = JSON.parse(localStorage.getItem("myOrders")) || [];
+
+document.getElementById("ordersCount").innerHTML =
+"📦 عدد الطلبات: " + orders.length;
+
+if(favs.length >= 5){
+document.getElementById("memberBadge").innerHTML =
+"🥈 عضو نشط";
+}
+
+if(favs.length >= 10){
+document.getElementById("memberBadge").innerHTML =
+"🥇 عضو مميز";
 }
 </script>
 
