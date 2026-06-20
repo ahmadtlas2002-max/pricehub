@@ -782,9 +782,12 @@ box.innerHTML = "لا توجد تقييمات بعد";
 return;
 }
 
+cconst avgRating = reviews.reduce((sum,r)=>sum + Number(r.rating || 0),0) / reviews.length;
 const lastReviews = reviews.slice(-3).reverse();
 
-box.innerHTML = lastReviews.map(r =>
+box.innerHTML =
+`<strong>⭐ متوسط التقييم: ${avgRating.toFixed(1)} / 5</strong><br>` +
+lastReviews.map(r =>
 `<div>⭐ ${r.rating}/5 - ${r.text || ""}</div>`
 ).join("");
 }
