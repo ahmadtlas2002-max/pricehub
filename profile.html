@@ -77,39 +77,75 @@ margin:10px 0;
 
 </div>
 
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+getFirestore,
+collection,
+getDocs
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+apiKey: "AIzaSyA4jGrncraaaktuaDpsO7nz1-qmrqYKM3k",
+authDomain: "pricehub-6d3c4.firebaseapp.com",
+projectId: "pricehub-6d3c4",
+storageBucket: "pricehub-6d3c4.firebasestorage.app",
+messagingSenderId: "991179979836",
+appId: "1:991179979836:web:cb23f4d31e55364d1ed739",
+measurementId: "G-HLCHBX5FF7"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
 const email = localStorage.getItem("userEmail");
 
 if(email){
-document.getElementById("userEmail").innerHTML =
-"📧 " + email;
+document.getElementById("userEmail").innerHTML = "📧 " + email;
 }
 
-function logoutProfile(){
+window.logoutProfile = function(){
 localStorage.removeItem("userEmail");
 window.location.href = "login.html";
-}
+};
 
 const favs = JSON.parse(localStorage.getItem("favorites")) || [];
 
 document.getElementById("favCountProfile").innerHTML =
 "❤️ المفضلة: " + favs.length;
 
-const orders = JSON.parse(localStorage.getItem("myOrders")) || [];
+if(favs.length >= 10){
+document.getElementById("memberBadge").innerHTML = "🥇 عضو مميز";
+}else if(favs.length >= 5){
+document.getElementById("memberBadge").innerHTML = "🥈 عضو نشط";
+}else{
+document.getElementById("memberBadge").innerHTML = "🥉 عضو جديد";
+}
+
+async function loadOrdersCount(){
+if(!email){
+document.getElementById("ordersCount").innerHTML = "📦 عدد الطلبات: 0";
+return;
+}
+
+const snapshot = await getDocs(collection(db,"orders"));
+
+let count = 0;
+
+snapshot.forEach(doc=>{
+const order = doc.data();
+
+if(order.customerEmail === email){
+count++;
+}
+});
 
 document.getElementById("ordersCount").innerHTML =
-"📦 عدد الطلبات: " + orders.length;
-
-if(favs.length >= 5){
-document.getElementById("memberBadge").innerHTML =
-"🥈 عضو نشط";
+"📦 عدد الطلبات: " + count;
 }
 
-if(favs.length >= 10){
-document.getElementById("memberBadge").innerHTML =
-"🥇 عضو مميز";
-}
+loadOrdersCount();
 </script>
-
 </body>
 </html>
