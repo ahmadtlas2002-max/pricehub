@@ -51,7 +51,9 @@ cursor:pointer;
 <a href="index.html">
 <button>🏠 العودة للرئيسية</button>
 </a>
-
+<button onclick="logoutProfile()" style="background:#cc0000;">
+🚪 تسجيل الخروج
+</button>
 </div>
 
 <script>
@@ -60,6 +62,10 @@ const email = localStorage.getItem("userEmail");
 if(email){
 document.getElementById("userEmail").innerHTML =
 "📧 " + email;
+}
+function logoutProfile(){
+localStorage.removeItem("userEmail");
+window.location.href = "login.html";
 }
 </script>
 
