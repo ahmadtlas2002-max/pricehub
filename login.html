@@ -59,6 +59,9 @@ background:#cc0000;
 
 <button onclick="registerUser()">إنشاء حساب</button>
 <button onclick="loginUser()">تسجيل الدخول</button>
+<button onclick="resetPassword()" style="background:#ff9800;">
+🔑 نسيت كلمة المرور
+</button>
 <button class="logout" onclick="logoutUser()">تسجيل الخروج</button>
 
 <p id="message"></p>
@@ -73,7 +76,8 @@ getAuth,
 createUserWithEmailAndPassword,
 signInWithEmailAndPassword,
 signOut,
-onAuthStateChanged
+onAuthStateChanged,
+sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
