@@ -699,7 +699,11 @@ reviewsBox.innerHTML = "<p>لا توجد تقييمات بعد</p>";
 return;
 }
 
-reviewsBox.innerHTML = "";
+const avgRating = reviews.reduce((sum,r)=>sum + Number(r.rating || 0),0) / reviews.length;
+
+reviewsBox.innerHTML =
+"<h4>⭐ متوسط التقييم: " + avgRating.toFixed(1) + " / 5</h4>";
+
 
 reviews.forEach(review=>{
 reviewsBox.innerHTML += `
