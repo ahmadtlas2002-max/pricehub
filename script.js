@@ -551,41 +551,6 @@ showProducts(filtered);
 });
 
 }
-let deferredPrompt;
-
-window.addEventListener("beforeinstallprompt",(e)=>{
-
-e.preventDefault();
-
-deferredPrompt = e;
-
-const installBtn = document.getElementById("installBtn");
-
-if(installBtn){
-installBtn.style.display = "block";
-}
-
-});
-
-const installBtn = document.getElementById("installBtn");
-
-if(installBtn){
-
-installBtn.addEventListener("click",async()=>{
-
-if(!deferredPrompt) return;
-
-deferredPrompt.prompt();
-
-await deferredPrompt.userChoice;
-
-deferredPrompt = null;
-
-installBtn.style.display = "none";
-
-});
-
-}
 let deferredPrompt = null;
 
 window.addEventListener("beforeinstallprompt", function(e){
@@ -609,7 +574,7 @@ await deferredPrompt.userChoice;
 deferredPrompt = null;
 installBtn.style.display = "none";
 }else{
-alert("إذا لم يظهر التثبيت، افتح الموقع من Chrome ثم من القائمة اختر Add to Home Screen");
+alert("افتح الموقع من Chrome ثم اختر Add to Home Screen");
 }
 
 });
