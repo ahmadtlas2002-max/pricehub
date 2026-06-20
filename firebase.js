@@ -9,7 +9,9 @@ doc,
 updateDoc,
 getDoc,
 setDoc,
-increment
+increment,
+query,
+where
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 import {
@@ -107,4 +109,23 @@ return visitSnap.data().count || 0;
 }
 
 return 0;
+};
+window.saveReview = async function(review){
+await addDoc(collection(db,"reviews"),review);
+};
+
+window.loadReviews = async function(productName){
+const q = query(
+collection(db,"reviews"),
+where("productName","==",productName)
+);
+
+const snapshot = await getDocs(q);
+const reviews = [];
+
+snapshot.forEach(doc=>{
+reviews.push(doc.data());
+});
+
+return reviews;
 };
