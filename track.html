@@ -57,7 +57,7 @@ border-radius:10px;
 </a>
 
 <input id="phone" placeholder="اكتب رقم الهاتف">
-
+<input id="orderId" placeholder="أو رقم الطلب">
 <button onclick="trackOrder()">تتبع الطلب</button>
 
 <div id="result"></div>
@@ -88,12 +88,13 @@ const db = getFirestore(app);
 window.trackOrder = async function(){
 
 const phone = document.getElementById("phone").value.trim();
+const orderId = document.getElementById("orderId").value.trim();
 const result = document.getElementById("result");
 
 result.innerHTML = "";
 
-if(!phone){
-result.innerHTML = "<p>اكتب رقم الهاتف</p>";
+if(!phone && !orderId){
+result.innerHTML = "<p>اكتب رقم الهاتف أو رقم الطلب</p>";
 return;
 }
 
@@ -104,7 +105,10 @@ let found = [];
 snapshot.forEach((doc)=>{
 const order = doc.data();
 
-if((order.customerPhone || "").trim() === phone){
+if(
+(order.customerPhone || "").trim() === phone ||
+(order.orderId || "").trim() === orderId
+){
 found.push(order);
 }
 });
