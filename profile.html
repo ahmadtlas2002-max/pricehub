@@ -149,7 +149,7 @@ const order = doc.data();
 if(order.customerEmail === user.email){
 count++;
 
-if(!latestOrder){
+if(!latestOrder || new Date(order.date) > new Date(latestOrder.date)){
 latestOrder = order;
 }
 }
