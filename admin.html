@@ -44,6 +44,9 @@ throw new Error("Access denied");
 </p>
 
 <canvas id="ordersChart"></canvas>
+<audio id="newOrderSound">
+  <source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" type="audio/ogg">
+</audio>
 </div>
 
 <a href="index.html"><button type="button">⬅️ العودة للموقع</button></a>
@@ -410,7 +413,16 @@ const orders = [];
 snapshot.forEach(orderDoc=>{
 orders.push({id:orderDoc.id,...orderDoc.data()});
 });
+if(lastOrdersCount > 0 && orders.length > lastOrdersCount){
+document.getElementById("newOrderAlert").style.display = "block";
 
+const sound = document.getElementById("newOrderSound");
+if(sound){
+sound.play().catch(()=>{});
+}
+}
+
+lastOrdersCount = orders.length;
 updateOrderStats(orders);
 updateOrdersChart(orders);
 
