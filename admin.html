@@ -80,6 +80,7 @@ throw new Error("Access denied");
 <p id="categoryStats"></p>
 
 <button onclick="loadAdminProducts()">🔄 تحديث القائمة</button>
+<button onclick="exportProductsCSV()" style="background:#009688;">⬇️ تصدير المنتجات CSV</button>
 <input id="adminSearch" placeholder="ابحث عن منتج في لوحة الإدارة...">
 
 <select id="adminCategoryFilter">
@@ -470,6 +471,8 @@ const status = order.status || "جديد";
 
 ordersList.innerHTML += `
 <div class="order-card">
+<strong>رقم الطلب:</strong>
+${order.orderId || "غير موجود"}<br>
 <strong>العميل:</strong> ${order.customerName || ""}<br>
 <strong>الهاتف:</strong> ${order.customerPhone || ""}<br>
 <strong>المجموع النهائي:</strong> $${order.total || 0}<br>
@@ -506,18 +509,37 @@ loadOrders();
 
 window.exportOrdersCSV = async function(){
 const snapshot = await getDocs(collection(db,"orders"));
-let csv = "العميل,الهاتف,المجموع,التاريخ,الحالة\n";
+let csv = "رقم الطلب,العميل,الهاتف,المجموع,التاريخ,الحالة\n";
 
 snapshot.forEach(orderDoc=>{
 const o = orderDoc.data();
-csv += `"${o.customerName || ""}","${o.customerPhone || ""}","${o.total || 0}","${o.date || ""}","${o.status || "جديد"}"\n`;
+csv += `"${o.orderId || orderDoc.id}","${o.customerName || ""}","${o.customerPhone || ""}","${o.total || 0}","${o.date || ""}","${o.status || "جديد"}"\n`;
 });
 
 const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
 const link = document.createElement("a");
 link.href = URL.createObjectURL(blob);
-link.download = "orders.csv";
+link.download = "pricehub-orders.csv";
 link.click();
+};
+
+window.exportProductsCSV = function(){
+let csv = "الاسم,السعر,المخزون,التقييم,التصنيف,مميز,الصورة\n";
+
+adminProducts.forEach(product=>{
+csv += `"${product.name || ""}","${product.price || 0}","${product.stock || 0}","${product.rating || 0}","${product.category || ""}","${product.featured ? "نعم" : "لا"}","${product.image || ""}"\n`;
+});
+
+const blob = new Blob([csv],{
+type:"text/csv;charset=utf-8;"
+});
+
+const link = document.createElement("a");
+link.href = URL.createObjectURL(blob);
+link.download = "pricehub-products.csv";
+link.click();
+
+URL.revokeObjectURL(link.href);
 };
 
 window.addCouponAdmin = async function(){
