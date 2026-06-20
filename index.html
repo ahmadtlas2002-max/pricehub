@@ -7,7 +7,7 @@
 
 <title>PriceHub</title>
 
-<link rel="stylesheet" href="style.css?v=33000">
+<link rel="stylesheet" href="style.css?v=45000">
 <link rel="manifest" href="manifest.json">
 </head>
 
@@ -20,28 +20,34 @@
 
 <div id="featuredBox"></div>
 
+<a href="admin.html">
+<button style="width:90%;max-width:300px;display:block;margin:15px auto;background:#222;">
+⚙️ لوحة الإدارة
+</button>
+</a>
+
+<a href="track.html">
+<button style="width:90%;max-width:300px;display:block;margin:10px auto;background:#008000;">
+📦 تتبع الطلب
+</button>
+</a>
+
+<a href="login.html" id="loginBtn">
+<button style="width:90%;max-width:300px;display:block;margin:10px auto;background:#673ab7;">
+👤 تسجيل الدخول
+</button>
+</a>
+
 <a href="myorders.html">
 <button style="width:90%;max-width:300px;display:block;margin:10px auto;background:#ff9800;">
 📦 طلباتي
 </button>
 </a>
 
-<button id="installBtn" style="width:90%;max-width:300px;display:none;margin:10px auto;background:#009688;color:white;">
-📲 تثبيت PriceHub
-</button>
-<a href="login.html" id="loginBtn">
-<button style="width:90%;max-width:300px;display:block;margin:10px auto;background:#673ab7;">
-👤 تسجيل الدخول
-</button>
-</a>
-<a href="myorders.html">
-<button style="width:90%;max-width:300px;display:block;margin:10px auto;background:#ff9800;">
-📦 طلباتي
-</button>
 <button id="installBtn" style="width:90%;max-width:300px;display:block;margin:10px auto;background:#009688;color:white;">
 📲 تثبيت PriceHub
 </button>
-</a>
+
 <div id="userBox" style="width:90%;max-width:300px;margin:10px auto;background:white;padding:12px;border-radius:10px;text-align:center;font-weight:bold;">
 👤 غير مسجل الدخول
 </div>
@@ -103,7 +109,6 @@
 <div class="popup-content">
 <h2>🛒 السلة</h2>
 <div id="cartItems"></div>
-
 <h3 id="cartTotal"></h3>
 
 <input id="couponCode" placeholder="كود الخصم">
@@ -129,7 +134,8 @@
 
 <div id="toast"></div>
 
-<script type="module" src="firebase.js?v=44000"></script>
-<script src="script.js?v=44000"></script>
+<script type="module" src="firebase.js?v=45000"></script>
+<script src="script.js?v=45000"></script>
+
 </body>
 </html>
