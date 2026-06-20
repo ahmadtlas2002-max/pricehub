@@ -616,6 +616,7 @@ if(isEnglish){
 btn.innerText = text
 .replace("⚙️ لوحة الإدارة","⚙️ Admin Panel")
 .replace("📦 تتبع الطلب","📦 Track Order")
+.replace("👤 حسابي","👤 My Account")
 .replace("👤 تسجيل الدخول","👤 Login")
 .replace("📦 طلباتي","📦 My Orders")
 .replace("📲 تثبيت PriceHub","📲 Install PriceHub")
@@ -639,6 +640,7 @@ btn.innerText = text
 btn.innerText = text
 .replace("⚙️ Admin Panel","⚙️ لوحة الإدارة")
 .replace("📦 Track Order","📦 تتبع الطلب")
+.replace("👤 My Account","👤 حسابي")
 .replace("👤 Login","👤 تسجيل الدخول")
 .replace("📦 My Orders","📦 طلباتي")
 .replace("📲 Install PriceHub","📲 تثبيت PriceHub")
