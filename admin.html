@@ -39,6 +39,8 @@ throw new Error("Access denied");
 <p id="dashboardRevenue">الأرباح: $0</p>
 <p id="todayRevenue">أرباح اليوم: $0</p>
 <p id="monthRevenue">أرباح هذا الشهر: $0</p>
+<p id="todayOrders">طلبات اليوم: 0</p>
+<p id="monthOrders">طلبات هذا الشهر: 0</p>
 <p id="avgOrderValue">متوسط الطلب: $0</p>
 <p id="topProduct">الأكثر مبيعًا: لا يوجد</p>
 
@@ -358,6 +360,8 @@ const monthKey = today.toISOString().slice(0,7);
 
 let todayRevenue = 0;
 let monthRevenue = 0;
+let todayOrders = 0;
+let monthOrders = 0;
 
 orders.forEach(o=>{
 const orderDate = new Date(o.date);
@@ -367,10 +371,12 @@ const orderMonth = orderDate.toISOString().slice(0,7);
 
 if(orderDay === todayKey){
 todayRevenue += Number(o.total || 0);
+todayOrders++;
 }
 
 if(orderMonth === monthKey){
 monthRevenue += Number(o.total || 0);
+monthOrders++;
 }
 }
 });
@@ -382,6 +388,12 @@ document.getElementById("todayRevenue").innerHTML =
 
 document.getElementById("monthRevenue").innerHTML =
 "أرباح هذا الشهر: $" + monthRevenue.toFixed(2);
+
+document.getElementById("todayOrders").innerHTML =
+"طلبات اليوم: " + todayOrders;
+
+document.getElementById("monthOrders").innerHTML =
+"طلبات هذا الشهر: " + monthOrders;
 
 document.getElementById("avgOrderValue").innerHTML =
 "متوسط الطلب: $" + avgOrderValue.toFixed(2);
