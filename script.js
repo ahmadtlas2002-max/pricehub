@@ -489,6 +489,9 @@ const order = {
 orderId: "PH-" + Math.floor(10000 + Math.random() * 90000),
 customerName: name,
 customerPhone: phone,
+customerName: localStorage.getItem("stripeCustomerName") || "دفع إلكتروني",
+
+customerPhone: localStorage.getItem("stripeCustomerPhone") || "غير موجود",
 customerEmail: (document.getElementById("userBox")?.innerText || "").replace("👤","").trim(),
 items: cart,
 subtotal,
@@ -820,35 +823,119 @@ lastReviews.map(r =>
 ).join("");
 
 }
-window.payWithStripe = async function(){
+window.payWithStripe = async function () {
 
-if(cart.length === 0){
-showToast("السلة فارغة");
-return;
-}
+    if (cart.length === 0) {
+        showToast("السلة فارغة");
+        return;
+    }
 
-try{
-const response = await fetch("https://pricehub-hnso.onrender.com/create-checkout-session",{
-method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-items:cart
-})
+    const name = document.getElementById("customerName").value.trim();
+    const phone = document.getElementById("customerPhone").value.trim();
+
+    if (!name || !phone) {
+        showToast("اكتب الاسم ورقم الهاتف قبل الدفع");
+        return;
+    }
+
+    localStorage.setItem("stripeCustomerName", name);
+    localStorage.setItem("stripeCustomerPhone", phone);
+
+    try {
+        const response = await fetch("https://pricehub-hnso.onrender.com/create-checkout-session", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                items: cart
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.url) {
+            window.location.href = data.url;
+        } else {
+            showToast("خطأ Stripe: " + (data.error || "فشل إنشاء رابط الدفع"));
+        }
+
+    } catch (error) {
+        console.error(error);
+        showToast("خطأ في الاتصال بسيرفر الدفع");
+    }
+};
+
+(async function handlePaymentSuccess(){
+
+    const params = new URLSearchParams(window.location.search);
+
+    if(params.get("payment") !== "success"){
+        return;
+    }
+
+    showToast("✅ تم الدفع بنجاح");
+
+    const paidCart = JSON.parse(localStorage.getItem("cart")) || [];
+
+    if(paidCart.length === 0){
+        return;
+    }
+
+    const subtotal = paidCart.reduce((sum,item)=>sum + Number(item.price || 0),0);
+
+    const order = {
+        orderId: "PH-" + Math.floor(10000 + Math.random() * 90000),
+        customerName: localStorage.getItem("stripeCustomerName") || "دفع إلكتروني",
+        customerPhone: localStorage.getItem("stripeCustomerPhone") || "غير موجود",
+        customerEmail: (document.getElementById("userBox")?.innerText || "").replace("👤","").trim(),
+        items: paidCart,
+        subtotal: subtotal,
+        discountPercent: 0,
+        discountAmount: 0,
+        coupon: "",
+        total: subtotal,
+        date: new Date().toLocaleString(),
+        status: "جديد",
+        paymentMethod: "Stripe"
+    };
+
+    if(window.saveOrder){
+        await window.saveOrder(order);
+    }
+    const stockUpdates = {};
+
+paidCart.forEach(item => {
+    if(item.id){
+        if(!stockUpdates[item.id]){
+            stockUpdates[item.id] = {
+                id: item.id,
+                stock: Number(item.stock || 0),
+                quantity: 0
+            };
+        }
+
+        stockUpdates[item.id].quantity++;
+    }
 });
 
-const data = await response.json();
+for(const key in stockUpdates){
+    const item = stockUpdates[key];
+    const newStock = Math.max(item.stock - item.quantity, 0);
 
-if(data.url){
-window.location.href = data.url;
-}else{
-showToast("فشل إنشاء رابط الدفع");
+    if(window.updateProductStock){
+        await window.updateProductStock(item.id, newStock);
+    }
 }
+    localStorage.removeItem("cart");
+    localStorage.removeItem("stripeCustomerName");
+    localStorage.removeItem("stripeCustomerPhone");
 
-}catch(error){
-console.error(error);
-showToast("خطأ في الاتصال بسيرفر الدفع");
-}
+    cart = [];
 
-};
+    updateCartCount();
+    updateStats();
+
+    alert("✅ تم الدفع وحفظ الطلب\nرقم الطلب: " + order.orderId);
+
+})();
