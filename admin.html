@@ -43,6 +43,15 @@ throw new Error("Access denied");
 <p id="monthOrders">طلبات هذا الشهر: 0</p>
 <p id="avgOrderValue">متوسط الطلب: $0</p>
 <p id="topProduct">الأكثر مبيعًا: لا يوجد</p>
+<div id="topProductsList" style="
+background:#fff;
+padding:10px;
+border-radius:10px;
+margin-top:10px;
+text-align:right;
+">
+أفضل المنتجات ستظهر هنا
+</div>
 <p id="topCustomer">أفضل عميل: لا يوجد</p>
 <p id="newOrderAlert" style="display:none;background:#ffeb3b;padding:10px;border-radius:8px;font-weight:bold;">
 🔔 يوجد طلب جديد!
@@ -281,9 +290,17 @@ box.innerHTML += `
 <strong>${product.name}</strong><br>
 $${product.price}<br>
 📦 الكمية: ${product.stock || 0}<br>
+${Number(product.stock || 0) <= 0
+? "<span style='color:red;font-weight:bold;'>❌ غير متوفر</span><br>"
+: Number(product.stock || 0) <= 5
+? "<span style='color:#ff9800;font-weight:bold;'>⚠️ مخزون منخفض</span><br>"
+: "<span style='color:green;font-weight:bold;'>✅ متوفر</span><br>"
+}
 ⭐ ${product.rating}<br>
 📦 ${product.category}<br>
 ${product.featured ? "⭐ منتج مميز<br>" : ""}
+<button onclick="increaseStock('${product.id}', ${Number(product.stock || 0)})">➕ زيادة المخزون</button>
+<button onclick="decreaseStock('${product.id}', ${Number(product.stock || 0)})">➖ إنقاص المخزون</button>
 <button onclick="editProductData('${product.id}')">تعديل</button>
 <button onclick="deleteProduct('${product.id}')">حذف</button>
 </div>
@@ -426,6 +443,22 @@ topCount = sales[name];
 
 document.getElementById("topProduct").innerHTML =
 "🏆 الأكثر مبيعًا: " + topName + " (" + topCount + " مبيعات)";
+
+const sortedProducts = Object.entries(sales)
+.sort((a,b)=>b[1]-a[1])
+.slice(0,5);
+
+let topProductsHTML = "<strong>🏆 أفضل 5 منتجات:</strong><br>";
+
+if(sortedProducts.length === 0){
+topProductsHTML += "لا توجد مبيعات بعد";
+}else{
+sortedProducts.forEach((item,index)=>{
+topProductsHTML += (index + 1) + ". " + item[0] + " (" + item[1] + " مبيعات)<br>";
+});
+}
+
+document.getElementById("topProductsList").innerHTML = topProductsHTML;
 
 document.getElementById("orderStats").innerHTML =
 `🟡 جديد: ${newOrders}<br>🔵 قيد المعالجة: ${processing}<br>🟢 تم التسليم: ${delivered}`;
@@ -804,6 +837,21 @@ link.download = "pricehub-reviews.csv";
 link.click();
 
 URL.revokeObjectURL(link.href);
+};
+window.increaseStock = async function(id,currentStock){
+await updateDoc(doc(db,"products",id),{
+stock: currentStock + 1
+});
+loadAdminProducts();
+};
+
+window.decreaseStock = async function(id,currentStock){
+const newStock = Math.max(currentStock - 1,0);
+
+await updateDoc(doc(db,"products",id),{
+stock: newStock
+});
+loadAdminProducts();
 };
 </script>
 
