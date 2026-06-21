@@ -43,7 +43,7 @@ throw new Error("Access denied");
 <p id="monthOrders">طلبات هذا الشهر: 0</p>
 <p id="avgOrderValue">متوسط الطلب: $0</p>
 <p id="topProduct">الأكثر مبيعًا: لا يوجد</p>
-
+<p id="topCustomer">أفضل عميل: لا يوجد</p>
 <p id="newOrderAlert" style="display:none;background:#ffeb3b;padding:10px;border-radius:8px;font-weight:bold;">
 🔔 يوجد طلب جديد!
 </p>
@@ -438,6 +438,35 @@ document.getElementById("dashboardOrders").innerHTML =
 
 document.getElementById("dashboardRevenue").innerHTML =
 "الأرباح: $" + revenue.toFixed(2);
+
+const customers = {};
+orders.forEach(order=>{
+const customer = order.customerName || order.customerEmail || "غير معروف";
+
+if(!customers[customer]){
+customers[customer] = {count:0,total:0};
+}
+
+customers[customer].count++;
+customers[customer].total += Number(order.total || 0);
+});
+
+let topCustomer = "لا يوجد";
+let topCustomerTotal = 0;
+let topCustomerOrders = 0;
+
+for(const name in customers){
+if(customers[name].total > topCustomerTotal){
+topCustomer = name;
+topCustomerTotal = customers[name].total;
+topCustomerOrders = customers[name].count;
+}
+}
+
+document.getElementById("topCustomer").innerHTML =
+"أفضل عميل: " + topCustomer +
+" | الطلبات: " + topCustomerOrders +
+" | المشتريات: $" + topCustomerTotal.toFixed(2);
 }
 
 function updateOrdersChart(orders){
@@ -471,6 +500,9 @@ const orders = [];
 
 snapshot.forEach(orderDoc=>{
 orders.push({id:orderDoc.id,...orderDoc.data()});
+});
+orders.sort((a,b)=>{
+return new Date(b.date || 0) - new Date(a.date || 0);
 });
 if(lastOrdersCount > 0 && orders.length > lastOrdersCount){
 document.getElementById("newOrderAlert").style.display = "block";
@@ -534,6 +566,7 @@ ${order.orderId || "غير موجود"}<br>
 <strong>العميل:</strong> ${order.customerName || ""}<br>
 <strong>الهاتف:</strong> ${order.customerPhone || ""}<br>
 <strong>المجموع النهائي:</strong> $${order.total || 0}<br>
+<strong>عدد المنتجات:</strong> ${(order.items || []).length}<br>
 <strong>التاريخ:</strong> ${order.date || ""}<br><br>
 <strong>المنتجات:</strong>
 <ul>
