@@ -58,6 +58,11 @@ border-radius:10px;
 
 <input id="phone" placeholder="اكتب رقم الهاتف">
 <input id="orderId" placeholder="أو رقم الطلب">
+
+<button onclick="pasteOrderId()" style="background:#009688;">
+📋 لصق رقم الطلب
+</button>
+
 <button onclick="trackOrder()">تتبع الطلب</button>
 
 <div id="result"></div>
@@ -119,8 +124,37 @@ return;
 }
 
 found.forEach(order=>{
+
+let progress = 33;
+let progressText = "📦 تم استلام الطلب";
+
+if((order.status || "جديد") === "قيد المعالجة"){
+progress = 66;
+progressText = "🚚 الطلب قيد المعالجة";
+}
+
+if((order.status || "جديد") === "تم التسليم"){
+progress = 100;
+progressText = "✅ تم تسليم الطلب";
+}
+
 result.innerHTML += `
 <div class="order-card">
+
+<strong>رقم الطلب:</strong> ${order.orderId || "غير موجود"}<br><br>
+
+<div style="background:#ddd;border-radius:20px;height:20px;margin:10px 0;">
+<div style="
+width:${progress}%;
+height:20px;
+background:#28a745;
+border-radius:20px;
+transition:.3s;
+"></div>
+</div>
+
+<p style="font-weight:bold;">${progressText}</p>
+
 <strong>الحالة:</strong>
 
 <span style="
@@ -134,28 +168,48 @@ ${(order.status || "جديد") === "تم التسليم"
 ? "#ff9800"
 : "#2196f3"};
 ">
-
 ${order.status || "جديد"}
-
 </span>
-<br>
+
+<br><br>
 <strong>المجموع:</strong> $${order.total || 0}
 <br>
 <strong>الكوبون:</strong> ${order.coupon || "لا يوجد"}
 <br>
 <strong>التاريخ:</strong> ${order.date || ""}
 <br><br>
+
 <strong>المنتجات:</strong>
 <ul>
 ${(order.items || []).map(item => `
 <li>${item.name} - $${item.price}</li>
 `).join("")}
 </ul>
+
 </div>
 `;
 });
 
 };
+
+window.pasteOrderId = async function(){
+
+try{
+const text = await navigator.clipboard.readText();
+document.getElementById("orderId").value = text;
+}catch(error){
+alert("تعذر الوصول للحافظة");
+}
+
+};
+
+const params = new URLSearchParams(window.location.search);
+const orderIdFromUrl = params.get("orderId");
+
+if(orderIdFromUrl){
+document.getElementById("orderId").value = orderIdFromUrl;
+trackOrder();
+}
 </script>
 
 </body>
