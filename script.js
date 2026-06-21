@@ -896,7 +896,7 @@ window.payWithStripe = async function () {
         coupon: "",
         total: subtotal,
         date: new Date().toLocaleString(),
-        status: "جديد",
+      status: "مدفوع",
         paymentMethod: "Stripe"
     };
 
@@ -937,5 +937,5 @@ for(const key in stockUpdates){
     updateStats();
 
     alert("✅ تم الدفع وحفظ الطلب\nرقم الطلب: " + order.orderId);
-
+window.history.replaceState({}, document.title, "index.html");
 })();
