@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>العروض المميزة - PriceHub</title>
+
+<style>
+body{font-family:Arial;background:#f5f5f5;padding:20px;direction:rtl;}
+.box{max-width:900px;margin:auto;}
+.card{background:white;padding:15px;margin:15px 0;border-radius:15px;box-shadow:0 5px 15px rgba(0,0,0,.1);}
+.card img{width:100%;max-height:220px;object-fit:cover;border-radius:12px;}
+button{width:100%;padding:12px;margin:8px 0;border:none;border-radius:8px;background:#0066ff;color:white;font-size:16px;cursor:pointer;}
+.price{color:green;font-size:22px;font-weight:bold;}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+<h1>🔥 العروض المميزة</h1>
+
+<a href="index.html">
+<button>⬅️ العودة للرئيسية</button>
+</a>
+
+<div id="offersList">جاري التحميل...</div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+getFirestore,
+collection,
+getDocs
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+apiKey: "AIzaSyA4jGrncraaaktuaDpsO7nz1-qmrqYKM3k",
+authDomain: "pricehub-6d3c4.firebaseapp.com",
+projectId: "pricehub-6d3c4",
+storageBucket: "pricehub-6d3c4.firebasestorage.app",
+messagingSenderId: "991179979836",
+appId: "1:991179979836:web:cb23f4d31e55364d1ed739",
+measurementId: "G-HLCHBX5FF7"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+async function loadOffers(){
+const box = document.getElementById("offersList");
+box.innerHTML = "جاري التحميل...";
+
+const snapshot = await getDocs(collection(db,"products"));
+let offers = [];
+
+snapshot.forEach(doc=>{
+const product = {id:doc.id,...doc.data()};
+
+if(product.featured === true || Number(product.rating || 0) >= 4.5){
+offers.push(product);
+}
+});
+
+box.innerHTML = "";
+
+if(offers.length === 0){
+box.innerHTML = "<p>لا توجد عروض مميزة حالياً</p>";
+return;
+}
+
+offers.forEach(product=>{
+box.innerHTML += `
+<div class="card">
+<img src="${product.image || 'https://picsum.photos/300/200'}">
+<h2>${product.name || ""}</h2>
+<p class="price">$${product.price || 0}</p>
+<p>⭐ التقييم: ${product.rating || 0}</p>
+<p>📦 المخزون: ${Number(product.stock || 0) > 0 ? product.stock : "غير متوفر"}</p>
+${product.featured ? "<p>⭐ منتج مميز</p>" : ""}
+</div>
+`;
+});
+}
+
+loadOffers();
+</script>
+
+</body>
+</html>
