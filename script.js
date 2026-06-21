@@ -820,7 +820,7 @@ lastReviews.map(r =>
 ).join("");
 
 }
-async function payWithStripe(){
+window.payWithStripe = async function(){
 
 if(cart.length === 0){
 showToast("السلة فارغة");
@@ -828,19 +828,15 @@ return;
 }
 
 try{
-
-const response = await fetch(
-"https://pricehub-hnso.onrender.com/create-checkout-session",
-{
+const response = await fetch("https://pricehub-hnso.onrender.com/create-checkout-session",{
 method:"POST",
 headers:{
 "Content-Type":"application/json"
 },
-body: JSON.stringify({
-items: cart
+body:JSON.stringify({
+items:cart
 })
-}
-);
+});
 
 const data = await response.json();
 
@@ -855,4 +851,4 @@ console.error(error);
 showToast("خطأ في الاتصال بسيرفر الدفع");
 }
 
-}
+};
