@@ -100,7 +100,11 @@ throw new Error("Access denied");
 <option value="low">مخزون منخفض</option>
 <option value="out">غير متوفر</option>
 </select>
-
+<select id="featuredFilter">
+<option value="all">كل المنتجات</option>
+<option value="featured">المميزة فقط</option>
+<option value="normal">غير المميزة</option>
+</select>
 <div id="productsList"></div>
 
 <hr>
@@ -143,7 +147,9 @@ throw new Error("Access denied");
 <p id="mostReviewedProduct">الأكثر تقييمًا: لا يوجد</p>
 </div>
 <button onclick="loadReviewsAdmin()">🔄 تحديث التقييمات</button>
-
+<button onclick="exportReviewsCSV()" style="background:#009688;">
+⬇️ تصدير التقييمات CSV
+</button>
 <div id="reviewsAdminList"></div>
 </div>
 
@@ -318,12 +324,15 @@ function applyAdminFilters(){
 const searchText = document.getElementById("adminSearch").value.toLowerCase();
 const category = document.getElementById("adminCategoryFilter").value;
 const stockFilter = document.getElementById("stockFilter").value;
-
+const featuredFilter = document.getElementById("featuredFilter").value;
 let filtered = adminProducts.filter(p => (p.name || "").toLowerCase().includes(searchText));
 
 if(category !== "all") filtered = filtered.filter(p => p.category === category);
 if(stockFilter === "low") filtered = filtered.filter(p => Number(p.stock || 0) > 0 && Number(p.stock || 0) <= 5);
 if(stockFilter === "out") filtered = filtered.filter(p => Number(p.stock || 0) <= 0);
+
+if(featuredFilter === "featured") filtered = filtered.filter(p => p.featured === true);
+if(featuredFilter === "normal") filtered = filtered.filter(p => p.featured !== true);
 
 showAdminProducts(filtered);
 }
@@ -338,6 +347,7 @@ document.getElementById("categoryStats").innerHTML =
 document.getElementById("adminSearch").addEventListener("input",applyAdminFilters);
 document.getElementById("adminCategoryFilter").addEventListener("change",applyAdminFilters);
 document.getElementById("stockFilter").addEventListener("change",applyAdminFilters);
+document.getElementById("featuredFilter").addEventListener("change",applyAdminFilters);
 
 window.cancelEdit = function(){
 editingId = null;
@@ -739,6 +749,28 @@ loadCouponsAdmin();
 loadReviewsAdmin();
 
 setInterval(loadOrders,30000);
+window.exportReviewsCSV = async function(){
+const snapshot = await getDocs(collection(db,"reviews"));
+
+let csv = "المنتج,التقييم,المستخدم,التعليق,التاريخ\n";
+
+snapshot.forEach(reviewDoc=>{
+const r = reviewDoc.data();
+
+csv += `"${r.productName || ""}","${r.rating || 0}","${r.email || ""}","${r.text || ""}","${r.date || ""}"\n`;
+});
+
+const blob = new Blob([csv],{
+type:"text/csv;charset=utf-8;"
+});
+
+const link = document.createElement("a");
+link.href = URL.createObjectURL(blob);
+link.download = "pricehub-reviews.csv";
+link.click();
+
+URL.revokeObjectURL(link.href);
+};
 </script>
 
 </body>
