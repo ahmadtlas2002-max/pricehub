@@ -116,7 +116,13 @@ loadProductReviews(product.name);
 let stores = "";
 product.stores.forEach(store=> stores += `<p>${store}</p>`);
 stores += `<p>📦 ${currentLang === "en" ? "Stock" : "المخزون"}: ${product.stock > 0 ? product.stock : currentLang === "en" ? "Unavailable" : "غير متوفر"}</p>`;
-
+if(Number(product.stock || 0) <= 0){
+stores += "<p style='color:red;font-weight:bold;'>❌ نفد المخزون</p>";
+}else if(Number(product.stock || 0) <= 5){
+stores += "<p style='color:#ff9800;font-weight:bold;'>⚠️ مخزون منخفض</p>";
+}else{
+stores += "<p style='color:green;font-weight:bold;'>✅ متوفر</p>";
+}
 document.getElementById("popupStores").innerHTML = stores;
 }
 
@@ -150,24 +156,40 @@ function addToCartByIndex(index){
 const product = products[index];
 if(!product) return;
 
-if(product.stock <= 0){
-showToast(currentLang === "en" ? "This product is unavailable" : "هذا المنتج غير متوفر");
+const stock = Number(product.stock || 0);
+
+if(stock <= 0){
+showToast(currentLang === "en" ? "Out of stock" : "نفد المخزون");
 return;
 }
 
-const quantityInCart = cart.filter(item => item.name === product.name).length;
+const quantityInCart =
+cart.filter(item => item.name === product.name).length;
 
-if(quantityInCart >= product.stock){
-showToast(currentLang === "en" ? "No more stock available" : "لا يوجد كمية إضافية من هذا المنتج");
+if(quantityInCart >= stock){
+showToast(
+currentLang === "en"
+? "No more stock available"
+: "لا يوجد كمية إضافية من هذا المنتج"
+);
 return;
 }
 
 cart.push(product);
-localStorage.setItem("cart", JSON.stringify(cart));
+
+localStorage.setItem(
+"cart",
+JSON.stringify(cart)
+);
 
 updateCartCount();
 updateStats();
-showToast(currentLang === "en" ? "Added to cart" : "تمت إضافة المنتج للسلة");
+
+showToast(
+currentLang === "en"
+? "Added to cart"
+: "تمت إضافة المنتج للسلة"
+);
 }
 
 function updateCartCount(){
@@ -464,6 +486,7 @@ const discountAmount = subtotal * discountPercent / 100;
 const finalTotal = subtotal - discountAmount;
 
 const order = {
+orderId: "PH-" + Date.now(),
 customerName: name,
 customerPhone: phone,
 customerEmail: (document.getElementById("userBox")?.innerText || "").replace("👤","").trim(),
@@ -484,7 +507,7 @@ return;
 }
 
 await window.saveOrder(order);
-
+alert("تم حفظ الطلب ✅\nرقم طلبك هو: " + order.orderId);
 const stockUpdates = {};
 
 cart.forEach(item=>{
