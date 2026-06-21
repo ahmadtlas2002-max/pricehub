@@ -866,6 +866,17 @@ window.payWithStripe = async function () {
     }
 };
 
+function waitForFirebaseSave(){
+    return new Promise(resolve => {
+        const check = setInterval(() => {
+            if(window.saveOrder){
+                clearInterval(check);
+                resolve();
+            }
+        }, 300);
+    });
+}
+
 (async function handlePaymentSuccess(){
 
     const params = new URLSearchParams(window.location.search);
@@ -874,13 +885,13 @@ window.payWithStripe = async function () {
         return;
     }
 
-    showToast("✅ تم الدفع بنجاح");
-
     const paidCart = JSON.parse(localStorage.getItem("cart")) || [];
 
     if(paidCart.length === 0){
         return;
     }
+
+    await waitForFirebaseSave();
 
     const subtotal = paidCart.reduce((sum,item)=>sum + Number(item.price || 0),0);
 
@@ -896,37 +907,36 @@ window.payWithStripe = async function () {
         coupon: "",
         total: subtotal,
         date: new Date().toLocaleString(),
-      status: "مدفوع",
+        status: "مدفوع",
         paymentMethod: "Stripe"
     };
 
-    if(window.saveOrder){
-        await window.saveOrder(order);
-    }
+    await window.saveOrder(order);
+
     const stockUpdates = {};
 
-paidCart.forEach(item => {
-    if(item.id){
-        if(!stockUpdates[item.id]){
-            stockUpdates[item.id] = {
-                id: item.id,
-                stock: Number(item.stock || 0),
-                quantity: 0
-            };
+    paidCart.forEach(item => {
+        if(item.id){
+            if(!stockUpdates[item.id]){
+                stockUpdates[item.id] = {
+                    id: item.id,
+                    stock: Number(item.stock || 0),
+                    quantity: 0
+                };
+            }
+            stockUpdates[item.id].quantity++;
         }
+    });
 
-        stockUpdates[item.id].quantity++;
+    for(const key in stockUpdates){
+        const item = stockUpdates[key];
+        const newStock = Math.max(item.stock - item.quantity, 0);
+
+        if(window.updateProductStock){
+            await window.updateProductStock(item.id, newStock);
+        }
     }
-});
 
-for(const key in stockUpdates){
-    const item = stockUpdates[key];
-    const newStock = Math.max(item.stock - item.quantity, 0);
-
-    if(window.updateProductStock){
-        await window.updateProductStock(item.id, newStock);
-    }
-}
     localStorage.removeItem("cart");
     localStorage.removeItem("stripeCustomerName");
     localStorage.removeItem("stripeCustomerPhone");
@@ -937,5 +947,7 @@ for(const key in stockUpdates){
     updateStats();
 
     alert("✅ تم الدفع وحفظ الطلب\nرقم الطلب: " + order.orderId);
-window.history.replaceState({}, document.title, "index.html");
+
+    window.history.replaceState({}, document.title, "index.html");
+
 })();
