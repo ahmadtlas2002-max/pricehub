@@ -486,7 +486,7 @@ const discountAmount = subtotal * discountPercent / 100;
 const finalTotal = subtotal - discountAmount;
 
 const order = {
-orderId: "PH-" + Date.now(),
+orderId: "PH-" + Math.floor(10000 + Math.random() * 90000),
 customerName: name,
 customerPhone: phone,
 customerEmail: (document.getElementById("userBox")?.innerText || "").replace("👤","").trim(),
@@ -507,7 +507,13 @@ return;
 }
 
 await window.saveOrder(order);
-alert("تم حفظ الطلب ✅\nرقم طلبك هو: " + order.orderId);
+navigator.clipboard.writeText(order.orderId);
+
+alert(
+"تم حفظ الطلب ✅\n\n" +
+"رقم الطلب: " + order.orderId +
+"\n\n📋 تم نسخ رقم الطلب تلقائياً"
+);
 const stockUpdates = {};
 
 cart.forEach(item=>{
@@ -812,4 +818,41 @@ box.innerHTML =
 lastReviews.map(r =>
 `<div>⭐ ${r.rating}/5 - ${r.text || ""}</div>`
 ).join("");
+
+}
+async function payWithStripe(){
+
+if(cart.length === 0){
+showToast("السلة فارغة");
+return;
+}
+
+try{
+
+const response = await fetch(
+"https://pricehub-hnso.onrender.com/create-checkout-session",
+{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body: JSON.stringify({
+items: cart
+})
+}
+);
+
+const data = await response.json();
+
+if(data.url){
+window.location.href = data.url;
+}else{
+showToast("فشل إنشاء رابط الدفع");
+}
+
+}catch(error){
+console.error(error);
+showToast("خطأ في الاتصال بسيرفر الدفع");
+}
+
 }
