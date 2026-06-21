@@ -120,7 +120,7 @@ throw new Error("Access denied");
 <option value="تم التسليم">تم التسليم</option>
 </select>
 
-<input id="orderSearch" placeholder="ابحث باسم العميل أو رقم الهاتف...">
+<input id="orderSearch" placeholder="ابحث باسم العميل أو رقم الهاتف أو رقم الطلب...">
 <input id="orderDateFilter" type="date">
 
 <button onclick="loadOrders()">🔄 تحديث الطلبات</button>
@@ -497,7 +497,8 @@ visibleOrders = visibleOrders.filter(o => (o.status || "جديد") === selectedS
 
 visibleOrders = visibleOrders.filter(o =>
 (o.customerName || "").toLowerCase().includes(searchText) ||
-(o.customerPhone || "").toLowerCase().includes(searchText)
+(o.customerPhone || "").toLowerCase().includes(searchText) ||
+(o.orderId || "").toLowerCase().includes(searchText)
 );
 if(selectedDate){
 visibleOrders = visibleOrders.filter(o => {
