@@ -1,964 +1,953 @@
-<!DOCTYPE html>
-<html lang="ar">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PriceHub Admin</title>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<style>
-body{font-family:Arial;background:#f5f5f5;padding:20px;direction:rtl;}
-.admin-box{background:white;max-width:500px;margin:auto;padding:20px;border-radius:15px;box-shadow:0 5px 15px rgba(0,0,0,.1);}
-input,select,button{width:100%;padding:12px;margin:8px 0;border-radius:8px;border:1px solid #ccc;font-size:16px;}
-button{background:#0066ff;color:white;border:none;cursor:pointer;}
-button:hover{background:#0044cc;}
-.order-card{background:#eee;padding:15px;margin:10px 0;border-radius:12px;}
-</style>
-</head>
-
-<body>
-
-<script>
-const adminPassword = prompt("أدخل كلمة مرور لوحة الإدارة");
-if(adminPassword !== "Hosen1980"){
-document.body.innerHTML = "<h1 style='text-align:center;margin-top:50px;'>غير مسموح بالدخول</h1>";
-throw new Error("Access denied");
+let products = [
+{
+name:"iPhone 16 Pro", price:999, rating:4.8, category:"phone",
+image:"https://picsum.photos/300/200?1",
+stores:["Amazon : $999","MediaMarkt : $1020","Elgiganten : $1040"],
+featured:false, stock:5
+},
+{
+name:"Samsung Galaxy S25", price:899, rating:4.6, category:"phone",
+image:"https://picsum.photos/300/200?2",
+stores:["Amazon : $899","MediaMarkt : $920","Elgiganten : $940"],
+featured:false, stock:4
+},
+{
+name:"PlayStation 5", price:499, rating:4.7, category:"gaming",
+image:"https://picsum.photos/300/200?3",
+stores:["Amazon : $499","MediaMarkt : $520"],
+featured:false, stock:3
+},
+{
+name:"MacBook Pro", price:1799, rating:4.9, category:"laptop",
+image:"https://picsum.photos/300/200?4",
+stores:["Amazon : $1799","MediaMarkt : $1820","Elgiganten : $1850"],
+featured:true, stock:2
 }
-</script>
+];
 
-<div class="admin-box">
-<h1>لوحة إدارة PriceHub</h1>
+const container = document.getElementById("products");
 
-<div style="background:#eef;padding:15px;border-radius:12px;margin:10px 0;">
-<h3>📊 ملخص الإدارة</h3>
-<p id="dashboardProducts">المنتجات: 0</p>
-<p id="dashboardOutOfStock">غير متوفر: 0</p>
-<p id="dashboardLowStock">مخزون منخفض: 0</p>
-<p id="dashboardOrders">الطلبات: 0</p>
-<p id="dashboardRevenue">الأرباح: $0</p>
-<p id="todayRevenue">أرباح اليوم: $0</p>
-<p id="monthRevenue">أرباح هذا الشهر: $0</p>
-<p id="todayOrders">طلبات اليوم: 0</p>
-<p id="monthOrders">طلبات هذا الشهر: 0</p>
-<p id="avgOrderValue">متوسط الطلب: $0</p>
-<p id="topProduct">الأكثر مبيعًا: لا يوجد</p>
-<div id="topProductsList" style="
-background:#fff;
-padding:10px;
-border-radius:10px;
-margin-top:10px;
-text-align:right;
-">
-أفضل المنتجات ستظهر هنا
-</div>
-<p id="topCustomer">أفضل عميل: لا يوجد</p>
-<p id="newOrderAlert" style="display:none;background:#ffeb3b;padding:10px;border-radius:8px;font-weight:bold;">
-🔔 يوجد طلب جديد!
-</p>
+let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
+let coupons = [];
+let discountPercent = 0;
+let appliedCoupon = "";
+let currentReviewProduct = "";
+let currentLang = localStorage.getItem("lang") || "ar";
 
-<canvas id="ordersChart"></canvas>
-<audio id="newOrderSound">
-  <source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" type="audio/ogg">
-</audio>
-</div>
-
-<a href="index.html"><button type="button">⬅️ العودة للموقع</button></a>
-<button onclick="logoutAdmin()" style="background:#cc0000;">تسجيل الخروج</button>
-
-<input id="name" placeholder="اسم المنتج">
-<input id="price" type="number" placeholder="السعر">
-<input id="stock" type="number" placeholder="الكمية المتوفرة">
-<input id="store" placeholder="اسم المتجر">
-<input id="rating" type="number" step="0.1" placeholder="التقييم">
-
-<select id="category">
-<option value="phone">هواتف</option>
-<option value="gaming">ألعاب</option>
-<option value="laptop">لابتوبات</option>
-</select>
-
-<label><input id="featured" type="checkbox"> ⭐ منتج مميز</label>
-<input id="image" placeholder="رابط الصورة">
-<img id="previewImage" style="width:100%;margin-top:10px;display:none;border-radius:10px;">
-
-<button id="saveBtn" onclick="saveProduct()">إضافة المنتج</button>
-<button id="cancelBtn" onclick="cancelEdit()" style="display:none;background:#777;">إلغاء التعديل</button>
-
-<p id="message"></p>
-
-<hr>
-
-<h2>المنتجات الحالية</h2>
-<p id="adminCount">عدد المنتجات: 0</p>
-<p id="categoryStats"></p>
-
-<button onclick="loadAdminProducts()">🔄 تحديث القائمة</button>
-<button onclick="exportProductsCSV()" style="background:#009688;">⬇️ تصدير المنتجات CSV</button>
-<input id="adminSearch" placeholder="ابحث عن منتج في لوحة الإدارة...">
-
-<select id="adminCategoryFilter">
-<option value="all">كل التصنيفات</option>
-<option value="phone">هواتف</option>
-<option value="gaming">ألعاب</option>
-<option value="laptop">لابتوبات</option>
-</select>
-
-<select id="stockFilter">
-<option value="all">كل حالات المخزون</option>
-<option value="low">مخزون منخفض</option>
-<option value="out">غير متوفر</option>
-</select>
-<select id="featuredFilter">
-<option value="all">كل المنتجات</option>
-<option value="featured">المميزة فقط</option>
-<option value="normal">غير المميزة</option>
-</select>
-<div id="productsList"></div>
-
-<hr>
-<hr>
-
-<h2>🛍️ منتجات بانتظار الموافقة</h2>
-
-<button onclick="loadPendingProducts()" style="background:#795548;">
-🔄 تحديث المنتجات المرسلة
-</button>
-
-<div id="pendingProductsList"></div>
-<h2>📦 الطلبات</h2>
-<p id="orderStats"></p>
-<h3 id="totalRevenue">💰 إجمالي الأرباح: $0</h3>
-
-<select id="orderStatusFilter">
-<option value="all">كل الطلبات</option>
-<option value="جديد">جديد</option>
-<option value="قيد المعالجة">قيد المعالجة</option>
-<option value="تم التسليم">تم التسليم</option>
-</select>
-
-<input id="orderSearch" placeholder="ابحث باسم العميل أو رقم الهاتف أو رقم الطلب...">
-<input id="orderDateFilter" type="date">
-
-<button onclick="loadOrders()">🔄 تحديث الطلبات</button>
-<button onclick="exportOrdersCSV()" style="background:#008000;">⬇️ تصدير الطلبات CSV</button>
-
-<div id="ordersList"></div>
-
-<hr>
-
-<h2>🎟️ إدارة الكوبونات</h2>
-
-<input id="couponCodeAdmin" placeholder="كود الكوبون مثل PRICE10">
-<input id="couponDiscountAdmin" type="number" placeholder="نسبة الخصم">
-
-<button onclick="addCouponAdmin()">إضافة كوبون</button>
-
-<div id="couponsList"></div>
-<hr>
-
-<h2>⭐ إدارة التقييمات</h2>
-<div style="background:#eef;padding:12px;border-radius:10px;margin:10px 0;">
-<p id="reviewsCount">عدد التقييمات: 0</p>
-<p id="reviewsAverage">متوسط التقييم: 0 / 5</p>
-<p id="mostReviewedProduct">الأكثر تقييمًا: لا يوجد</p>
-</div>
-<button onclick="loadReviewsAdmin()">🔄 تحديث التقييمات</button>
-<button onclick="exportReviewsCSV()" style="background:#009688;">
-⬇️ تصدير التقييمات CSV
-</button>
-<div id="reviewsAdminList"></div>
-</div>
-
-<script type="module">
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-
-import {
-getFirestore,
-collection,
-addDoc,
-getDocs,
-deleteDoc,
-doc,
-updateDoc
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-const firebaseConfig = {
-apiKey: "AIzaSyA4jGrncraaaktuaDpsO7nz1-qmrqYKM3k",
-authDomain: "pricehub-6d3c4.firebaseapp.com",
-projectId: "pricehub-6d3c4",
-storageBucket: "pricehub-6d3c4.firebasestorage.app",
-messagingSenderId: "991179979836",
-appId: "1:991179979836:web:cb23f4d31e55364d1ed739",
-measurementId: "G-HLCHBX5FF7"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-let editingId = null;
-let adminProducts = [];
-let lastOrdersCount = 0;
-let ordersChart = null;
-
-window.saveProduct = async function(){
-const name = document.getElementById("name").value;
-const price = Number(document.getElementById("price").value);
-const stock = Number(document.getElementById("stock").value);
-const store = document.getElementById("store").value;
-const rating = Number(document.getElementById("rating").value);
-const category = document.getElementById("category").value;
-const image = document.getElementById("image").value;
-const featured = document.getElementById("featured").checked;
-
-if(!name || !price || stock < 0 || !rating || !store || !image){
-document.getElementById("message").innerHTML = "املأ كل الحقول";
-return;
-}
-
-if(rating < 0 || rating > 5){
-document.getElementById("message").innerHTML = "التقييم يجب أن يكون بين 0 و 5";
-return;
-}
-
-const productData = {
-name,
-price,
-stock,
-rating,
-category,
-image,
-featured,
-stores:[store + " : $" + price]
-};
-
-if(editingId){
-await updateDoc(doc(db,"products",editingId),productData);
-document.getElementById("message").innerHTML = "تم تحديث المنتج ✅";
-editingId = null;
-}else{
-await addDoc(collection(db,"products"),productData);
-document.getElementById("message").innerHTML = "تمت إضافة المنتج ✅";
-}
-
-clearForm();
-loadAdminProducts();
-};
-
-function clearForm(){
-document.getElementById("name").value = "";
-document.getElementById("price").value = "";
-document.getElementById("stock").value = "";
-document.getElementById("store").value = "";
-document.getElementById("rating").value = "";
-document.getElementById("image").value = "";
-document.getElementById("featured").checked = false;
-document.getElementById("previewImage").src = "";
-document.getElementById("previewImage").style.display = "none";
-document.getElementById("saveBtn").innerHTML = "إضافة المنتج";
-document.getElementById("cancelBtn").style.display = "none";
-}
-
-window.loadAdminProducts = async function(){
-const snapshot = await getDocs(collection(db,"products"));
-adminProducts = [];
-
-snapshot.forEach((item)=>{
-adminProducts.push({id:item.id,...item.data()});
-});
-
-applyAdminFilters();
-updateCategoryStats();
-
-document.getElementById("dashboardProducts").innerHTML =
-"المنتجات: " + adminProducts.length;
-
-document.getElementById("dashboardOutOfStock").innerHTML =
-"غير متوفر: " + adminProducts.filter(p => Number(p.stock || 0) <= 0).length;
-
-document.getElementById("dashboardLowStock").innerHTML =
-"مخزون منخفض: " + adminProducts.filter(p => Number(p.stock || 0) > 0 && Number(p.stock || 0) <= 5).length;
-};
-
-function showAdminProducts(list){
-const box = document.getElementById("productsList");
-document.getElementById("adminCount").innerHTML = "عدد المنتجات: " + list.length;
-box.innerHTML = "";
-
-if(list.length === 0){
-box.innerHTML = "<p>لا توجد منتجات مطابقة</p>";
-return;
-}
+function showProducts(list){
+container.innerHTML = "";
+document.getElementById("productCount").innerHTML =
+currentLang === "en" ? "Products: " + list.length : "عدد المنتجات: " + list.length;
 
 list.forEach(product=>{
-box.innerHTML += `
-<div style="background:#eee;padding:10px;margin:10px 0;border-radius:12px;">
-<img src="${product.image || 'https://picsum.photos/300/200'}" style="width:100%;max-height:150px;object-fit:cover;border-radius:8px;margin-bottom:10px;">
-<strong>${product.name}</strong><br>
-$${product.price}<br>
-📦 الكمية: ${product.stock || 0}<br>
-${Number(product.stock || 0) <= 0
-? "<span style='color:red;font-weight:bold;'>❌ غير متوفر</span><br>"
-: Number(product.stock || 0) <= 5
-? "<span style='color:#ff9800;font-weight:bold;'>⚠️ مخزون منخفض</span><br>"
-: "<span style='color:green;font-weight:bold;'>✅ متوفر</span><br>"
-}
-⭐ ${product.rating}<br>
-📦 ${product.category}<br>
-${product.featured ? "⭐ منتج مميز<br>" : ""}
-<button onclick="increaseStock('${product.id}', ${Number(product.stock || 0)})">➕ زيادة المخزون</button>
-<button onclick="decreaseStock('${product.id}', ${Number(product.stock || 0)})">➖ إنقاص المخزون</button>
-<button onclick="editProductData('${product.id}')">تعديل</button>
-<button onclick="deleteProduct('${product.id}')">حذف</button>
+const index = products.indexOf(product);
+const cheapestStore = product.stores[0];
+
+container.innerHTML += `
+<div class="card">
+<img src="${product.image}">
+<div class="content">
+<h2>${product.name}<span style="cursor:pointer;float:left;" onclick="toggleFavByIndex(${index})">❤️</span></h2>
+
+${product.featured ? `<div class="featured-badge">⭐ ${currentLang === "en" ? "Featured Product" : "منتج مميز"}</div>` : `<div class="badge">🏆 ${currentLang === "en" ? "Best Price" : "أفضل سعر"}</div>`}
+
+<p class="price">$${product.price}</p>
+<p>📦 ${currentLang === "en" ? "Stock" : "المخزون"}: ${product.stock > 0 ? product.stock : currentLang === "en" ? "Unavailable" : "غير متوفر"}</p>
+<p class="rating">⭐ ${product.rating} / 5</p>
+<div id="cardReviews-${index}" style="font-size:14px;background:#f1f1f1;padding:8px;border-radius:8px;margin:8px 0;">
+جاري تحميل آخر التقييمات...
+</div>
+<p class="bestStore">🏪 ${currentLang === "en" ? "Best Store" : "أفضل متجر"}: ${cheapestStore}</p>
+
+${product.stores.map(store=>`<div class="store">${store}</div>`).join("")}
+
+<button onclick="showDetailsByIndex(${index})">${currentLang === "en" ? "View Product" : "عرض المنتج"}</button>
+
+${product.stock > 0
+? `<button onclick="addToCartByIndex(${index})">🛒 ${currentLang === "en" ? "Add to Cart" : "أضف للسلة"}</button>`
+: `<button disabled style="background:#999;">${currentLang === "en" ? "Unavailable" : "غير متوفر"}</button>`}
+
+<button onclick="shareProductByIndex(${index})">📤 ${currentLang === "en" ? "Share" : "مشاركة"}</button>
+</div>
 </div>
 `;
 });
-}
-
-window.editProductData = function(id){
-const product = adminProducts.find(p => p.id === id);
-if(!product) return;
-
-editingId = product.id;
-document.getElementById("name").value = product.name || "";
-document.getElementById("price").value = product.price || "";
-document.getElementById("stock").value = product.stock || 0;
-document.getElementById("rating").value = product.rating || "";
-document.getElementById("category").value = product.category || "phone";
-document.getElementById("image").value = product.image || "";
-document.getElementById("store").value = "Firebase Store";
-document.getElementById("featured").checked = product.featured || false;
-
-if(product.image){
-document.getElementById("previewImage").src = product.image;
-document.getElementById("previewImage").style.display = "block";
-}
-
-document.getElementById("saveBtn").innerHTML = "تحديث المنتج";
-document.getElementById("cancelBtn").style.display = "block";
-};
-
-window.deleteProduct = async function(id){
-if(!confirm("هل أنت متأكد من حذف المنتج؟")) return;
-await deleteDoc(doc(db,"products",id));
-loadAdminProducts();
-};
-
-function applyAdminFilters(){
-const searchText = document.getElementById("adminSearch").value.toLowerCase();
-const category = document.getElementById("adminCategoryFilter").value;
-const stockFilter = document.getElementById("stockFilter").value;
-const featuredFilter = document.getElementById("featuredFilter").value;
-let filtered = adminProducts.filter(p => (p.name || "").toLowerCase().includes(searchText));
-
-if(category !== "all") filtered = filtered.filter(p => p.category === category);
-if(stockFilter === "low") filtered = filtered.filter(p => Number(p.stock || 0) > 0 && Number(p.stock || 0) <= 5);
-if(stockFilter === "out") filtered = filtered.filter(p => Number(p.stock || 0) <= 0);
-
-if(featuredFilter === "featured") filtered = filtered.filter(p => p.featured === true);
-if(featuredFilter === "normal") filtered = filtered.filter(p => p.featured !== true);
-
-showAdminProducts(filtered);
-}
-
-function updateCategoryStats(){
-document.getElementById("categoryStats").innerHTML =
-`📱 الهواتف: ${adminProducts.filter(p => p.category === "phone").length}<br>
-🎮 الألعاب: ${adminProducts.filter(p => p.category === "gaming").length}<br>
-💻 اللابتوبات: ${adminProducts.filter(p => p.category === "laptop").length}`;
-}
-
-document.getElementById("adminSearch").addEventListener("input",applyAdminFilters);
-document.getElementById("adminCategoryFilter").addEventListener("change",applyAdminFilters);
-document.getElementById("stockFilter").addEventListener("change",applyAdminFilters);
-document.getElementById("featuredFilter").addEventListener("change",applyAdminFilters);
-
-window.cancelEdit = function(){
-editingId = null;
-clearForm();
-};
-
-window.logoutAdmin = function(){
-location.reload();
-};
-
-function updateOrderStats(orders){
-const newOrders = orders.filter(o => (o.status || "جديد") === "جديد").length;
-const processing = orders.filter(o => o.status === "قيد المعالجة").length;
-const delivered = orders.filter(o => o.status === "تم التسليم").length;
-
-const revenue = orders.reduce((sum,o)=>sum + Number(o.total || 0),0);
-const today = new Date();
-const todayKey = today.toISOString().slice(0,10);
-const monthKey = today.toISOString().slice(0,7);
-
-let todayRevenue = 0;
-let monthRevenue = 0;
-let todayOrders = 0;
-let monthOrders = 0;
-
-orders.forEach(o=>{
-const orderDate = new Date(o.date);
-if(!isNaN(orderDate)){
-const orderDay = orderDate.toISOString().slice(0,10);
-const orderMonth = orderDate.toISOString().slice(0,7);
-
-if(orderDay === todayKey){
-todayRevenue += Number(o.total || 0);
-todayOrders++;
-}
-
-if(orderMonth === monthKey){
-monthRevenue += Number(o.total || 0);
-monthOrders++;
-}
-}
+setTimeout(()=>{
+list.forEach(product=>{
+const index = products.indexOf(product);
+loadCardReviews(product.name,index);
 });
-
-const avgOrderValue = orders.length ? revenue / orders.length : 0;
-
-document.getElementById("todayRevenue").innerHTML =
-"أرباح اليوم: $" + todayRevenue.toFixed(2);
-
-document.getElementById("monthRevenue").innerHTML =
-"أرباح هذا الشهر: $" + monthRevenue.toFixed(2);
-
-document.getElementById("todayOrders").innerHTML =
-"طلبات اليوم: " + todayOrders;
-
-document.getElementById("monthOrders").innerHTML =
-"طلبات هذا الشهر: " + monthOrders;
-
-document.getElementById("avgOrderValue").innerHTML =
-"متوسط الطلب: $" + avgOrderValue.toFixed(2);
-const sales = {};
-orders.forEach(order=>{
-(order.items || []).forEach(item=>{
-sales[item.name] = (sales[item.name] || 0) + 1;
-});
-});
-
-let topName = "لا يوجد";
-let topCount = 0;
-
-for(const name in sales){
-if(sales[name] > topCount){
-topName = name;
-topCount = sales[name];
+},500);
+showFeaturedProduct();
+applyLanguage();
 }
-}
-
-document.getElementById("topProduct").innerHTML =
-"🏆 الأكثر مبيعًا: " + topName + " (" + topCount + " مبيعات)";
-
-const sortedProducts = Object.entries(sales)
-.sort((a,b)=>b[1]-a[1])
-.slice(0,5);
-
-let topProductsHTML = "<strong>🏆 أفضل 5 منتجات:</strong><br>";
-
-if(sortedProducts.length === 0){
-topProductsHTML += "لا توجد مبيعات بعد";
-}else{
-sortedProducts.forEach((item,index)=>{
-topProductsHTML += (index + 1) + ". " + item[0] + " (" + item[1] + " مبيعات)<br>";
-});
-}
-
-document.getElementById("topProductsList").innerHTML = topProductsHTML;
-
-document.getElementById("orderStats").innerHTML =
-`🟡 جديد: ${newOrders}<br>🔵 قيد المعالجة: ${processing}<br>🟢 تم التسليم: ${delivered}`;
-
-document.getElementById("totalRevenue").innerHTML =
-"💰 إجمالي الأرباح: $" + revenue.toFixed(2);
-
-document.getElementById("dashboardOrders").innerHTML =
-"الطلبات: " + orders.length;
-
-document.getElementById("dashboardRevenue").innerHTML =
-"الأرباح: $" + revenue.toFixed(2);
-
-const customers = {};
-orders.forEach(order=>{
-const customer = order.customerName || order.customerEmail || "غير معروف";
-
-if(!customers[customer]){
-customers[customer] = {count:0,total:0};
-}
-
-customers[customer].count++;
-customers[customer].total += Number(order.total || 0);
-});
-
-let topCustomer = "لا يوجد";
-let topCustomerTotal = 0;
-let topCustomerOrders = 0;
-
-for(const name in customers){
-if(customers[name].total > topCustomerTotal){
-topCustomer = name;
-topCustomerTotal = customers[name].total;
-topCustomerOrders = customers[name].count;
-}
-}
-
-document.getElementById("topCustomer").innerHTML =
-"أفضل عميل: " + topCustomer +
-" | الطلبات: " + topCustomerOrders +
-" | المشتريات: $" + topCustomerTotal.toFixed(2);
-}
-
-function updateOrdersChart(orders){
-const ctx = document.getElementById("ordersChart");
-if(!ctx) return;
-
-if(ordersChart) ordersChart.destroy();
-
-ordersChart = new Chart(ctx,{
-type:"bar",
-data:{
-labels:["جديد","قيد المعالجة","تم التسليم"],
-datasets:[{
-label:"عدد الطلبات",
-data:[
-orders.filter(o => (o.status || "جديد") === "جديد").length,
-orders.filter(o => o.status === "قيد المعالجة").length,
-orders.filter(o => o.status === "تم التسليم").length
-]
-}]
-}
-});
-}
-
-window.loadOrders = async function(){
-const ordersList = document.getElementById("ordersList");
-ordersList.innerHTML = "";
-
-const snapshot = await getDocs(collection(db,"orders"));
-const orders = [];
-
-snapshot.forEach(orderDoc=>{
-orders.push({id:orderDoc.id,...orderDoc.data()});
-});
-orders.sort((a,b)=>{
-return new Date(b.date || 0) - new Date(a.date || 0);
-});
-if(lastOrdersCount > 0 && orders.length > lastOrdersCount){
-document.getElementById("newOrderAlert").style.display = "block";
-
-const sound = document.getElementById("newOrderSound");
-if(sound){
-sound.play().catch(()=>{});
-}
-}
-
-lastOrdersCount = orders.length;
-updateOrderStats(orders);
-updateOrdersChart(orders);
-
-const selectedStatus = document.getElementById("orderStatusFilter").value;
-const searchText = document.getElementById("orderSearch").value.toLowerCase();
-const selectedDate = document.getElementById("orderDateFilter").value;
-
-let visibleOrders = orders;
-
-if(selectedStatus !== "all"){
-visibleOrders = visibleOrders.filter(o => (o.status || "جديد") === selectedStatus);
-}
-
-visibleOrders = visibleOrders.filter(o =>
-(o.customerName || "").toLowerCase().includes(searchText) ||
-(o.customerPhone || "").toLowerCase().includes(searchText) ||
-(o.orderId || "").toLowerCase().includes(searchText)
-);
-if(selectedDate){
-visibleOrders = visibleOrders.filter(o => {
-
-if(!o.date) return false;
-
-const orderDate = new Date(o.date);
-
-if(isNaN(orderDate)) return true;
-
-const formatted =
-orderDate.getFullYear() + "-" +
-String(orderDate.getMonth()+1).padStart(2,"0") + "-" +
-String(orderDate.getDate()).padStart(2,"0");
-
-return formatted === selectedDate;
-
-});
-}
-
-if(visibleOrders.length === 0){
-ordersList.innerHTML = "<p>لا توجد طلبات</p>";
-return;
-}
-
-visibleOrders.forEach(order=>{
-const status = order.status || "جديد";
-
-ordersList.innerHTML += `
-<div class="order-card">
-<strong>رقم الطلب:</strong>
-${order.orderId || "غير موجود"}<br>
-<strong>العميل:</strong> ${order.customerName || ""}<br>
-<strong>الهاتف:</strong> ${order.customerPhone || ""}<br>
-<strong>المجموع النهائي:</strong> $${order.total || 0}<br>
-<strong>عدد المنتجات:</strong> ${(order.items || []).length}<br>
-<strong>التاريخ:</strong> ${order.date || ""}<br><br>
-<strong>المنتجات:</strong>
-<ul>
-${(order.items || []).map(p => `<li>${p.name} - $${p.price}</li>`).join("")}
-</ul>
-
-<strong>الحالة:</strong> ${status}<br>
-
-<select onchange="updateOrderStatus('${order.id}', this.value)">
-<option value="جديد" ${status === "جديد" ? "selected" : ""}>جديد</option>
-<option value="قيد المعالجة" ${status === "قيد المعالجة" ? "selected" : ""}>قيد المعالجة</option>
-<option value="تم التسليم" ${status === "تم التسليم" ? "selected" : ""}>تم التسليم</option>
-</select>
-
-<button onclick="deleteOrder('${order.id}')" style="background:#cc0000;">🗑️ حذف الطلب</button>
-</div>
-`;
-});
-};
-
-window.updateOrderStatus = async function(id,status){
-await updateDoc(doc(db,"orders",id),{status});
-loadOrders();
-};
-
-window.deleteOrder = async function(id){
-if(!confirm("هل تريد حذف هذا الطلب؟")) return;
-await deleteDoc(doc(db,"orders",id));
-loadOrders();
-};
-
-window.exportOrdersCSV = async function(){
-const snapshot = await getDocs(collection(db,"orders"));
-let csv = "رقم الطلب,العميل,الهاتف,المجموع,التاريخ,الحالة\n";
-
-snapshot.forEach(orderDoc=>{
-const o = orderDoc.data();
-csv += `"${o.orderId || orderDoc.id}","${o.customerName || ""}","${o.customerPhone || ""}","${o.total || 0}","${o.date || ""}","${o.status || "جديد"}"\n`;
-});
-
-const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-const link = document.createElement("a");
-link.href = URL.createObjectURL(blob);
-link.download = "pricehub-orders.csv";
-link.click();
-};
-
-window.exportProductsCSV = function(){
-let csv = "الاسم,السعر,المخزون,التقييم,التصنيف,مميز,الصورة\n";
-
-adminProducts.forEach(product=>{
-csv += `"${product.name || ""}","${product.price || 0}","${product.stock || 0}","${product.rating || 0}","${product.category || ""}","${product.featured ? "نعم" : "لا"}","${product.image || ""}"\n`;
-});
-
-const blob = new Blob([csv],{
-type:"text/csv;charset=utf-8;"
-});
-
-const link = document.createElement("a");
-link.href = URL.createObjectURL(blob);
-link.download = "pricehub-products.csv";
-link.click();
-
-URL.revokeObjectURL(link.href);
-};
-
-window.addCouponAdmin = async function(){
-const code = document.getElementById("couponCodeAdmin").value.trim().toUpperCase();
-const discount = Number(document.getElementById("couponDiscountAdmin").value);
-
-if(!code || discount <= 0){
-alert("اكتب الكود ونسبة الخصم");
-return;
-}
-
-await addDoc(collection(db,"coupons"),{code,discount});
-document.getElementById("couponCodeAdmin").value = "";
-document.getElementById("couponDiscountAdmin").value = "";
-loadCouponsAdmin();
-};
-
-window.loadCouponsAdmin = async function(){
-const box = document.getElementById("couponsList");
-box.innerHTML = "";
-
-const snapshot = await getDocs(collection(db,"coupons"));
-
-if(snapshot.empty){
-box.innerHTML = "<p>لا توجد كوبونات</p>";
-return;
-}
-
-snapshot.forEach(couponDoc=>{
-const coupon = couponDoc.data();
-
-box.innerHTML += `
-<div style="background:#eee;padding:10px;margin:8px 0;border-radius:8px;">
-<strong>${coupon.code}</strong><br>
-خصم: ${coupon.discount}%<br>
-<button onclick="deleteCouponAdmin('${couponDoc.id}')" style="background:#cc0000;">حذف الكوبون</button>
-</div>
-`;
-});
-};
-window.deleteCouponAdmin = async function(id){
-if(!confirm("هل تريد حذف هذا الكوبون؟")) return;
-await deleteDoc(doc(db,"coupons",id));
-loadCouponsAdmin();
-};
-
-window.loadReviewsAdmin = async function(){
-const box = document.getElementById("reviewsAdminList");
-
+function showFeaturedProduct(){
+const box = document.getElementById("featuredBox");
 if(!box) return;
 
-box.innerHTML = "جاري التحميل...";
+const featured = products.find(p => p.featured);
+if(!featured){ box.innerHTML = ""; return; }
 
-try{
-const snapshot = await getDocs(collection(db,"reviews"));
+const index = products.indexOf(featured);
 
-const reviewsArray = [];
+box.innerHTML = `
+<div style="width:90%;margin:20px auto;background:#fff3cd;padding:20px;border-radius:15px;text-align:center;box-shadow:0 3px 10px rgba(0,0,0,.1);">
+<h2>⭐ ${currentLang === "en" ? "Featured Product" : "المنتج المميز"}</h2>
+<img src="${featured.image}" style="width:100%;max-width:400px;border-radius:12px;">
+<h3>${featured.name}</h3>
+<p style="font-size:22px;color:green;font-weight:bold;">$${featured.price}</p>
+<p>📦 ${currentLang === "en" ? "Stock" : "المخزون"}: ${featured.stock > 0 ? featured.stock : currentLang === "en" ? "Unavailable" : "غير متوفر"}</p>
+<button onclick="showDetailsByIndex(${index})">${currentLang === "en" ? "View Product" : "عرض المنتج"}</button>
+</div>
+`;
+}
 
-snapshot.forEach(reviewDoc=>{
-reviewsArray.push({
-id: reviewDoc.id,
-...reviewDoc.data()
-});
-});
+function showDetailsByIndex(index){
+const product = products[index];
+if(!product) return;
 
-updateReviewsStats(reviewsArray);
+document.getElementById("popup").style.display = "block";
+document.getElementById("popupName").innerHTML = product.name;
+document.getElementById("popupImage").src = product.image;
+document.getElementById("popupPrice").innerHTML = "$" + product.price;
+currentReviewProduct = product.name;
+loadProductReviews(product.name);
+let stores = "";
+product.stores.forEach(store=> stores += `<p>${store}</p>`);
+stores += `<p>📦 ${currentLang === "en" ? "Stock" : "المخزون"}: ${product.stock > 0 ? product.stock : currentLang === "en" ? "Unavailable" : "غير متوفر"}</p>`;
+if(Number(product.stock || 0) <= 0){
+stores += "<p style='color:red;font-weight:bold;'>❌ نفد المخزون</p>";
+}else if(Number(product.stock || 0) <= 5){
+stores += "<p style='color:#ff9800;font-weight:bold;'>⚠️ مخزون منخفض</p>";
+}else{
+stores += "<p style='color:green;font-weight:bold;'>✅ متوفر</p>";
+}
+document.getElementById("popupStores").innerHTML = stores;
+}
 
-if(reviewsArray.length === 0){
-box.innerHTML = "<p>لا توجد تقييمات</p>";
+function closePopup(){
+document.getElementById("popup").style.display = "none";
+}
+
+function toggleFavByIndex(index){
+const product = products[index];
+if(!product) return;
+
+if(favorites.includes(product.name)){
+favorites = favorites.filter(item => item !== product.name);
+showToast(currentLang === "en" ? "Removed from favorites" : product.name + " تمت إزالته من المفضلة");
+}else{
+favorites.push(product.name);
+showToast(currentLang === "en" ? "Added to favorites" : product.name + " تمت إضافته للمفضلة");
+}
+
+localStorage.setItem("favorites", JSON.stringify(favorites));
+updateFavCount();
+updateStats();
+}
+
+function updateFavCount(){
+document.getElementById("favCount").innerHTML =
+currentLang === "en" ? "❤️ Favorites: " + favorites.length : "❤️ المفضلة: " + favorites.length;
+}
+
+function addToCartByIndex(index){
+const product = products[index];
+if(!product) return;
+
+const stock = Number(product.stock || 0);
+
+if(stock <= 0){
+showToast(currentLang === "en" ? "Out of stock" : "نفد المخزون");
 return;
 }
 
-box.innerHTML = "";
+const quantityInCart =
+cart.filter(item => item.name === product.name).length;
 
-reviewsArray.forEach(review=>{
-box.innerHTML += `
-<div style="background:#eee;padding:12px;margin:10px 0;border-radius:10px;">
-<strong>المنتج:</strong> ${review.productName || ""}<br>
-<strong>التقييم:</strong> ⭐ ${review.rating || 0}<br>
-<strong>المستخدم:</strong> ${review.email || ""}<br>
-<strong>التعليق:</strong> ${review.text || ""}<br><br>
+if(quantityInCart >= stock){
+showToast(
+currentLang === "en"
+? "No more stock available"
+: "لا يوجد كمية إضافية من هذا المنتج"
+);
+return;
+}
 
-<button style="background:#cc0000;" onclick="deleteReview('${review.id}')">
-حذف
-</button>
+cart.push(product);
+
+localStorage.setItem(
+"cart",
+JSON.stringify(cart)
+);
+
+updateCartCount();
+updateStats();
+
+showToast(
+currentLang === "en"
+? "Added to cart"
+: "تمت إضافة المنتج للسلة"
+);
+}
+
+function updateCartCount(){
+document.getElementById("cartCount").innerHTML =
+currentLang === "en" ? "🛒 Cart: " + cart.length : "🛒 السلة: " + cart.length;
+}
+
+function openCart(){
+document.getElementById("cartPopup").style.display = "block";
+
+const cartItems = document.getElementById("cartItems");
+const cartTotal = document.getElementById("cartTotal");
+
+cartItems.innerHTML = "";
+let total = 0;
+
+if(cart.length === 0){
+cartItems.innerHTML = currentLang === "en" ? "<p>Cart is empty</p>" : "<p>السلة فارغة</p>";
+cartTotal.innerHTML = currentLang === "en" ? "Total: $0" : "المجموع: $0";
+return;
+}
+
+cart.forEach((item,index)=>{
+total += Number(item.price || 0);
+cartItems.innerHTML += `
+<div class="cart-item">
+<span>${item.name} - $${item.price}</span>
+<button onclick="removeFromCart(${index})">${currentLang === "en" ? "Delete" : "حذف"}</button>
 </div>
 `;
 });
 
-}catch(error){
-console.error(error);
-box.innerHTML = "<p style='color:red;'>حدث خطأ في تحميل التقييمات. تأكد من Firebase Rules.</p>";
+if(discountPercent > 0){
+const discountAmount = total * discountPercent / 100;
+const finalTotal = total - discountAmount;
+
+cartTotal.innerHTML =
+(currentLang === "en" ? "Before discount: $" : "المجموع قبل الخصم: $") + total.toFixed(2) +
+"<br>" + (currentLang === "en" ? "Discount: " : "الخصم: ") + discountPercent + "%" +
+"<br>" + (currentLang === "en" ? "Final total: $" : "المجموع النهائي: $") + finalTotal.toFixed(2);
+}else{
+cartTotal.innerHTML = currentLang === "en" ? "Total: $" + total.toFixed(2) : "المجموع: $" + total.toFixed(2);
 }
-};
+}
 
-function updateReviewsStats(reviews){
-const reviewsCount = document.getElementById("reviewsCount");
-const reviewsAverage = document.getElementById("reviewsAverage");
-const mostReviewedProduct = document.getElementById("mostReviewedProduct");
+function applyCoupon(){
+const couponInput = document.getElementById("couponCode");
+const couponMessage = document.getElementById("couponMessage");
 
-if(!reviewsCount || !reviewsAverage || !mostReviewedProduct) return;
+if(!couponInput || !couponMessage) return;
 
-reviewsCount.innerHTML = "عدد التقييمات: " + reviews.length;
+const code = couponInput.value.trim().toUpperCase();
 
-const avg = reviews.length
-? reviews.reduce((sum,r)=>sum + Number(r.rating || 0),0) / reviews.length
+if(!code){
+couponMessage.innerHTML = currentLang === "en" ? "Enter coupon code" : "اكتب كود الخصم";
+return;
+}
+
+const firebaseCoupon = coupons.find(c => (c.code || "").toUpperCase() === code);
+
+if(firebaseCoupon){
+discountPercent = Number(firebaseCoupon.discount || 0);
+appliedCoupon = code;
+couponMessage.innerHTML = currentLang === "en" ? "Discount applied " + discountPercent + "% ✅" : "تم تطبيق خصم " + discountPercent + "% ✅";
+openCart();
+return;
+}
+
+const staticCoupons = { PRICE10:10, SAVE20:20, WELCOME30:30 };
+
+if(staticCoupons[code]){
+discountPercent = staticCoupons[code];
+appliedCoupon = code;
+couponMessage.innerHTML = currentLang === "en" ? "Discount applied " + discountPercent + "% ✅" : "تم تطبيق خصم " + discountPercent + "% ✅";
+openCart();
+return;
+}
+
+discountPercent = 0;
+appliedCoupon = "";
+couponMessage.innerHTML = currentLang === "en" ? "Invalid coupon code" : "كود الخصم غير صحيح";
+openCart();
+}
+
+function closeCart(){
+document.getElementById("cartPopup").style.display = "none";
+}
+
+function removeFromCart(index){
+cart.splice(index,1);
+localStorage.setItem("cart", JSON.stringify(cart));
+updateCartCount();
+updateStats();
+openCart();
+}
+
+function clearCart(){
+cart = [];
+discountPercent = 0;
+appliedCoupon = "";
+localStorage.setItem("cart", JSON.stringify(cart));
+updateCartCount();
+updateStats();
+openCart();
+}
+
+function filterCategory(category){
+if(category === "all"){
+showProducts(products);
+return;
+}
+showProducts(products.filter(product => product.category === category));
+}
+
+function sortLow(){
+showProducts([...products].sort((a,b)=>a.price-b.price));
+}
+
+function sortHigh(){
+showProducts([...products].sort((a,b)=>b.price-a.price));
+}
+
+function toggleDarkMode(){
+document.body.classList.toggle("dark");
+localStorage.setItem("darkMode", document.body.classList.contains("dark"));
+}
+
+if(localStorage.getItem("darkMode") === "true"){
+document.body.classList.add("dark");
+}
+
+function openFavorites(){
+document.getElementById("favPopup").style.display = "block";
+
+const favItems = document.getElementById("favItems");
+favItems.innerHTML = "";
+
+if(favorites.length === 0){
+favItems.innerHTML = currentLang === "en" ? "<p>No favorite products</p>" : "<p>لا يوجد منتجات في المفضلة</p>";
+return;
+}
+
+favorites.forEach((name,index)=>{
+favItems.innerHTML += `
+<div class="fav-item">
+<span>${name}</span>
+<button onclick="removeFromFavorites(${index})">${currentLang === "en" ? "Delete" : "حذف"}</button>
+</div>
+`;
+});
+}
+
+function closeFavorites(){
+document.getElementById("favPopup").style.display = "none";
+}
+
+function removeFromFavorites(index){
+favorites.splice(index,1);
+localStorage.setItem("favorites", JSON.stringify(favorites));
+updateFavCount();
+updateStats();
+openFavorites();
+}
+
+function updateStats(){
+const statProducts = document.getElementById("statProducts");
+if(!statProducts) return;
+
+document.getElementById("statProducts").innerHTML = products.length;
+document.getElementById("statFavs").innerHTML = favorites.length;
+document.getElementById("statCart").innerHTML = cart.length;
+
+const statFeatured = document.getElementById("statFeatured");
+if(statFeatured){
+statFeatured.innerHTML = products.filter(p => p.featured).length;
+}
+
+const avg = products.length
+? products.reduce((sum,p)=>sum + Number(p.rating || 0),0) / products.length
 : 0;
 
-reviewsAverage.innerHTML =
-"متوسط التقييم: " + avg.toFixed(1) + " / 5";
+document.getElementById("statRating").innerHTML = avg.toFixed(1);
+}
 
-const counts = {};
+function showToast(message){
+const toast = document.getElementById("toast");
+toast.innerHTML = message;
+toast.style.display = "block";
 
-reviews.forEach(r=>{
-const name = r.productName || "غير معروف";
-counts[name] = (counts[name] || 0) + 1;
+setTimeout(()=>{
+toast.style.display = "none";
+},2000);
+}
+
+window.setFirebaseProducts = function(firebaseProducts){
+if(firebaseProducts && firebaseProducts.length > 0){
+products = firebaseProducts.map(product => ({
+id: product.id || "",
+name: product.name || "منتج بدون اسم",
+price: Number(product.price || 0),
+rating: Number(product.rating || 0),
+category: product.category || "other",
+image: product.image || "https://picsum.photos/300/200",
+featured: product.featured || false,
+stock: Number(product.stock || 0),
+stores: product.stores || ["Firebase Store : $" + Number(product.price || 0)]
+}));
+}
+
+products.sort((a,b)=> (b.featured === true) - (a.featured === true));
+
+showProducts(products);
+updateStats();
+loadCompareOptions();
+applyLanguage();
+};
+
+function loadCompareOptions(){
+const compare1 = document.getElementById("compare1");
+const compare2 = document.getElementById("compare2");
+
+if(!compare1 || !compare2) return;
+
+compare1.innerHTML = "";
+compare2.innerHTML = "";
+
+products.forEach(product=>{
+compare1.innerHTML += `<option value="${product.name}">${product.name}</option>`;
+compare2.innerHTML += `<option value="${product.name}">${product.name}</option>`;
 });
+}
 
-let topProduct = "لا يوجد";
-let topCount = 0;
+function compareProducts(){
+const p1 = products.find(p => p.name === document.getElementById("compare1").value);
+const p2 = products.find(p => p.name === document.getElementById("compare2").value);
 
-for(const name in counts){
-if(counts[name] > topCount){
-topProduct = name;
-topCount = counts[name];
+if(!p1 || !p2) return;
+
+let cheaper = p1.price < p2.price ? p1.name + (currentLang === "en" ? " is cheaper ✅" : " هو الأرخص ✅") :
+p2.price < p1.price ? p2.name + (currentLang === "en" ? " is cheaper ✅" : " هو الأرخص ✅") :
+currentLang === "en" ? "Same price" : "السعر متساوي";
+
+document.getElementById("compareResult").innerHTML = `
+<h3>${cheaper}</h3>
+<table>
+<tr><th>${currentLang === "en" ? "Feature" : "الميزة"}</th><th>${p1.name}</th><th>${p2.name}</th></tr>
+<tr><td>${currentLang === "en" ? "Image" : "الصورة"}</td><td><img src="${p1.image}" style="width:120px;border-radius:10px;"></td><td><img src="${p2.image}" style="width:120px;border-radius:10px;"></td></tr>
+<tr><td>${currentLang === "en" ? "Price" : "السعر"}</td><td>$${p1.price}</td><td>$${p2.price}</td></tr>
+<tr><td>${currentLang === "en" ? "Rating" : "التقييم"}</td><td>${p1.rating}</td><td>${p2.rating}</td></tr>
+<tr><td>${currentLang === "en" ? "Category" : "التصنيف"}</td><td>${p1.category}</td><td>${p2.category}</td></tr>
+<tr><td>${currentLang === "en" ? "Stock" : "المخزون"}</td><td>${p1.stock > 0 ? p1.stock : "غير متوفر"}</td><td>${p2.stock > 0 ? p2.stock : "غير متوفر"}</td></tr>
+</table>
+`;
+}
+
+function clearCompare(){
+document.getElementById("compareResult").innerHTML = "";
+}
+
+function shareProductByIndex(index){
+const product = products[index];
+if(!product) return;
+
+const text =
+product.name +
+"\n" + (currentLang === "en" ? "Price: $" : "السعر: $") + product.price +
+"\n" + (currentLang === "en" ? "Rating: " : "التقييم: ") + product.rating +
+"\n" + (currentLang === "en" ? "Stock: " : "المخزون: ") + (product.stock > 0 ? product.stock : "غير متوفر");
+
+if(navigator.share){
+navigator.share({title: product.name, text: text});
+}else{
+navigator.clipboard.writeText(text);
+showToast(currentLang === "en" ? "Product info copied" : "تم نسخ معلومات المنتج");
 }
 }
 
-mostReviewedProduct.innerHTML =
-"الأكثر تقييمًا: " + topProduct + " (" + topCount + ")";
-}
-
-window.deleteReview = async function(id){
-if(!confirm("حذف التقييم؟")) return;
-
-try{
-await deleteDoc(doc(db,"reviews",id));
-loadReviewsAdmin();
-}catch(error){
-console.error(error);
-alert("فشل حذف التقييم. تأكد من Firebase Rules.");
-}
-};
-document.getElementById("orderStatusFilter").addEventListener("change",loadOrders);
-document.getElementById("orderSearch").addEventListener("input",loadOrders);
-document.getElementById("orderDateFilter").addEventListener("change",loadOrders);
-loadAdminProducts();
-loadOrders();
-loadCouponsAdmin();
-loadReviewsAdmin();
-
-setInterval(loadOrders,30000);
-window.exportReviewsCSV = async function(){
-const snapshot = await getDocs(collection(db,"reviews"));
-
-let csv = "المنتج,التقييم,المستخدم,التعليق,التاريخ\n";
-
-snapshot.forEach(reviewDoc=>{
-const r = reviewDoc.data();
-
-csv += `"${r.productName || ""}","${r.rating || 0}","${r.email || ""}","${r.text || ""}","${r.date || ""}"\n`;
-});
-
-const blob = new Blob([csv],{
-type:"text/csv;charset=utf-8;"
-});
-
-const link = document.createElement("a");
-link.href = URL.createObjectURL(blob);
-link.download = "pricehub-reviews.csv";
-link.click();
-
-URL.revokeObjectURL(link.href);
-};
-window.increaseStock = async function(id,currentStock){
-await updateDoc(doc(db,"products",id),{
-stock: currentStock + 1
-});
-loadAdminProducts();
-};
-
-window.decreaseStock = async function(id,currentStock){
-const newStock = Math.max(currentStock - 1,0);
-
-await updateDoc(doc(db,"products",id),{
-stock: newStock
-});
-
-loadAdminProducts();
-};
-
-window.loadPendingProducts = async function(){
-
-const box = document.getElementById("pendingProductsList");
-box.innerHTML = "جاري التحميل...";
-
-const snapshot = await getDocs(collection(db,"pendingProducts"));
-
-box.innerHTML = "";
-
-if(snapshot.empty){
-box.innerHTML = "<p>لا توجد منتجات بانتظار الموافقة</p>";
+async function checkout(){
+if(cart.length === 0){
+showToast(currentLang === "en" ? "Cart is empty" : "السلة فارغة");
 return;
 }
 
-snapshot.forEach(item=>{
-const product = {id:item.id,...item.data()};
+const name = document.getElementById("customerName").value;
+const phone = document.getElementById("customerPhone").value;
 
-box.innerHTML += `
-<div class="order-card">
-<img src="${product.image}" style="width:100%;max-height:180px;object-fit:cover;border-radius:10px;">
-<h3>${product.name}</h3>
-<p>💰 السعر: $${product.price}</p>
-<p>📦 الكمية: ${product.stock}</p>
-<p>📱 التصنيف: ${product.category}</p>
-<p>👤 البائع: ${product.sellerName}</p>
-<p>📞 الهاتف: ${product.sellerPhone}</p>
-<p>📝 الوصف: ${product.description || ""}</p>
+if(!name || !phone){
+showToast(currentLang === "en" ? "Enter name and phone number" : "اكتب الاسم ورقم الهاتف");
+return;
+}
 
-<button onclick="approvePendingProduct('${product.id}')" style="background:#008000;">
-✅ موافقة ونشر
-</button>
+const subtotal = cart.reduce((sum,item)=>sum + Number(item.price || 0),0);
+const discountAmount = subtotal * discountPercent / 100;
+const finalTotal = subtotal - discountAmount;
 
-<button onclick="rejectPendingProduct('${product.id}')" style="background:#cc0000;">
-❌ رفض وحذف
-</button>
+const order = {
+orderId: "PH-" + Math.floor(10000 + Math.random() * 90000),
+customerName: name,
+customerPhone: phone,
+customerName: localStorage.getItem("stripeCustomerName") || "دفع إلكتروني",
+
+customerPhone: localStorage.getItem("stripeCustomerPhone") || "غير موجود",
+customerEmail: (document.getElementById("userBox")?.innerText || "").replace("👤","").trim(),
+items: cart,
+subtotal,
+discountPercent,
+discountAmount,
+coupon: appliedCoupon,
+total: finalTotal,
+date: new Date().toLocaleString(),
+status: "جديد"
+};
+
+try{
+if(!window.saveOrder){
+showToast(currentLang === "en" ? "Firebase not connected" : "Firebase غير متصل");
+return;
+}
+
+await window.saveOrder(order);
+navigator.clipboard.writeText(order.orderId);
+
+alert(
+"تم حفظ الطلب ✅\n\n" +
+"رقم الطلب: " + order.orderId +
+"\n\n📋 تم نسخ رقم الطلب تلقائياً"
+);
+const stockUpdates = {};
+
+cart.forEach(item=>{
+if(item.id){
+if(!stockUpdates[item.id]){
+stockUpdates[item.id] = {id:item.id, stock:Number(item.stock || 0), quantity:0};
+}
+stockUpdates[item.id].quantity++;
+}
+});
+
+for(const key in stockUpdates){
+const item = stockUpdates[key];
+const newStock = Math.max(item.stock - item.quantity,0);
+
+if(window.updateProductStock){
+await window.updateProductStock(item.id,newStock);
+}
+}
+
+showToast(currentLang === "en" ? "Order saved ✅" : "تم حفظ الطلب ✅");
+
+cart = [];
+discountPercent = 0;
+appliedCoupon = "";
+localStorage.setItem("cart", JSON.stringify(cart));
+
+updateCartCount();
+updateStats();
+openCart();
+
+if(window.loadFirebaseProducts){
+await window.loadFirebaseProducts();
+}
+
+document.getElementById("customerName").value = "";
+document.getElementById("customerPhone").value = "";
+
+const couponInput = document.getElementById("couponCode");
+const couponMessage = document.getElementById("couponMessage");
+if(couponInput) couponInput.value = "";
+if(couponMessage) couponMessage.innerHTML = "";
+
+}catch(error){
+console.error(error);
+showToast(currentLang === "en" ? "Order failed, check Firebase Rules" : "فشل حفظ الطلب، افحص Firebase Rules");
+}
+}
+
+setTimeout(async function(){
+if(window.loadFirebaseProducts){
+await window.loadFirebaseProducts();
+showToast(currentLang === "en" ? "Products loaded from Firebase ✅" : "تم تحميل المنتجات من Firebase ✅");
+}
+
+if(window.loadCoupons){
+coupons = await window.loadCoupons();
+}
+},1000);
+
+showProducts(products);
+updateFavCount();
+updateCartCount();
+updateStats();
+loadCompareOptions();
+
+const searchInput = document.getElementById("search");
+
+if(searchInput){
+searchInput.addEventListener("input", function(){
+const text = this.value.toLowerCase().trim();
+
+const filtered = products.filter(product =>
+(product.name || "").toLowerCase().includes(text)
+);
+
+showProducts(filtered);
+});
+}
+
+let deferredPrompt = null;
+
+window.addEventListener("beforeinstallprompt", function(e){
+e.preventDefault();
+deferredPrompt = e;
+
+const installBtn = document.getElementById("installBtn");
+if(installBtn){
+installBtn.style.display = "block";
+}
+});
+
+const installBtn = document.getElementById("installBtn");
+
+if(installBtn){
+installBtn.addEventListener("click", async function(){
+if(deferredPrompt){
+deferredPrompt.prompt();
+await deferredPrompt.userChoice;
+deferredPrompt = null;
+installBtn.style.display = "none";
+}else{
+alert(currentLang === "en" ? "Open the site in Chrome and choose Add to Home Screen" : "افتح الموقع من Chrome ثم اختر Add to Home Screen");
+}
+});
+}
+
+setTimeout(function(){
+if(window.addVisit){
+window.addVisit().catch(function(error){
+console.log("Visit counter error:", error);
+});
+}
+},1500);
+
+function applyLanguage(){
+const isEnglish = currentLang === "en";
+
+document.documentElement.lang = isEnglish ? "en" : "ar";
+document.body.style.direction = isEnglish ? "ltr" : "rtl";
+
+const subtitle = document.querySelector("header p");
+const search = document.getElementById("search");
+const coupon = document.getElementById("couponCode");
+const customerName = document.getElementById("customerName");
+const customerPhone = document.getElementById("customerPhone");
+
+if(subtitle) subtitle.innerHTML = isEnglish ? "Compare prices between stores" : "قارن الأسعار بين المتاجر";
+if(search) search.placeholder = isEnglish ? "Search for a product..." : "ابحث عن منتج...";
+if(coupon) coupon.placeholder = isEnglish ? "Coupon code" : "كود الخصم";
+if(customerName) customerName.placeholder = isEnglish ? "Customer name" : "اسم العميل";
+if(customerPhone) customerPhone.placeholder = isEnglish ? "Phone number" : "رقم الهاتف";
+
+document.querySelectorAll("button").forEach(btn=>{
+let text = btn.innerText;
+
+if(isEnglish){
+btn.innerText = text
+.replace("⚙️ لوحة الإدارة","⚙️ Admin Panel")
+.replace("📦 تتبع الطلب","📦 Track Order")
+.replace("👤 حسابي","👤 My Account")
+.replace("👤 تسجيل الدخول","👤 Login")
+.replace("📦 طلباتي","📦 My Orders")
+.replace("📲 تثبيت PriceHub","📲 Install PriceHub")
+.replace("🌍 عربي / English","🌍 Arabic / English")
+.replace("🌙 الوضع الليلي","🌙 Dark Mode")
+.replace("الأرخص أولاً","Lowest Price")
+.replace("الأغلى أولاً","Highest Price")
+.replace("الكل","All")
+.replace("الهواتف","Phones")
+.replace("الألعاب","Gaming")
+.replace("اللابتوبات","Laptops")
+.replace("مقارنة","Compare")
+.replace("مسح المقارنة","Clear Compare")
+.replace("🎟️ تطبيق الكوبون","🎟️ Apply Coupon")
+.replace("✅ تأكيد الطلب","✅ Checkout")
+.replace("🗑️ تفريغ السلة","🗑️ Clear Cart")
+.replace("إغلاق السلة","Close Cart")
+.replace("إغلاق المفضلة","Close Favorites")
+.replace("إغلاق","Close");
+}else{
+btn.innerText = text
+.replace("⚙️ Admin Panel","⚙️ لوحة الإدارة")
+.replace("📦 Track Order","📦 تتبع الطلب")
+.replace("👤 My Account","👤 حسابي")
+.replace("👤 Login","👤 تسجيل الدخول")
+.replace("📦 My Orders","📦 طلباتي")
+.replace("📲 Install PriceHub","📲 تثبيت PriceHub")
+.replace("🌍 Arabic / English","🌍 عربي / English")
+.replace("🌙 Dark Mode","🌙 الوضع الليلي")
+.replace("Lowest Price","الأرخص أولاً")
+.replace("Highest Price","الأغلى أولاً")
+.replace("All","الكل")
+.replace("Phones","الهواتف")
+.replace("Gaming","الألعاب")
+.replace("Laptops","اللابتوبات")
+.replace("Compare","مقارنة")
+.replace("Clear Compare","مسح المقارنة")
+.replace("🎟️ Apply Coupon","🎟️ تطبيق الكوبون")
+.replace("✅ Checkout","✅ تأكيد الطلب")
+.replace("🗑️ Clear Cart","🗑️ تفريغ السلة")
+.replace("Close Cart","إغلاق السلة")
+.replace("Close Favorites","إغلاق المفضلة")
+.replace("Close","إغلاق");
+}
+});
+
+updateFavCount();
+updateCartCount();
+}
+
+function toggleLanguage(){
+currentLang = currentLang === "ar" ? "en" : "ar";
+localStorage.setItem("lang", currentLang);
+showProducts(products);
+applyLanguage();
+
+if(window.loadFirebaseProducts){
+window.loadFirebaseProducts();
+}
+}
+
+applyLanguage();
+async function loadProductReviews(productName){
+const reviewsBox = document.getElementById("reviewsBox");
+if(!reviewsBox) return;
+
+reviewsBox.innerHTML = "جاري تحميل التقييمات...";
+
+if(!window.loadReviews){
+reviewsBox.innerHTML = "التقييمات غير متصلة";
+return;
+}
+
+const reviews = await window.loadReviews(productName);
+
+if(reviews.length === 0){
+reviewsBox.innerHTML = "<p>لا توجد تقييمات بعد</p>";
+return;
+}
+
+const avgRating = reviews.reduce((sum,r)=>sum + Number(r.rating || 0),0) / reviews.length;
+
+reviewsBox.innerHTML =
+"<h4>⭐ متوسط التقييم: " + avgRating.toFixed(1) + " / 5</h4>";
+
+
+reviews.forEach(review=>{
+reviewsBox.innerHTML += `
+<div style="background:#eee;padding:10px;margin:8px 0;border-radius:8px;">
+<strong>${"⭐".repeat(Number(review.rating || 5))}</strong>
+<p>${review.text || ""}</p>
+<small>${review.email || "مستخدم"} - ${review.date || ""}</small>
 </div>
 `;
 });
-
-};
-
-window.approvePendingProduct = async function(id){
-
-const snapshot = await getDocs(collection(db,"pendingProducts"));
-let selected = null;
-
-snapshot.forEach(item=>{
-if(item.id === id){
-selected = {id:item.id,...item.data()};
 }
-});
 
-if(!selected){
-alert("لم يتم العثور على المنتج");
+async function addReview(){
+const rating = document.getElementById("reviewRating").value;
+const text = document.getElementById("reviewText").value.trim();
+
+if(!currentReviewProduct){
+showToast("افتح منتج أولاً");
 return;
 }
 
-await addDoc(collection(db,"products"),{
-name:selected.name,
-price:Number(selected.price || 0),
-stock:Number(selected.stock || 0),
-rating:Number(selected.rating || 5),
-category:selected.category || "other",
-image:selected.image || "https://picsum.photos/300/200",
-featured:false,
-sellerName:selected.sellerName || "",
-sellerPhone:selected.sellerPhone || "",
-description:selected.description || "",
-stores:selected.stores || [selected.sellerName + " : $" + Number(selected.price || 0)]
-});
+if(!text){
+showToast("اكتب تعليقك");
+return;
+}
 
-await deleteDoc(doc(db,"pendingProducts",id));
+const email = (document.getElementById("userBox")?.innerText || "")
+.replace("👤","")
+.trim();
 
-alert("✅ تم نشر المنتج");
-loadPendingProducts();
-loadAdminProducts();
+if(!email || email === "غير مسجل الدخول"){
+showToast("سجل الدخول أولاً حتى تكتب تقييم");
+return;
+}
 
+if(!window.saveReview){
+showToast("Firebase غير متصل بالتقييمات");
+return;
+}
+
+const review = {
+productName: currentReviewProduct,
+rating: Number(rating),
+text,
+email,
+date: new Date().toLocaleString()
 };
 
-window.rejectPendingProduct = async function(id){
+await window.saveReview(review);
 
-if(!confirm("هل تريد رفض وحذف هذا المنتج؟")) return;
+document.getElementById("reviewText").value = "";
+showToast("تم إرسال التقييم ✅");
+loadProductReviews(currentReviewProduct);
+}
+async function loadCardReviews(productName,index){
+const box = document.getElementById("cardReviews-" + index);
+if(!box) return;
 
-await deleteDoc(doc(db,"pendingProducts",id));
+if(!window.loadReviews){
+box.innerHTML = "لا توجد تقييمات";
+return;
+}
 
-alert("تم حذف المنتج");
-loadPendingProducts();
+const reviews = await window.loadReviews(productName);
 
+if(reviews.length === 0){
+box.innerHTML = "لا توجد تقييمات بعد";
+return;
+}
+
+const avgRating = reviews.reduce((sum,r)=>sum + Number(r.rating || 0),0) / reviews.length;
+const lastReviews = reviews.slice(-3).reverse();
+
+box.innerHTML =
+`<strong>⭐ متوسط التقييم: ${avgRating.toFixed(1)} / 5</strong><br>` +
+lastReviews.map(r =>
+`<div>⭐ ${r.rating}/5 - ${r.text || ""}</div>`
+).join("");
+
+}
+window.payWithStripe = async function () {
+
+    if (cart.length === 0) {
+        showToast("السلة فارغة");
+        return;
+    }
+
+    const name = document.getElementById("customerName").value.trim();
+    const phone = document.getElementById("customerPhone").value.trim();
+
+    if (!name || !phone) {
+        showToast("اكتب الاسم ورقم الهاتف قبل الدفع");
+        return;
+    }
+
+    localStorage.setItem("stripeCustomerName", name);
+    localStorage.setItem("stripeCustomerPhone", phone);
+
+    try {
+        const response = await fetch("https://pricehub-hnso.onrender.com/create-checkout-session", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                items: cart
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.url) {
+            window.location.href = data.url;
+        } else {
+            showToast("خطأ Stripe: " + (data.error || "فشل إنشاء رابط الدفع"));
+        }
+
+    } catch (error) {
+        console.error(error);
+        showToast("خطأ في الاتصال بسيرفر الدفع");
+    }
 };
 
-loadAdminProducts();
-loadOrders();
-loadCouponsAdmin();
-loadReviewsAdmin();
-loadPendingProducts();
-</script>
+function waitForFirebaseSave(){
+    return new Promise(resolve => {
+        const check = setInterval(() => {
+            if(window.saveOrder){
+                clearInterval(check);
+                resolve();
+            }
+        }, 300);
+    });
+}
 
-</body>
-</html>
+(async function handlePaymentSuccess(){
+
+    const params = new URLSearchParams(window.location.search);
+
+    if(params.get("payment") !== "success"){
+        return;
+    }
+
+    const paidCart = JSON.parse(localStorage.getItem("cart")) || [];
+
+    if(paidCart.length === 0){
+        return;
+    }
+
+    await waitForFirebaseSave();
+
+    const subtotal = paidCart.reduce((sum,item)=>sum + Number(item.price || 0),0);
+
+    const order = {
+        orderId: "PH-" + Math.floor(10000 + Math.random() * 90000),
+        customerName: localStorage.getItem("stripeCustomerName") || "دفع إلكتروني",
+        customerPhone: localStorage.getItem("stripeCustomerPhone") || "غير موجود",
+        customerEmail: (document.getElementById("userBox")?.innerText || "").replace("👤","").trim(),
+        items: paidCart,
+        subtotal: subtotal,
+        discountPercent: 0,
+        discountAmount: 0,
+        coupon: "",
+        total: subtotal,
+        date: new Date().toLocaleString(),
+        status: "مدفوع",
+        paymentMethod: "Stripe"
+    };
+
+    await window.saveOrder(order);
+
+    const stockUpdates = {};
+
+    paidCart.forEach(item => {
+        if(item.id){
+            if(!stockUpdates[item.id]){
+                stockUpdates[item.id] = {
+                    id: item.id,
+                    stock: Number(item.stock || 0),
+                    quantity: 0
+                };
+            }
+            stockUpdates[item.id].quantity++;
+        }
+    });
+
+    for(const key in stockUpdates){
+        const item = stockUpdates[key];
+        const newStock = Math.max(item.stock - item.quantity, 0);
+
+        if(window.updateProductStock){
+            await window.updateProductStock(item.id, newStock);
+        }
+    }
+
+    localStorage.removeItem("cart");
+    localStorage.removeItem("stripeCustomerName");
+    localStorage.removeItem("stripeCustomerPhone");
+
+    cart = [];
+
+    updateCartCount();
+    updateStats();
+
+    alert("✅ تم الدفع وحفظ الطلب\nرقم الطلب: " + order.orderId);
+
+    window.history.replaceState({}, document.title, "index.html");
+
+})();
