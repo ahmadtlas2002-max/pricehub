@@ -19,6 +19,13 @@ getAuth,
 onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
+import {
+getStorage,
+ref,
+uploadBytes,
+getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
 const firebaseConfig = {
 apiKey: "AIzaSyA4jGrncraaaktuaDpsO7nz1-qmrqYKM3k",
 authDomain: "pricehub-6d3c4.firebaseapp.com",
@@ -32,6 +39,7 @@ measurementId: "G-HLCHBX5FF7"
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
+const storage = getStorage(app);
 
 onAuthStateChanged(auth,(user)=>{
 const userBox = document.getElementById("userBox");
@@ -45,6 +53,24 @@ if(userBox) userBox.innerHTML = "👤 غير مسجل الدخول";
 if(loginBtn) loginBtn.style.display = "block";
 }
 });
+
+window.uploadProductImage = async function(file){
+const fileName =
+"products/" +
+Date.now() +
+"-" +
+Math.floor(Math.random() * 100000) +
+"-" +
+file.name.replaceAll(" ","-");
+
+const imageRef = ref(storage,fileName);
+
+await uploadBytes(imageRef,file);
+
+const imageUrl = await getDownloadURL(imageRef);
+
+return imageUrl;
+};
 
 window.loadFirebaseProducts = async function(){
 const querySnapshot = await getDocs(collection(db,"products"));
@@ -61,6 +87,7 @@ rating: Number(data.rating || 0),
 category: data.category || "other",
 image: data.image || "https://picsum.photos/300/200",
 featured: data.featured || false,
+premiumSeller: data.premiumSeller === true,
 stock: Number(data.stock || 0),
 
 description: data.description || "",
@@ -72,6 +99,7 @@ sellerPhone: data.sellerPhone || "",
 sellerEmail: data.sellerEmail || "",
 sellerCity: data.sellerCity || "",
 sellerRating: Number(data.sellerRating || 5),
+sellerVerified: data.sellerVerified === true,
 orderId: data.orderId || "",
 
 stores: data.stores || [
