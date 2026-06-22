@@ -142,6 +142,16 @@ border-radius:8px;
 margin:5px 0 10px;
 text-align:right;
 }
+
+#imagePreview{
+width:100%;
+margin-top:10px;
+display:none;
+border-radius:10px;
+max-height:250px;
+object-fit:cover;
+background:#eee;
+}
 </style>
 </head>
 
@@ -185,7 +195,13 @@ text-align:right;
 ⚠️ الحد الأقصى للسعر 100,000$ والكمية 9,999.
 </div>
 
-<input id="productImage" placeholder="رابط صورة المنتج" required>
+<input
+type="file"
+id="productImage"
+accept="image/*"
+capture="environment">
+
+<img id="imagePreview" alt="معاينة صورة المنتج">
 
 <select id="productCategory">
 <option value="phone">هواتف</option>
@@ -248,18 +264,40 @@ measurementId: "G-HLCHBX5FF7"
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-function cleanImageUrl(url){
-return url.trim().split(" ")[0];
+let selectedImage = "";
+
+document.getElementById("productImage").addEventListener("change",function(e){
+const file = e.target.files[0];
+const message = document.getElementById("message");
+
+if(!file) return;
+
+if(!file.type.startsWith("image/")){
+message.innerHTML = "⚠️ اختر ملف صورة فقط";
+return;
 }
 
-function isSafeImageUrl(url){
-try{
-const parsedUrl = new URL(url);
-return parsedUrl.protocol === "https:" || parsedUrl.protocol === "http:";
-}catch(error){
-return false;
+if(file.size > 900000){
+message.innerHTML = "⚠️ الصورة كبيرة. اختر صورة أصغر من 900KB";
+document.getElementById("productImage").value = "";
+selectedImage = "";
+return;
 }
-}
+
+const reader = new FileReader();
+
+reader.onload = function(event){
+selectedImage = event.target.result;
+
+const preview = document.getElementById("imagePreview");
+preview.src = selectedImage;
+preview.style.display = "block";
+
+message.innerHTML = "✅ تم اختيار الصورة";
+};
+
+reader.readAsDataURL(file);
+});
 
 function isValidEmail(email){
 if(!email) return true;
@@ -327,7 +365,7 @@ sellerCity: document.getElementById("sellerCity").value.trim(),
 name: document.getElementById("productName").value.trim(),
 price: Number(document.getElementById("productPrice").value),
 stock: Number(document.getElementById("productStock").value),
-image: cleanImageUrl(document.getElementById("productImage").value),
+image: selectedImage,
 category: document.getElementById("productCategory").value,
 condition: document.getElementById("productCondition").value,
 description: document.getElementById("productDescription").value.trim()
@@ -336,11 +374,7 @@ description: document.getElementById("productDescription").value.trim()
 
 function validateProduct(data){
 if(!data.sellerName || !data.storeName || !data.sellerPhone || !data.sellerCity || !data.name || !data.image){
-return "⚠️ املأ كل الحقول المطلوبة";
-}
-
-if(!isSafeImageUrl(data.image)){
-return "⚠️ رابط الصورة غير صحيح";
+return "⚠️ املأ كل الحقول المطلوبة واختر صورة للمنتج";
 }
 
 if(Number.isNaN(data.price) || data.price <= 0){
@@ -441,6 +475,9 @@ storeName: data.storeName,
 sellerPhone: data.sellerPhone,
 sellerEmail: data.sellerEmail,
 sellerCity: data.sellerCity,
+
+sellerVerified: false,
+
 name: data.name,
 price: data.price,
 stock: data.stock,
@@ -450,6 +487,7 @@ condition: data.condition,
 description: data.description,
 rating: 5,
 featured: false,
+premiumSeller: false,
 sellerRating: 5,
 sellerProducts: 1,
 stores: [data.storeName + " : $" + data.price],
@@ -472,13 +510,17 @@ document.getElementById("productDescription").value = "";
 document.getElementById("productCategory").value = "phone";
 document.getElementById("productCondition").value = "new";
 document.getElementById("previewCard").style.display = "none";
+document.getElementById("imagePreview").style.display = "none";
+document.getElementById("imagePreview").src = "";
 document.getElementById("savedSellerNote").style.display = "block";
+
+selectedImage = "";
 
 updateDescriptionCounter();
 
 }catch(error){
 console.error(error);
-message.innerHTML = "❌ فشل إرسال المنتج، تأكد من Firebase Rules";
+message.innerHTML = "❌ فشل إرسال المنتج. جرّب صورة أصغر أو تأكد من Firebase Rules";
 }
 
 submitBtn.disabled = false;
