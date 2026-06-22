@@ -62,7 +62,21 @@ category: data.category || "other",
 image: data.image || "https://picsum.photos/300/200",
 featured: data.featured || false,
 stock: Number(data.stock || 0),
-stores: data.stores || ["Firebase Store : $" + Number(data.price || 0)]
+
+description: data.description || "",
+condition: data.condition || "new",
+
+sellerName: data.sellerName || "",
+storeName: data.storeName || "",
+sellerPhone: data.sellerPhone || "",
+sellerEmail: data.sellerEmail || "",
+sellerCity: data.sellerCity || "",
+sellerRating: Number(data.sellerRating || 5),
+orderId: data.orderId || "",
+
+stores: data.stores || [
+(data.storeName || "Firebase Store") + " : $" + Number(data.price || 0)
+]
 });
 });
 
@@ -89,27 +103,25 @@ return coupons;
 
 window.updateProductStock = async function(id,newStock){
 await updateDoc(doc(db,"products",id),{
-stock:newStock
+stock: Number(newStock || 0)
 });
 };
+
 window.addVisit = async function(){
-const visitRef = doc(db,"stats","visits");
+const ref = doc(db,"stats","visits");
+const snap = await getDoc(ref);
 
-await setDoc(visitRef,{
+if(snap.exists()){
+await updateDoc(ref,{
 count: increment(1)
-},{merge:true});
-};
-
-window.getVisits = async function(){
-const visitRef = doc(db,"stats","visits");
-const visitSnap = await getDoc(visitRef);
-
-if(visitSnap.exists()){
-return visitSnap.data().count || 0;
+});
+}else{
+await setDoc(ref,{
+count: 1
+});
 }
-
-return 0;
 };
+
 window.saveReview = async function(review){
 await addDoc(collection(db,"reviews"),review);
 };
@@ -124,7 +136,10 @@ const snapshot = await getDocs(q);
 const reviews = [];
 
 snapshot.forEach(doc=>{
-reviews.push(doc.data());
+reviews.push({
+id: doc.id,
+...doc.data()
+});
 });
 
 return reviews;
