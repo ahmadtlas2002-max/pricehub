@@ -43,6 +43,20 @@ font-size:24px;
 font-weight:bold;
 color:#0066ff;
 }
+
+.verified{
+color:green;
+font-weight:bold;
+}
+
+.badge{
+display:inline-block;
+background:#fff3cd;
+padding:6px 10px;
+border-radius:20px;
+font-weight:bold;
+margin:5px 0;
+}
 </style>
 </head>
 
@@ -71,7 +85,7 @@ const firebaseConfig = {
 apiKey: "AIzaSyA4jGrncraaaktuaDpsO7nz1-qmrqYKM3k",
 authDomain: "pricehub-6d3c4.firebaseapp.com",
 projectId: "pricehub-6d3c4",
-storageBucket: "pricehub-6d3c4.firebasestorage.app",
+storageBucket: "pricehub-6d3c4.appspot.com"
 messagingSenderId: "991179979836",
 appId: "1:991179979836:web:cb23f4d31e55364d1ed739",
 measurementId: "G-HLCHBX5FF7"
@@ -99,9 +113,10 @@ const storeName = product.storeName || "متجر غير معروف";
 
 if(!sellers[storeName]){
 sellers[storeName] = {
-storeName,
+storeName: storeName,
 sellerName: product.sellerName || "غير محدد",
 city: product.sellerCity || "غير محددة",
+sellerVerified: product.sellerVerified === true,
 products: 0,
 featured: 0,
 ratingSum: 0,
@@ -116,6 +131,10 @@ sellers[storeName].stock += Number(product.stock || 0);
 if(product.featured === true){
 sellers[storeName].featured++;
 }
+
+if(product.sellerVerified === true){
+sellers[storeName].sellerVerified = true;
+}
 });
 
 let list = Object.values(sellers);
@@ -127,6 +146,7 @@ seller.avgRating = seller.products
 });
 
 list.sort((a,b)=>
+Number(b.sellerVerified === true) - Number(a.sellerVerified === true) ||
 b.avgRating - a.avgRating ||
 b.products - a.products ||
 b.featured - a.featured
@@ -143,7 +163,15 @@ list.forEach((seller,index)=>{
 box.innerHTML += `
 <div class="card">
 <div class="rank">#${index + 1}</div>
+
 <h2>🏪 ${seller.storeName}</h2>
+${seller.premiumSeller
+? "<div class='badge'>👑 Premium Seller</div>"
+: ""}
+${seller.sellerVerified
+? "<div class='badge verified'>✔ بائع موثق</div>"
+: ""}
+
 <p>👤 البائع: ${seller.sellerName}</p>
 <p>📍 المدينة: ${seller.city}</p>
 <p>📦 عدد المنتجات: ${seller.products}</p>
