@@ -60,6 +60,57 @@ color:green;
 font-size:22px;
 font-weight:bold;
 }
+
+.stats{
+background:#eef5ff;
+padding:12px;
+border-radius:10px;
+font-weight:bold;
+margin-top:10px;
+line-height:1.8;
+}
+
+.search-box{
+background:white;
+padding:12px;
+border-radius:12px;
+box-shadow:0 3px 10px rgba(0,0,0,.08);
+margin-bottom:15px;
+}
+
+input,select{
+width:100%;
+padding:12px;
+margin:8px 0;
+border-radius:8px;
+border:1px solid #ccc;
+font-size:16px;
+box-sizing:border-box;
+}
+
+.badge{
+display:inline-block;
+background:#fff3cd;
+padding:6px 10px;
+border-radius:20px;
+font-weight:bold;
+margin:5px 0;
+}
+
+.in{
+color:green;
+font-weight:bold;
+}
+
+.low{
+color:#ff9800;
+font-weight:bold;
+}
+
+.out{
+color:red;
+font-weight:bold;
+}
 </style>
 </head>
 
@@ -74,7 +125,24 @@ font-weight:bold;
 <button>⬅️ العودة للرئيسية</button>
 </a>
 
-<p id="storeStats">جاري التحميل...</p>
+<p id="storeStats" class="stats">جاري التحميل...</p>
+</div>
+
+<div class="search-box">
+<input id="storeSearch" placeholder="ابحث داخل المتجر...">
+
+<select id="conditionFilter">
+<option value="all">كل المنتجات</option>
+<option value="new">الجديدة فقط</option>
+<option value="used">المستعملة فقط</option>
+</select>
+
+<select id="sortFilter">
+<option value="default">الترتيب الافتراضي</option>
+<option value="low">الأرخص أولاً</option>
+<option value="high">الأغلى أولاً</option>
+<option value="rating">الأعلى تقييماً</option>
+</select>
 </div>
 
 <div id="productsList">جاري تحميل منتجات المتجر...</div>
@@ -94,7 +162,7 @@ const firebaseConfig = {
 apiKey: "AIzaSyA4jGrncraaaktuaDpsO7nz1-qmrqYKM3k",
 authDomain: "pricehub-6d3c4.firebaseapp.com",
 projectId: "pricehub-6d3c4",
-storageBucket: "pricehub-6d3c4.firebasestorage.app",
+storageBucket: "pricehub-6d3c4.appspot.com"
 messagingSenderId: "991179979836",
 appId: "1:991179979836:web:cb23f4d31e55364d1ed739",
 measurementId: "G-HLCHBX5FF7"
@@ -104,24 +172,129 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const selectedStore = localStorage.getItem("selectedStore") || "";
+let storeProducts = [];
 
 function stockText(stock){
 stock = Number(stock || 0);
 
-if(stock <= 0) return "غير متوفر";
-if(stock <= 5) return stock + " - مخزون منخفض";
-return stock + " - متوفر";
+if(stock <= 0) return "<span class='out'>غير متوفر</span>";
+if(stock <= 5) return "<span class='low'>" + stock + " - مخزون منخفض</span>";
+return "<span class='in'>" + stock + " - متوفر</span>";
+}
+
+function conditionText(condition){
+return condition === "used" ? "مستعمل" : "جديد";
+}
+
+function updateStats(products){
+const stats = document.getElementById("storeStats");
+
+const totalProducts = products.length;
+
+const avgRating =
+products.length
+? (
+products.reduce((sum,p)=>sum + Number(p.rating || 0),0) / products.length
+).toFixed(1)
+: 0;
+
+const totalStock =
+products.reduce((sum,p)=>sum + Number(p.stock || 0),0);
+
+const featuredCount =
+products.filter(p => p.featured === true).length;
+
+const usedCount =
+products.filter(p => p.condition === "used").length;
+
+const newCount =
+products.filter(p => p.condition !== "used").length;
+
+stats.innerHTML =
+"📦 المنتجات: " + totalProducts +
+"<br>⭐ متوسط التقييم: " + avgRating +
+"<br>📦 إجمالي المخزون: " + totalStock +
+"<br>🔥 المنتجات المميزة: " + featuredCount +
+"<br>🆕 جديد: " + newCount +
+" | ♻️ مستعمل: " + usedCount;
+}
+
+function renderProducts(list){
+const box = document.getElementById("productsList");
+
+if(list.length === 0){
+box.innerHTML = "<p>لا توجد منتجات مطابقة</p>";
+return;
+}
+
+box.innerHTML = "";
+
+list.forEach(product=>{
+box.innerHTML += `
+<div class="card">
+<img src="${product.image || 'https://picsum.photos/300/200'}">
+
+<h2>${product.name || "منتج بدون اسم"}</h2>
+
+${product.featured ? "<span class='badge'>🔥 منتج مميز</span>" : ""}
+
+<p class="price">$${product.price || 0}</p>
+
+<p>🏪 المتجر: ${product.storeName || selectedStore}</p>
+<p>👤 البائع: ${product.sellerName || "غير محدد"}</p>
+
+${product.sellerVerified
+? "<p style='color:green;font-weight:bold;'>✔ بائع موثق</p>"
+: ""}
+<p>📍 المدينة: ${product.sellerCity || "غير محددة"}</p>
+<p>📦 المخزون: ${stockText(product.stock)}</p>
+<p>⭐ التقييم: ${product.rating || 0} / 5</p>
+<p>⭐ الحالة: ${conditionText(product.condition)}</p>
+<p>📝 ${product.description || ""}</p>
+</div>
+`;
+});
+}
+
+function applyFilters(){
+const searchText = document.getElementById("storeSearch").value.toLowerCase().trim();
+const condition = document.getElementById("conditionFilter").value;
+const sort = document.getElementById("sortFilter").value;
+
+let filtered = storeProducts.filter(product =>
+(product.name || "").toLowerCase().includes(searchText) ||
+(product.description || "").toLowerCase().includes(searchText) ||
+(product.category || "").toLowerCase().includes(searchText)
+);
+
+if(condition !== "all"){
+filtered = filtered.filter(product => (product.condition || "new") === condition);
+}
+
+if(sort === "low"){
+filtered.sort((a,b)=>Number(a.price || 0) - Number(b.price || 0));
+}
+
+if(sort === "high"){
+filtered.sort((a,b)=>Number(b.price || 0) - Number(a.price || 0));
+}
+
+if(sort === "rating"){
+filtered.sort((a,b)=>Number(b.rating || 0) - Number(a.rating || 0));
+}
+
+renderProducts(filtered);
 }
 
 async function loadStoreProducts(){
 
 const box = document.getElementById("productsList");
 const title = document.getElementById("storeTitle");
-const stats = document.getElementById("storeStats");
 
 if(!selectedStore){
 title.innerHTML = "🏪 لم يتم اختيار متجر";
-stats.innerHTML = "ارجع للرئيسية واختر متجر من بطاقة المنتج.";
+document.getElementById("storeStats").innerHTML =
+"ارجع للرئيسية واضغط على زر عرض المتجر من بطاقة المنتج.";
 box.innerHTML = "";
 return;
 }
@@ -129,42 +302,29 @@ return;
 title.innerHTML = "🏪 " + selectedStore;
 
 const snapshot = await getDocs(collection(db,"products"));
-let products = [];
+storeProducts = [];
 
 snapshot.forEach(doc=>{
 const product = {id:doc.id,...doc.data()};
 
 if((product.storeName || "").trim() === selectedStore.trim()){
-products.push(product);
+storeProducts.push(product);
 }
 });
 
-stats.innerHTML = "عدد المنتجات: " + products.length;
+updateStats(storeProducts);
 
-if(products.length === 0){
+if(storeProducts.length === 0){
 box.innerHTML = "<p>لا توجد منتجات لهذا المتجر حالياً</p>";
 return;
 }
 
-box.innerHTML = "";
-
-products.forEach(product=>{
-box.innerHTML += `
-<div class="card">
-<img src="${product.image || 'https://picsum.photos/300/200'}">
-
-<h2>${product.name || "منتج بدون اسم"}</h2>
-<p class="price">$${product.price || 0}</p>
-
-<p>📦 المخزون: ${stockText(product.stock)}</p>
-<p>⭐ التقييم: ${product.rating || 0} / 5</p>
-<p>📍 المدينة: ${product.sellerCity || "غير محددة"}</p>
-<p>⭐ الحالة: ${product.condition === "used" ? "مستعمل" : "جديد"}</p>
-<p>📝 ${product.description || ""}</p>
-</div>
-`;
-});
+renderProducts(storeProducts);
 }
+
+document.getElementById("storeSearch").addEventListener("input", applyFilters);
+document.getElementById("conditionFilter").addEventListener("change", applyFilters);
+document.getElementById("sortFilter").addEventListener("change", applyFilters);
 
 loadStoreProducts();
 </script>
