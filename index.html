@@ -25,11 +25,19 @@
 ⚙️ لوحة الإدارة
 </button>
 </a>
+
 <a href="sell.html">
 <button style="width:90%;max-width:300px;display:block;margin:10px auto;background:#795548;">
 🛍️ بيع معنا
 </button>
 </a>
+
+<a href="seller-status.html">
+<button style="width:90%;max-width:300px;display:block;margin:10px auto;background:#607d8b;">
+📋 حالة منتجاتي
+</button>
+</a>
+
 <a href="track.html">
 <button style="width:90%;max-width:300px;display:block;margin:10px auto;background:#008000;">
 📦 تتبع الطلب
@@ -72,7 +80,6 @@
 <button id="darkBtn" onclick="toggleDarkMode()">🌙 الوضع الليلي</button>
 
 <div class="statsBox">
-
 <div class="stat">📦 المنتجات <span id="statProducts">0</span></div>
 <div class="stat">⭐ مميزة <span id="statFeatured">0</span></div>
 <div class="stat">❤️ المفضلة <span id="statFavs">0</span></div>
@@ -81,7 +88,7 @@
 </div>
 
 <div class="search">
-<input type="text" id="search" placeholder="ابحث عن منتج...">
+<input type="text" id="search" placeholder="ابحث عن منتج أو متجر أو مدينة...">
 </div>
 
 <div class="sortBox">
@@ -94,6 +101,9 @@
 <button onclick="filterCategory('phone')">الهواتف</button>
 <button onclick="filterCategory('gaming')">الألعاب</button>
 <button onclick="filterCategory('laptop')">اللابتوبات</button>
+<button onclick="filterNewProducts()">🆕 جديد</button>
+<button onclick="filterUsedProducts()">♻️ مستعمل</button>
+<button onclick="filterFeaturedProducts()">⭐ المميزة</button>
 </div>
 
 <div id="productCount">عدد المنتجات: 0</div>
@@ -115,6 +125,7 @@
 <img id="popupImage">
 <h3 id="popupPrice"></h3>
 <div id="popupStores"></div>
+
 <hr>
 
 <h3>⭐ التقييمات</h3>
@@ -140,6 +151,7 @@
 <div id="cartPopup">
 <div class="popup-content">
 <h2>🛒 السلة</h2>
+
 <div id="cartItems"></div>
 <h3 id="cartTotal"></h3>
 
@@ -149,10 +161,13 @@
 
 <input id="customerName" placeholder="اسم العميل">
 <input id="customerPhone" placeholder="رقم الهاتف">
+
 <button onclick="checkout()">📦 الدفع عند الاستلام</button>
+
 <button onclick="payWithStripe()" style="background:#635bff;">
 💳 الدفع الإلكتروني
 </button>
+
 <button onclick="clearCart()">🗑️ تفريغ السلة</button>
 <button onclick="closeCart()">إغلاق السلة</button>
 </div>
@@ -170,5 +185,6 @@
 
 <script type="module" src="firebase.js?v=50000"></script>
 <script src="./script.js?v=50000"></script>
+
 </body>
 </html>
