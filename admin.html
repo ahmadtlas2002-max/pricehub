@@ -23,7 +23,6 @@ button:hover{background:#0044cc;}
 const adminPassword = prompt("أدخل كلمة مرور لوحة الإدارة");
 if(adminPassword !== "Hosen1980"){
 document.body.innerHTML = "<h1 style='text-align:center;margin-top:50px;'>غير مسموح بالدخول</h1>";
-throw new Error("Access denied");
 }
 </script>
 
@@ -65,7 +64,15 @@ text-align:right;
 
 <a href="index.html"><button type="button">⬅️ العودة للموقع</button></a>
 <button onclick="logoutAdmin()" style="background:#cc0000;">تسجيل الخروج</button>
+<hr>
 
+<h2>🛍️ منتجات بانتظار الموافقة</h2>
+
+<button onclick="loadPendingProducts()" style="background:#795548;">
+🔄 تحديث المنتجات المرسلة
+</button>
+
+<div id="pendingProductsList"></div>
 <input id="name" placeholder="اسم المنتج">
 <input id="price" type="number" placeholder="السعر">
 <input id="stock" type="number" placeholder="الكمية المتوفرة">
@@ -117,7 +124,15 @@ text-align:right;
 <div id="productsList"></div>
 
 <hr>
+<hr>
 
+<h2>🛍️ منتجات بانتظار الموافقة</h2>
+
+<button onclick="loadPendingProducts()" style="background:#795548;">
+🔄 تحديث المنتجات المرسلة
+</button>
+
+<div id="pendingProductsList"></div>
 <h2>📦 الطلبات</h2>
 <p id="orderStats"></p>
 <h3 id="totalRevenue">💰 إجمالي الأرباح: $0</h3>
@@ -851,8 +866,105 @@ const newStock = Math.max(currentStock - 1,0);
 await updateDoc(doc(db,"products",id),{
 stock: newStock
 });
+
 loadAdminProducts();
 };
+
+window.loadPendingProducts = async function(){
+
+const box = document.getElementById("pendingProductsList");
+box.innerHTML = "جاري التحميل...";
+
+const snapshot = await getDocs(collection(db,"pendingProducts"));
+
+box.innerHTML = "";
+
+if(snapshot.empty){
+box.innerHTML = "<p>لا توجد منتجات بانتظار الموافقة</p>";
+return;
+}
+
+snapshot.forEach(item=>{
+const product = {id:item.id,...item.data()};
+
+box.innerHTML += `
+<div class="order-card">
+<img src="${product.image}" style="width:100%;max-height:180px;object-fit:cover;border-radius:10px;">
+<h3>${product.name}</h3>
+<p>💰 السعر: $${product.price}</p>
+<p>📦 الكمية: ${product.stock}</p>
+<p>📱 التصنيف: ${product.category}</p>
+<p>👤 البائع: ${product.sellerName}</p>
+<p>📞 الهاتف: ${product.sellerPhone}</p>
+<p>📝 الوصف: ${product.description || ""}</p>
+
+<button onclick="approvePendingProduct('${product.id}')" style="background:#008000;">
+✅ موافقة ونشر
+</button>
+
+<button onclick="rejectPendingProduct('${product.id}')" style="background:#cc0000;">
+❌ رفض وحذف
+</button>
+</div>
+`;
+});
+
+};
+
+window.approvePendingProduct = async function(id){
+
+const snapshot = await getDocs(collection(db,"pendingProducts"));
+let selected = null;
+
+snapshot.forEach(item=>{
+if(item.id === id){
+selected = {id:item.id,...item.data()};
+}
+});
+
+if(!selected){
+alert("لم يتم العثور على المنتج");
+return;
+}
+
+await addDoc(collection(db,"products"),{
+name:selected.name,
+price:Number(selected.price || 0),
+stock:Number(selected.stock || 0),
+rating:Number(selected.rating || 5),
+category:selected.category || "other",
+image:selected.image || "https://picsum.photos/300/200",
+featured:false,
+sellerName:selected.sellerName || "",
+sellerPhone:selected.sellerPhone || "",
+description:selected.description || "",
+stores:selected.stores || [selected.sellerName + " : $" + Number(selected.price || 0)]
+});
+
+await deleteDoc(doc(db,"pendingProducts",id));
+
+alert("✅ تم نشر المنتج");
+loadPendingProducts();
+loadAdminProducts();
+
+};
+
+window.rejectPendingProduct = async function(id){
+
+if(!confirm("هل تريد رفض وحذف هذا المنتج؟")) return;
+
+await deleteDoc(doc(db,"pendingProducts",id));
+
+alert("تم حذف المنتج");
+loadPendingProducts();
+
+};
+
+loadAdminProducts();
+loadOrders();
+loadCouponsAdmin();
+loadReviewsAdmin();
+loadPendingProducts();
 </script>
 
 </body>
