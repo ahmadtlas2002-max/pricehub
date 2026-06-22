@@ -970,3 +970,60 @@ alert("✅ تم الدفع وحفظ الطلب\nرقم الطلب: " + order.ord
 window.history.replaceState({}, document.title, "index.html");
 
 })();
+function toggleLanguage(){
+currentLang = currentLang === "ar" ? "en" : "ar";
+localStorage.setItem("lang", currentLang);
+showProducts(products);
+}
+
+function filterNewProducts(){
+showProducts(products.filter(p => p.condition !== "used"));
+}
+
+function filterUsedProducts(){
+showProducts(products.filter(p => p.condition === "used"));
+}
+
+function filterFeaturedProducts(){
+showProducts(products.filter(p => p.featured === true));
+}
+
+function loadProductReviews(productName){
+const box = document.getElementById("reviewsBox");
+if(box) box.innerHTML = "<p>التقييمات ستظهر هنا</p>";
+}
+
+function loadCardReviews(productName,index){
+const box = document.getElementById("cardReviews-" + index);
+if(box) box.innerHTML = "لا توجد تقييمات بعد";
+}
+
+async function addReview(){
+showToast("ميزة التقييمات تحتاج ربط Firebase");
+}
+
+async function payWithStripe(){
+if(cart.length === 0){
+showToast("السلة فارغة");
+return;
+}
+
+try{
+const response = await fetch("https://pricehub-hnso.onrender.com/create-checkout-session",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({items:cart})
+});
+
+const data = await response.json();
+
+if(data.url){
+window.location.href = data.url;
+}else{
+showToast(data.error || "فشل إنشاء رابط الدفع");
+}
+}catch(error){
+console.error(error);
+showToast("خطأ في الاتصال بسيرفر الدفع");
+}
+}
