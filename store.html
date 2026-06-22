@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>متجر البائع - PriceHub</title>
+
+<style>
+body{
+font-family:Arial;
+background:#f5f5f5;
+padding:20px;
+direction:rtl;
+}
+
+.box{
+max-width:900px;
+margin:auto;
+}
+
+.header{
+background:white;
+padding:20px;
+border-radius:15px;
+text-align:center;
+box-shadow:0 5px 15px rgba(0,0,0,.1);
+margin-bottom:15px;
+}
+
+.card{
+background:white;
+padding:15px;
+margin:15px 0;
+border-radius:15px;
+box-shadow:0 5px 15px rgba(0,0,0,.1);
+}
+
+.card img{
+width:100%;
+max-height:230px;
+object-fit:cover;
+border-radius:12px;
+background:#ddd;
+}
+
+button{
+width:100%;
+padding:12px;
+margin:8px 0;
+border:none;
+border-radius:8px;
+background:#0066ff;
+color:white;
+font-size:16px;
+cursor:pointer;
+}
+
+.price{
+color:green;
+font-size:22px;
+font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+
+<div class="header">
+<h1 id="storeTitle">🏪 متجر البائع</h1>
+
+<a href="index.html">
+<button>⬅️ العودة للرئيسية</button>
+</a>
+
+<p id="storeStats">جاري التحميل...</p>
+</div>
+
+<div id="productsList">جاري تحميل منتجات المتجر...</div>
+
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+getFirestore,
+collection,
+getDocs
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+apiKey: "AIzaSyA4jGrncraaaktuaDpsO7nz1-qmrqYKM3k",
+authDomain: "pricehub-6d3c4.firebaseapp.com",
+projectId: "pricehub-6d3c4",
+storageBucket: "pricehub-6d3c4.firebasestorage.app",
+messagingSenderId: "991179979836",
+appId: "1:991179979836:web:cb23f4d31e55364d1ed739",
+measurementId: "G-HLCHBX5FF7"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const selectedStore = localStorage.getItem("selectedStore") || "";
+
+function stockText(stock){
+stock = Number(stock || 0);
+
+if(stock <= 0) return "غير متوفر";
+if(stock <= 5) return stock + " - مخزون منخفض";
+return stock + " - متوفر";
+}
+
+async function loadStoreProducts(){
+
+const box = document.getElementById("productsList");
+const title = document.getElementById("storeTitle");
+const stats = document.getElementById("storeStats");
+
+if(!selectedStore){
+title.innerHTML = "🏪 لم يتم اختيار متجر";
+stats.innerHTML = "ارجع للرئيسية واختر متجر من بطاقة المنتج.";
+box.innerHTML = "";
+return;
+}
+
+title.innerHTML = "🏪 " + selectedStore;
+
+const snapshot = await getDocs(collection(db,"products"));
+let products = [];
+
+snapshot.forEach(doc=>{
+const product = {id:doc.id,...doc.data()};
+
+if((product.storeName || "").trim() === selectedStore.trim()){
+products.push(product);
+}
+});
+
+stats.innerHTML = "عدد المنتجات: " + products.length;
+
+if(products.length === 0){
+box.innerHTML = "<p>لا توجد منتجات لهذا المتجر حالياً</p>";
+return;
+}
+
+box.innerHTML = "";
+
+products.forEach(product=>{
+box.innerHTML += `
+<div class="card">
+<img src="${product.image || 'https://picsum.photos/300/200'}">
+
+<h2>${product.name || "منتج بدون اسم"}</h2>
+<p class="price">$${product.price || 0}</p>
+
+<p>📦 المخزون: ${stockText(product.stock)}</p>
+<p>⭐ التقييم: ${product.rating || 0} / 5</p>
+<p>📍 المدينة: ${product.sellerCity || "غير محددة"}</p>
+<p>⭐ الحالة: ${product.condition === "used" ? "مستعمل" : "جديد"}</p>
+<p>📝 ${product.description || ""}</p>
+</div>
+`;
+});
+}
+
+loadStoreProducts();
+</script>
+
+</body>
+</html>
