@@ -15,7 +15,7 @@ direction:rtl;
 
 .box{
 background:white;
-max-width:500px;
+max-width:520px;
 margin:auto;
 padding:20px;
 border-radius:15px;
@@ -33,12 +33,26 @@ font-size:16px;
 box-sizing:border-box;
 }
 
+textarea{
+min-height:90px;
+resize:vertical;
+}
+
 button{
 background:#0066ff;
 color:white;
 border:none;
 cursor:pointer;
+font-weight:bold;
 }
+
+button:disabled{
+background:#999;
+cursor:not-allowed;
+}
+
+.back-btn{background:#222;}
+.preview-btn{background:#00a36c;}
 
 .note{
 background:#fff3cd;
@@ -46,6 +60,87 @@ padding:10px;
 border-radius:10px;
 margin:10px 0;
 font-weight:bold;
+}
+
+.section-title{
+text-align:right;
+margin-top:18px;
+font-weight:bold;
+color:#333;
+}
+
+#message{font-weight:bold;}
+
+.preview-card{
+display:none;
+text-align:right;
+background:#fafafa;
+border:1px solid #ddd;
+border-radius:12px;
+padding:12px;
+margin-top:15px;
+}
+
+.preview-card img{
+width:100%;
+max-height:230px;
+object-fit:cover;
+border-radius:10px;
+background:#eee;
+}
+
+.preview-line{
+margin:5px 0;
+color:#333;
+}
+
+.small-note{
+font-size:13px;
+color:#666;
+margin-top:5px;
+}
+
+.counter{
+text-align:left;
+font-size:13px;
+color:#666;
+margin-top:-4px;
+}
+
+.saved-note{
+background:#e8f5e9;
+color:#1b5e20;
+padding:8px;
+border-radius:8px;
+font-size:14px;
+margin:8px 0;
+display:none;
+}
+
+.order-box{
+display:none;
+background:#eef5ff;
+border:1px solid #bcd7ff;
+color:#003b88;
+padding:12px;
+border-radius:10px;
+margin-top:12px;
+font-weight:bold;
+}
+
+.copy-btn{
+background:#003b88;
+margin-top:10px;
+}
+
+.warning{
+background:#fff8e1;
+color:#7a5200;
+font-size:13px;
+padding:8px;
+border-radius:8px;
+margin:5px 0 10px;
+text-align:right;
 }
 </style>
 </head>
@@ -63,17 +158,34 @@ font-weight:bold;
 </div>
 
 <a href="index.html">
-<button type="button">⬅️ العودة للرئيسية</button>
+<button class="back-btn" type="button">⬅️ العودة للرئيسية</button>
 </a>
 
-<input id="sellerName" placeholder="اسم البائع">
-<input id="sellerPhone" placeholder="رقم الهاتف">
+<a href="seller-status.html">
+<button type="button" style="background:#607d8b;">📋 متابعة حالة منتجاتي</button>
+</a>
 
-<input id="productName" placeholder="اسم المنتج">
-<input id="productPrice" type="number" placeholder="السعر بالدولار">
-<input id="productStock" type="number" placeholder="الكمية المتوفرة">
+<div class="section-title">معلومات البائع</div>
+<input id="sellerName" placeholder="اسم البائع" required>
+<input id="storeName" placeholder="اسم المتجر" required>
+<input id="sellerPhone" placeholder="رقم الهاتف / واتساب" required>
+<input id="sellerEmail" type="email" placeholder="البريد الإلكتروني اختياري">
+<input id="sellerCity" placeholder="المدينة" required>
 
-<input id="productImage" placeholder="رابط صورة المنتج">
+<div id="savedSellerNote" class="saved-note">
+✅ تم حفظ بيانات البائع على هذا الجهاز
+</div>
+
+<div class="section-title">معلومات المنتج</div>
+<input id="productName" placeholder="اسم المنتج" required>
+<input id="productPrice" type="number" min="1" max="100000" placeholder="السعر بالدولار" required>
+<input id="productStock" type="number" min="0" max="9999" placeholder="الكمية المتوفرة" required>
+
+<div class="warning">
+⚠️ الحد الأقصى للسعر 100,000$ والكمية 9,999.
+</div>
+
+<input id="productImage" placeholder="رابط صورة المنتج" required>
 
 <select id="productCategory">
 <option value="phone">هواتف</option>
@@ -82,11 +194,35 @@ font-weight:bold;
 <option value="other">أخرى</option>
 </select>
 
-<textarea id="productDescription" placeholder="وصف المنتج"></textarea>
+<select id="productCondition">
+<option value="new">جديد</option>
+<option value="used">مستعمل</option>
+</select>
 
-<button onclick="submitProduct()">إرسال المنتج للمراجعة</button>
+<textarea id="productDescription" maxlength="300" placeholder="وصف المنتج"></textarea>
+<div class="counter"><span id="descCounter">0</span>/300</div>
+
+<button class="preview-btn" type="button" onclick="showPreview()">👀 معاينة المنتج</button>
+<button id="submitBtn" onclick="submitProduct()">إرسال المنتج للمراجعة</button>
 
 <p id="message"></p>
+
+<div id="orderBox" class="order-box">
+<div>رقم الطلب: <span id="orderIdText"></span></div>
+<button class="copy-btn" type="button" onclick="copyOrderId()">📋 نسخ رقم الطلب</button>
+</div>
+
+<div id="previewCard" class="preview-card">
+<img id="previewImage" src="" alt="صورة المنتج">
+<h3 id="previewName"></h3>
+<div class="preview-line" id="previewPrice"></div>
+<div class="preview-line" id="previewStock"></div>
+<div class="preview-line" id="previewSeller"></div>
+<div class="preview-line" id="previewCity"></div>
+<div class="preview-line" id="previewCondition"></div>
+<p id="previewDescription"></p>
+<div class="small-note">هذه معاينة فقط، المنتج لن يظهر في الموقع إلا بعد الموافقة.</div>
+</div>
 
 </div>
 
@@ -112,73 +248,247 @@ measurementId: "G-HLCHBX5FF7"
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-window.submitProduct = async function(){
+function cleanImageUrl(url){
+return url.trim().split(" ")[0];
+}
 
-const sellerName = document.getElementById("sellerName").value.trim();
-const sellerPhone = document.getElementById("sellerPhone").value.trim();
-const name = document.getElementById("productName").value.trim();
-const price = Number(document.getElementById("productPrice").value);
-const stock = Number(document.getElementById("productStock").value);
-const image = document.getElementById("productImage").value.trim();
-const category = document.getElementById("productCategory").value;
-const description = document.getElementById("productDescription").value.trim();
+function isSafeImageUrl(url){
+try{
+const parsedUrl = new URL(url);
+return parsedUrl.protocol === "https:" || parsedUrl.protocol === "http:";
+}catch(error){
+return false;
+}
+}
+
+function isValidEmail(email){
+if(!email) return true;
+return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function setText(id, value){
+document.getElementById(id).textContent = value;
+}
+
+function createOrderId(){
+const now = new Date();
+const datePart =
+now.getFullYear().toString() +
+String(now.getMonth() + 1).padStart(2,"0") +
+String(now.getDate()).padStart(2,"0");
+
+const randomPart = Math.floor(1000 + Math.random() * 9000);
+return "PH-" + datePart + "-" + randomPart;
+}
+
+function getIsoDate(){
+return new Date().toISOString();
+}
+
+function saveSellerInfo(data){
+localStorage.setItem("pricehubSellerInfo", JSON.stringify({
+sellerName:data.sellerName,
+storeName:data.storeName,
+sellerPhone:data.sellerPhone,
+sellerEmail:data.sellerEmail,
+sellerCity:data.sellerCity
+}));
+}
+
+function loadSellerInfo(){
+const saved = localStorage.getItem("pricehubSellerInfo");
+if(!saved) return;
+
+try{
+const data = JSON.parse(saved);
+document.getElementById("sellerName").value = data.sellerName || "";
+document.getElementById("storeName").value = data.storeName || "";
+document.getElementById("sellerPhone").value = data.sellerPhone || "";
+document.getElementById("sellerEmail").value = data.sellerEmail || "";
+document.getElementById("sellerCity").value = data.sellerCity || "";
+document.getElementById("savedSellerNote").style.display = "block";
+}catch(error){
+localStorage.removeItem("pricehubSellerInfo");
+}
+}
+
+function updateDescriptionCounter(){
+const description = document.getElementById("productDescription").value;
+document.getElementById("descCounter").innerHTML = description.length;
+}
+
+function getFormData(){
+return {
+sellerName: document.getElementById("sellerName").value.trim(),
+storeName: document.getElementById("storeName").value.trim(),
+sellerPhone: document.getElementById("sellerPhone").value.trim(),
+sellerEmail: document.getElementById("sellerEmail").value.trim(),
+sellerCity: document.getElementById("sellerCity").value.trim(),
+name: document.getElementById("productName").value.trim(),
+price: Number(document.getElementById("productPrice").value),
+stock: Number(document.getElementById("productStock").value),
+image: cleanImageUrl(document.getElementById("productImage").value),
+category: document.getElementById("productCategory").value,
+condition: document.getElementById("productCondition").value,
+description: document.getElementById("productDescription").value.trim()
+};
+}
+
+function validateProduct(data){
+if(!data.sellerName || !data.storeName || !data.sellerPhone || !data.sellerCity || !data.name || !data.image){
+return "⚠️ املأ كل الحقول المطلوبة";
+}
+
+if(!isSafeImageUrl(data.image)){
+return "⚠️ رابط الصورة غير صحيح";
+}
+
+if(Number.isNaN(data.price) || data.price <= 0){
+return "⚠️ السعر يجب أن يكون أكبر من 0";
+}
+
+if(data.price > 100000){
+return "⚠️ السعر كبير جداً";
+}
+
+if(Number.isNaN(data.stock) || data.stock < 0){
+return "⚠️ الكمية لا يمكن أن تكون أقل من 0";
+}
+
+if(data.stock > 9999){
+return "⚠️ الكمية كبيرة جداً";
+}
+
+if(data.sellerPhone.length < 7){
+return "⚠️ رقم الهاتف قصير جداً";
+}
+
+if(!isValidEmail(data.sellerEmail)){
+return "⚠️ البريد الإلكتروني غير صحيح";
+}
+
+return "";
+}
+
+window.copyOrderId = async function(){
+const orderId = document.getElementById("orderIdText").innerText;
 const message = document.getElementById("message");
 
+if(!orderId) return;
+
+try{
+await navigator.clipboard.writeText(orderId);
+message.innerHTML = "✅ تم نسخ رقم الطلب";
+}catch(error){
+message.innerHTML = "رقم الطلب: " + orderId;
+}
+};
+
+window.showPreview = function(){
+const data = getFormData();
+const message = document.getElementById("message");
+const error = validateProduct(data);
+
+document.getElementById("orderBox").style.display = "none";
+
+if(error){
+message.innerHTML = error;
+return;
+}
+
 message.innerHTML = "";
+document.getElementById("previewCard").style.display = "block";
+document.getElementById("previewImage").src = data.image;
 
-if(!sellerName || !sellerPhone || !name || !price || stock < 0 || !image){
-message.innerHTML = "املأ كل الحقول المطلوبة";
+setText("previewName", data.name);
+setText("previewPrice", "💵 السعر: $" + data.price);
+setText("previewStock", "📦 الكمية: " + data.stock);
+setText("previewSeller", "🏪 المتجر: " + data.storeName + " - " + data.sellerName);
+setText("previewCity", "📍 المدينة: " + data.sellerCity);
+setText("previewCondition", "⭐ الحالة: " + (data.condition === "new" ? "جديد" : "مستعمل"));
+setText("previewDescription", data.description || "لا يوجد وصف");
+};
+
+window.submitProduct = async function(){
+
+const submitBtn = document.getElementById("submitBtn");
+const message = document.getElementById("message");
+const data = getFormData();
+const error = validateProduct(data);
+const orderId = createOrderId();
+const sentAt = getIsoDate();
+
+message.innerHTML = "";
+document.getElementById("orderBox").style.display = "none";
+
+if(error){
+message.innerHTML = error;
 return;
 }
 
-if(price <= 0){
-message.innerHTML = "السعر يجب أن يكون أكبر من 0";
-return;
-}
+saveSellerInfo(data);
 
-if(stock < 0){
-message.innerHTML = "الكمية لا يمكن أن تكون أقل من 0";
-return;
-}
+submitBtn.disabled = true;
+submitBtn.innerHTML = "⏳ جاري الإرسال...";
 
 try{
 
 await addDoc(collection(db,"pendingProducts"),{
-sellerName,
-sellerPhone,
-name,
-price,
-stock,
-image,
-category,
-description,
+orderId: orderId,
+sentAt: sentAt,
+sellerName: data.sellerName,
+storeName: data.storeName,
+sellerPhone: data.sellerPhone,
+sellerEmail: data.sellerEmail,
+sellerCity: data.sellerCity,
+name: data.name,
+price: data.price,
+stock: data.stock,
+image: data.image,
+category: data.category,
+condition: data.condition,
+description: data.description,
 rating: 5,
 featured: false,
 sellerRating: 5,
 sellerProducts: 1,
-stores: [sellerName + " : $" + price],
+stores: [data.storeName + " : $" + data.price],
 status: "pending",
 statusText: "قيد المراجعة",
-date: new Date().toLocaleString()
+date: new Date().toLocaleString(),
+updatedAt: sentAt
 });
 
-message.innerHTML = "✅ تم إرسال المنتج للمراجعة";
+message.innerHTML = "✅ تم إرسال المنتج للمراجعة بنجاح. احتفظ برقم الطلب لمتابعة المنتج.";
+setText("orderIdText", orderId);
+document.getElementById("orderBox").style.display = "block";
 
-document.getElementById("sellerName").value = "";
-document.getElementById("sellerPhone").value = "";
 document.getElementById("productName").value = "";
 document.getElementById("productPrice").value = "";
 document.getElementById("productStock").value = "";
 document.getElementById("productImage").value = "";
 document.getElementById("productDescription").value = "";
 
+document.getElementById("productCategory").value = "phone";
+document.getElementById("productCondition").value = "new";
+document.getElementById("previewCard").style.display = "none";
+document.getElementById("savedSellerNote").style.display = "block";
+
+updateDescriptionCounter();
+
 }catch(error){
 console.error(error);
 message.innerHTML = "❌ فشل إرسال المنتج، تأكد من Firebase Rules";
 }
 
+submitBtn.disabled = false;
+submitBtn.innerHTML = "إرسال المنتج للمراجعة";
+
 };
 
+loadSellerInfo();
+updateDescriptionCounter();
+document.getElementById("productDescription").addEventListener("input", updateDescriptionCounter);
 </script>
 
 </body>
