@@ -47,7 +47,7 @@ const cheapestStore = product.stores && product.stores.length ? product.stores[0
 
 container.innerHTML += `
 <div class="card">
-<img src="${product.image || 'https://picsum.photos/300/200'}">
+<img src="${product.image || 'https://placehold.co/300x200?text=PriceHub'}" onerror="this.onerror=null;this.src='https://placehold.co/300x200?text=PriceHub';" alt="صورة المنتج">
 <div class="content">
 
 <h2>
@@ -115,7 +115,7 @@ const index = products.indexOf(featured);
 box.innerHTML = `
 <div style="width:90%;margin:20px auto;background:#fff3cd;padding:20px;border-radius:15px;text-align:center;box-shadow:0 3px 10px rgba(0,0,0,.1);">
 <h2>⭐ ${currentLang === "en" ? "Featured Product" : "المنتج المميز"}</h2>
-<img src="${featured.image}" style="width:100%;max-width:400px;border-radius:12px;">
+<img src="${featured.image || 'https://placehold.co/300x200?text=PriceHub'}" onerror="this.onerror=null;this.src='https://placehold.co/300x200?text=PriceHub';" style="width:100%;max-width:400px;border-radius:12px;" alt="صورة المنتج">
 <h3>${featured.name}</h3>
 <p style="font-size:22px;color:green;font-weight:bold;">$${featured.price}</p>
 <p>🏪 ${featured.storeName || "PriceHub"}</p>

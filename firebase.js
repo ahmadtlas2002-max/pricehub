@@ -88,7 +88,7 @@ category: data.category || "other",
 image:
 (data.image && data.image.startsWith("http"))
 ? data.image
-: "https://picsum.photos/300/200",
+: "https://placehold.co/300x200?text=PriceHub",
 featured: data.featured || false,
 premiumSeller: data.premiumSeller === true,
 stock: Number(data.stock || 0),
