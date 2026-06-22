@@ -51,7 +51,7 @@ container.innerHTML += `
 <div class="content">
 
 <h2>
-${product.name}
+${product.name} ${product.premiumSeller ? "👑" : ""}
 <span style="cursor:pointer;float:left;" onclick="toggleFavByIndex(${index})">❤️</span>
 </h2>
 
@@ -60,23 +60,15 @@ ${product.featured
 : `<div class="badge">🏆 ${currentLang === "en" ? "Best Price" : "أفضل سعر"}</div>`}
 
 <p class="price">$${product.price}</p>
-
 <p>🏪 ${currentLang === "en" ? "Store" : "المتجر"}: ${product.storeName || cheapestStore || "PriceHub"}</p>
 
-${Number(product.sellerRating || 0) >= 4.5
-? "<p style='color:#28a745;font-weight:bold;'>✔ بائع موثوق</p>"
+${product.sellerVerified
+? "<p style='color:#28a745;font-weight:bold;'>✔ بائع موثق</p>"
 : ""}
 
 <p>📍 ${currentLang === "en" ? "City" : "المدينة"}: ${product.sellerCity || "غير محددة"}</p>
-
-<p>⭐ ${currentLang === "en" ? "Condition" : "الحالة"}:
-${product.condition === "used" ? "مستعمل" : "جديد"}
-</p>
-
-<p>📦 ${currentLang === "en" ? "Stock" : "المخزون"}:
-${Number(product.stock || 0) > 0 ? product.stock : currentLang === "en" ? "Unavailable" : "غير متوفر"}
-</p>
-
+<p>⭐ ${currentLang === "en" ? "Condition" : "الحالة"}: ${product.condition === "used" ? "مستعمل" : "جديد"}</p>
+<p>📦 ${currentLang === "en" ? "Stock" : "المخزون"}: ${Number(product.stock || 0) > 0 ? product.stock : currentLang === "en" ? "Unavailable" : "غير متوفر"}</p>
 <p class="rating">⭐ ${product.rating || 0} / 5</p>
 
 <div id="cardReviews-${index}" style="font-size:14px;background:#f1f1f1;padding:8px;border-radius:8px;margin:8px 0;">
@@ -85,17 +77,15 @@ ${Number(product.stock || 0) > 0 ? product.stock : currentLang === "en" ? "Unava
 
 ${(product.stores || []).map(store=>`<div class="store">${store}</div>`).join("")}
 
-<button onclick="showDetailsByIndex(${index})">
-${currentLang === "en" ? "View Product" : "عرض المنتج"}
-</button>
+<button onclick="showDetailsByIndex(${index})">${currentLang === "en" ? "View Product" : "عرض المنتج"}</button>
 
 ${Number(product.stock || 0) > 0
 ? `<button onclick="addToCartByIndex(${index})">🛒 ${currentLang === "en" ? "Add to Cart" : "أضف للسلة"}</button>`
 : `<button disabled style="background:#999;">${currentLang === "en" ? "Unavailable" : "غير متوفر"}</button>`}
 
-<button onclick="shareProductByIndex(${index})">
-📤 ${currentLang === "en" ? "Share" : "مشاركة"}
-</button>
+<button onclick="shareProductByIndex(${index})">📤 ${currentLang === "en" ? "Share" : "مشاركة"}</button>
+
+<button onclick="openStore('${product.storeName || ""}')">🏪 عرض المتجر</button>
 
 </div>
 </div>
@@ -155,6 +145,9 @@ stores += `<p>🏪 ${store}</p>`;
 
 stores += `<p>🏬 المتجر: ${product.storeName || "غير محدد"}</p>`;
 stores += `<p>👤 البائع: ${product.sellerName || "غير محدد"}</p>`;
+if(product.sellerVerified){
+stores += "<p style='color:green;font-weight:bold;'>✔ بائع موثق من PriceHub</p>";
+}
 stores += `<p>📍 المدينة: ${product.sellerCity || "غير محددة"}</p>`;
 stores += `<p>⭐ الحالة: ${product.condition === "used" ? "مستعمل" : "جديد"}</p>`;
 
@@ -173,6 +166,16 @@ stores += "<p style='color:green;font-weight:bold;'>✅ متوفر</p>";
 }
 
 document.getElementById("popupStores").innerHTML = stores;
+}
+
+function openStore(storeName){
+if(!storeName){
+showToast("لا يوجد متجر لهذا المنتج");
+return;
+}
+
+localStorage.setItem("selectedStore", storeName);
+window.location.href = "store.html";
 }
 
 function closePopup(){
@@ -442,26 +445,31 @@ rating: Number(product.rating || 0),
 category: product.category || "other",
 image: product.image || "https://picsum.photos/300/200",
 featured: product.featured || false,
+premiumSeller: product.premiumSeller === true,
 stock: Number(product.stock || 0),
-
 description: product.description || "",
 condition: product.condition || "new",
-
 sellerName: product.sellerName || "",
 storeName: product.storeName || "",
 sellerPhone: product.sellerPhone || "",
 sellerEmail: product.sellerEmail || "",
 sellerCity: product.sellerCity || "",
 sellerRating: Number(product.sellerRating || 5),
+sellerVerified: product.sellerVerified === true,
 orderId: product.orderId || "",
-
 stores: product.stores || [
 (product.storeName || "Firebase Store") + " : $" + Number(product.price || 0)
 ]
 }));
 }
 
-products.sort((a,b)=> (b.featured === true) - (a.featured === true));
+products.sort((a,b)=>
+Number(b.premiumSeller === true) -
+Number(a.premiumSeller === true) ||
+
+Number(b.featured === true) -
+Number(a.featured === true)
+);
 
 showProducts(products);
 updateStats();
@@ -720,72 +728,6 @@ if(coupon) coupon.placeholder = isEnglish ? "Coupon code" : "كود الخصم";
 if(customerName) customerName.placeholder = isEnglish ? "Customer name" : "اسم العميل";
 if(customerPhone) customerPhone.placeholder = isEnglish ? "Phone number" : "رقم الهاتف";
 
-document.querySelectorAll("button").forEach(btn=>{
-let text = btn.innerText;
-
-if(isEnglish){
-btn.innerText = text
-.replace("⚙️ لوحة الإدارة","⚙️ Admin Panel")
-.replace("🛍️ بيع معنا","🛍️ Sell With Us")
-.replace("📋 حالة منتجاتي","📋 My Products Status")
-.replace("🔥 العروض المميزة","🔥 Featured Offers")
-.replace("📦 تتبع الطلب","📦 Track Order")
-.replace("👤 حسابي","👤 My Account")
-.replace("📦 طلباتي","📦 My Orders")
-.replace("📲 تثبيت PriceHub","📲 Install PriceHub")
-.replace("🌍 عربي / English","🌍 Arabic / English")
-.replace("🌙 الوضع الليلي","🌙 Dark Mode")
-.replace("الأرخص أولاً","Lowest Price")
-.replace("الأغلى أولاً","Highest Price")
-.replace("الكل","All")
-.replace("الهواتف","Phones")
-.replace("الألعاب","Gaming")
-.replace("اللابتوبات","Laptops")
-.replace("🆕 جديد","🆕 New")
-.replace("♻️ مستعمل","♻️ Used")
-.replace("⭐ المميزة","⭐ Featured")
-.replace("مقارنة","Compare")
-.replace("مسح المقارنة","Clear Compare")
-.replace("🎟️ تطبيق الكوبون","🎟️ Apply Coupon")
-.replace("📦 الدفع عند الاستلام","📦 Cash on Delivery")
-.replace("💳 الدفع الإلكتروني","💳 Online Payment")
-.replace("🗑️ تفريغ السلة","🗑️ Clear Cart")
-.replace("إغلاق السلة","Close Cart")
-.replace("إغلاق المفضلة","Close Favorites")
-.replace("إغلاق","Close");
-}else{
-btn.innerText = text
-.replace("⚙️ Admin Panel","⚙️ لوحة الإدارة")
-.replace("🛍️ Sell With Us","🛍️ بيع معنا")
-.replace("📋 My Products Status","📋 حالة منتجاتي")
-.replace("🔥 Featured Offers","🔥 العروض المميزة")
-.replace("📦 Track Order","📦 تتبع الطلب")
-.replace("👤 My Account","👤 حسابي")
-.replace("📦 My Orders","📦 طلباتي")
-.replace("📲 Install PriceHub","📲 تثبيت PriceHub")
-.replace("🌍 Arabic / English","🌍 عربي / English")
-.replace("🌙 Dark Mode","🌙 الوضع الليلي")
-.replace("Lowest Price","الأرخص أولاً")
-.replace("Highest Price","الأغلى أولاً")
-.replace("All","الكل")
-.replace("Phones","الهواتف")
-.replace("Gaming","الألعاب")
-.replace("Laptops","اللابتوبات")
-.replace("🆕 New","🆕 جديد")
-.replace("♻️ Used","♻️ مستعمل")
-.replace("⭐ Featured","⭐ المميزة")
-.replace("Compare","مقارنة")
-.replace("Clear Compare","مسح المقارنة")
-.replace("🎟️ Apply Coupon","🎟️ تطبيق الكوبون")
-.replace("📦 Cash on Delivery","📦 الدفع عند الاستلام")
-.replace("💳 Online Payment","💳 الدفع الإلكتروني")
-.replace("🗑️ Clear Cart","🗑️ تفريغ السلة")
-.replace("Close Cart","إغلاق السلة")
-.replace("Close Favorites","إغلاق المفضلة")
-.replace("Close","إغلاق");
-}
-});
-
 updateFavCount();
 updateCartCount();
 }
@@ -925,12 +867,8 @@ localStorage.setItem("stripeCustomerPhone", phone);
 try{
 const response = await fetch("https://pricehub-hnso.onrender.com/create-checkout-session", {
 method: "POST",
-headers: {
-"Content-Type": "application/json"
-},
-body: JSON.stringify({
-items: cart
-})
+headers: {"Content-Type": "application/json"},
+body: JSON.stringify({items: cart})
 });
 
 const data = await response.json();
