@@ -68,7 +68,7 @@ const firebaseConfig = {
 apiKey: "AIzaSyA4jGrncraaaktuaDpsO7nz1-qmrqYKM3k",
 authDomain: "pricehub-6d3c4.firebaseapp.com",
 projectId: "pricehub-6d3c4",
-storageBucket: "pricehub-6d3c4.firebasestorage.app",
+storageBucket: "pricehub-6d3c4.appspot.com"
 messagingSenderId: "991179979836",
 appId: "1:991179979836:web:cb23f4d31e55364d1ed739",
 measurementId: "G-HLCHBX5FF7"
@@ -114,7 +114,16 @@ html += `
 ${order.status || "جديد"}
 </span>
 </h3>
-<p>🆔 رقم الطلب: ${order.orderId || "غير موجود"}</p>
+<p>
+🆔 رقم الطلب:
+${order.orderId || "غير موجود"}
+
+<button
+style="margin-right:10px;background:#009688;color:white;border:none;padding:5px 10px;border-radius:6px;cursor:pointer;"
+onclick="copyOrderId('${order.orderId || ""}')">
+📋 نسخ
+</button>
+</p>
 <p>💰 المجموع: $${order.total || 0}</p>
 <p>📅 التاريخ: ${order.date || ""}</p>
 
@@ -135,6 +144,17 @@ html = "<h3>لا توجد طلبات مرتبطة بحسابك</h3>";
 
 box.innerHTML = html;
 });
+window.copyOrderId = function(orderId){
+
+if(!orderId){
+alert("لا يوجد رقم طلب");
+return;
+}
+
+navigator.clipboard.writeText(orderId);
+
+alert("تم نسخ رقم الطلب ✅");
+};
 </script>
 
 </body>
