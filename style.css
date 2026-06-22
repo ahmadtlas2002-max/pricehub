@@ -216,3 +216,22 @@ width:45%;
 }
 
 }
+.main-actions{
+width:90%;
+max-width:900px;
+margin:20px auto;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:14px;
+}
+
+.main-actions a{
+text-decoration:none;
+}
+
+.main-actions button{
+width:100% !important;
+max-width:none !important;
+margin:0 !important;
+height:64px;
+}
