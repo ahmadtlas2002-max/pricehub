@@ -949,22 +949,125 @@ loadAdminProducts();
 
 };
 
+window.loadPendingProducts = async function(){
+
+const box = document.getElementById("pendingProductsList");
+box.innerHTML = "جاري التحميل...";
+
+const snapshot = await getDocs(collection(db,"pendingProducts"));
+
+box.innerHTML = "";
+
+if(snapshot.empty){
+box.innerHTML = "<p>لا توجد منتجات بانتظار الموافقة</p>";
+return;
+}
+
+snapshot.forEach(item=>{
+const product = {id:item.id,...item.data()};
+
+box.innerHTML += `
+<div class="order-card">
+<img src="${product.image || 'https://picsum.photos/300/200'}" style="width:100%;max-height:180px;object-fit:cover;border-radius:10px;">
+
+<h3>${product.name || "منتج بدون اسم"}</h3>
+
+<p><strong>رقم الطلب:</strong> ${product.orderId || "غير موجود"}</p>
+<p>💰 السعر: $${product.price || 0}</p>
+<p>📦 الكمية: ${product.stock || 0}</p>
+<p>📱 التصنيف: ${product.category || "other"}</p>
+<p>⭐ الحالة: ${product.condition === "used" ? "مستعمل" : "جديد"}</p>
+
+<hr>
+
+<p>👤 البائع: ${product.sellerName || "غير محدد"}</p>
+<p>🏪 المتجر: ${product.storeName || "غير محدد"}</p>
+<p>📞 الهاتف: ${product.sellerPhone || "غير محدد"}</p>
+<p>📧 البريد: ${product.sellerEmail || "غير موجود"}</p>
+<p>📍 المدينة: ${product.sellerCity || "غير محدد"}</p>
+
+<hr>
+
+<p>📝 الوصف: ${product.description || "لا يوجد وصف"}</p>
+<p>📅 تاريخ الإرسال: ${product.date || "غير معروف"}</p>
+
+<button onclick="approvePendingProduct('${product.id}')" style="background:#008000;">
+✅ موافقة ونشر
+</button>
+
+<button onclick="rejectPendingProduct('${product.id}')" style="background:#cc0000;">
+❌ رفض وحذف
+</button>
+</div>
+`;
+});
+
+};
+
+window.approvePendingProduct = async function(id){
+
+const snapshot = await getDocs(collection(db,"pendingProducts"));
+let selected = null;
+
+snapshot.forEach(item=>{
+if(item.id === id){
+selected = {id:item.id,...item.data()};
+}
+});
+
+if(!selected){
+alert("لم يتم العثور على المنتج");
+return;
+}
+
+await addDoc(collection(db,"products"),{
+orderId: selected.orderId || "",
+sentAt: selected.sentAt || "",
+approvedAt: new Date().toISOString(),
+
+name: selected.name || "",
+price: Number(selected.price || 0),
+stock: Number(selected.stock || 0),
+rating: Number(selected.rating || 5),
+category: selected.category || "other",
+condition: selected.condition || "new",
+image: selected.image || "https://picsum.photos/300/200",
+featured: selected.featured || false,
+description: selected.description || "",
+
+sellerName: selected.sellerName || "",
+storeName: selected.storeName || selected.sellerName || "متجر PriceHub",
+sellerPhone: selected.sellerPhone || "",
+sellerEmail: selected.sellerEmail || "",
+sellerCity: selected.sellerCity || "",
+sellerRating: Number(selected.sellerRating || 5),
+
+stores: selected.stores || [
+(selected.storeName || selected.sellerName || "متجر PriceHub") + " : $" + Number(selected.price || 0)
+],
+
+status: "approved",
+statusText: "تمت الموافقة"
+});
+
+await deleteDoc(doc(db,"pendingProducts",id));
+
+alert("✅ تم نشر المنتج");
+loadPendingProducts();
+loadAdminProducts();
+
+};
+
 window.rejectPendingProduct = async function(id){
 
 if(!confirm("هل تريد رفض وحذف هذا المنتج؟")) return;
 
 await deleteDoc(doc(db,"pendingProducts",id));
 
-alert("تم حذف المنتج");
+alert("❌ تم رفض المنتج وحذفه");
 loadPendingProducts();
 
 };
-
-loadAdminProducts();
-loadOrders();
-loadCouponsAdmin();
-loadReviewsAdmin();
-loadPendingProducts();
 </script>
 
 </body>
