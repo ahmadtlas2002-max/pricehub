@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>حالة منتجاتي - PriceHub</title>
+
+<style>
+body{
+font-family:Arial;
+background:#f5f5f5;
+padding:20px;
+direction:rtl;
+}
+
+.box{
+background:white;
+max-width:650px;
+margin:auto;
+padding:20px;
+border-radius:15px;
+box-shadow:0 5px 15px rgba(0,0,0,.1);
+text-align:center;
+}
+
+input,button{
+width:100%;
+padding:12px;
+margin:8px 0;
+border-radius:8px;
+border:1px solid #ccc;
+font-size:16px;
+box-sizing:border-box;
+}
+
+button{
+background:#0066ff;
+color:white;
+border:none;
+cursor:pointer;
+font-weight:bold;
+}
+
+.back-btn{
+background:#222;
+}
+
+.card{
+background:#eee;
+padding:15px;
+margin:12px 0;
+border-radius:12px;
+text-align:right;
+}
+
+.card img{
+width:100%;
+max-height:220px;
+object-fit:cover;
+border-radius:10px;
+margin:8px 0;
+background:#ddd;
+}
+
+.status{
+display:inline-block;
+padding:6px 12px;
+border-radius:20px;
+color:white;
+font-weight:bold;
+margin:5px 0;
+}
+
+.pending{background:#ff9800;}
+.approved{background:#28a745;}
+.rejected{background:#cc0000;}
+
+.small{
+font-size:14px;
+color:#555;
+}
+
+#result{
+margin-top:15px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+<h1>📋 حالة منتجاتي</h1>
+
+<a href="index.html">
+<button class="back-btn" type="button">⬅️ العودة للرئيسية</button>
+</a>
+
+<a href="sell.html">
+<button type="button" style="background:#795548;">🛍️ إرسال منتج جديد</button>
+</a>
+
+<p>اكتب رقم الهاتف أو رقم الطلب لمتابعة حالة منتجاتك.</p>
+
+<input id="sellerPhone" placeholder="رقم الهاتف / واتساب">
+<input id="orderId" placeholder="رقم الطلب مثل PH-20260622-1234">
+
+<button onclick="checkStatus()">عرض منتجاتي</button>
+
+<div id="result"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+getFirestore,
+collection,
+getDocs
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+apiKey: "AIzaSyA4jGrncraaaktuaDpsO7nz1-qmrqYKM3k",
+authDomain: "pricehub-6d3c4.firebaseapp.com",
+projectId: "pricehub-6d3c4",
+storageBucket: "pricehub-6d3c4.firebasestorage.app",
+messagingSenderId: "991179979836",
+appId: "1:991179979836:web:cb23f4d31e55364d1ed739",
+measurementId: "G-HLCHBX5FF7"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+function getStatusClass(status){
+if(status === "approved") return "approved";
+if(status === "rejected") return "rejected";
+return "pending";
+}
+
+function getStatusText(product){
+if(product.statusText) return product.statusText;
+
+if(product.status === "approved") return "تمت الموافقة";
+if(product.status === "rejected") return "مرفوض";
+return "قيد المراجعة";
+}
+
+function productMatches(product, phone, orderId){
+const productPhone = (product.sellerPhone || "").trim();
+const productOrderId = (product.orderId || "").trim();
+
+if(phone && productPhone === phone) return true;
+if(orderId && productOrderId === orderId) return true;
+
+return false;
+}
+
+function renderProduct(product){
+const statusClass = getStatusClass(product.status);
+const statusText = getStatusText(product);
+
+return `
+<div class="card">
+<h3>${product.name || "منتج بدون اسم"}</h3>
+
+<span class="status ${statusClass}">
+${statusText}
+</span>
+
+<img src="${product.image || "https://picsum.photos/300/200"}">
+
+<p>💵 السعر: $${product.price || 0}</p>
+<p>📦 الكمية: ${product.stock || 0}</p>
+<p>🏪 المتجر: ${product.storeName || "غير محدد"}</p>
+<p>👤 البائع: ${product.sellerName || "غير محدد"}</p>
+<p>📞 الهاتف: ${product.sellerPhone || "غير محدد"}</p>
+<p>📍 المدينة: ${product.sellerCity || "غير محدد"}</p>
+<p>⭐ الحالة: ${product.condition === "used" ? "مستعمل" : "جديد"}</p>
+<p>📝 الوصف: ${product.description || "لا يوجد وصف"}</p>
+<p class="small">رقم الطلب: ${product.orderId || "غير متوفر"}</p>
+<p class="small">تاريخ الإرسال: ${product.date || "غير معروف"}</p>
+</div>
+`;
+}
+
+window.checkStatus = async function(){
+
+const phone = document.getElementById("sellerPhone").value.trim();
+const orderId = document.getElementById("orderId").value.trim();
+const result = document.getElementById("result");
+
+result.innerHTML = "";
+
+if(!phone && !orderId){
+result.innerHTML = "<p>⚠️ اكتب رقم الهاتف أو رقم الطلب</p>";
+return;
+}
+
+result.innerHTML = "<p>⏳ جاري البحث...</p>";
+
+let found = [];
+
+const pendingSnapshot = await getDocs(collection(db,"pendingProducts"));
+
+pendingSnapshot.forEach(doc=>{
+const product = doc.data();
+
+if(productMatches(product, phone, orderId)){
+found.push(product);
+}
+});
+
+const productsSnapshot = await getDocs(collection(db,"products"));
+
+productsSnapshot.forEach(doc=>{
+const product = doc.data();
+
+if(productMatches(product, phone, orderId)){
+found.push({
+...product,
+status: "approved",
+statusText: "تمت الموافقة"
+});
+}
+});
+
+if(found.length === 0){
+result.innerHTML = "<p>❌ لا يوجد منتجات بهذا الرقم أو رقم الطلب</p>";
+return;
+}
+
+let html = `<h3>عدد المنتجات: ${found.length}</h3>`;
+
+found.forEach(product=>{
+html += renderProduct(product);
+});
+
+result.innerHTML = html;
+};
+
+</script>
+
+</body>
+</html>
