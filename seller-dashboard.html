@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة البائع - PriceHub</title>
+
+<style>
+body{
+font-family:Arial;
+background:#f5f5f5;
+padding:20px;
+direction:rtl;
+}
+
+.box{
+max-width:900px;
+margin:auto;
+}
+
+.header,.searchBox,.statsBox,.card{
+background:white;
+padding:15px;
+margin:15px 0;
+border-radius:15px;
+box-shadow:0 5px 15px rgba(0,0,0,.1);
+}
+
+button,input{
+width:100%;
+padding:12px;
+margin:8px 0;
+border:none;
+border-radius:8px;
+font-size:16px;
+box-sizing:border-box;
+}
+
+input{
+border:1px solid #ccc;
+}
+
+button{
+background:#0066ff;
+color:white;
+cursor:pointer;
+font-weight:bold;
+}
+
+.card img{
+width:100%;
+max-height:220px;
+object-fit:cover;
+border-radius:12px;
+background:#ddd;
+}
+
+.pending{color:#ff9800;font-weight:bold;}
+.approved{color:#28a745;font-weight:bold;}
+.rejected{color:#cc0000;font-weight:bold;}
+
+.stat{
+background:#eef5ff;
+padding:10px;
+border-radius:10px;
+margin:8px 0;
+font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+
+<div class="header">
+<h1>📊 لوحة البائع</h1>
+
+<a href="index.html">
+<button type="button">⬅️ العودة للرئيسية</button>
+</a>
+
+<a href="sell.html">
+<button type="button" style="background:#795548;">🛍️ إضافة منتج جديد</button>
+</a>
+</div>
+
+<div class="searchBox">
+<p>اكتب رقم هاتفك لعرض منتجاتك وإحصائياتك.</p>
+<input id="sellerPhone" placeholder="رقم الهاتف / واتساب">
+<button onclick="loadSellerDashboard()">عرض لوحة البائع</button>
+</div>
+
+<div id="statsBox" class="statsBox" style="display:none;"></div>
+
+<div id="productsList"></div>
+
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+getFirestore,
+collection,
+getDocs,
+deleteDoc,
+doc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+apiKey: "AIzaSyA4jGrncraaaktuaDpsO7nz1-qmrqYKM3k",
+authDomain: "pricehub-6d3c4.firebaseapp.com",
+projectId: "pricehub-6d3c4",
+storageBucket: "pricehub-6d3c4.firebasestorage.app",
+messagingSenderId: "991179979836",
+appId: "1:991179979836:web:cb23f4d31e55364d1ed739",
+measurementId: "G-HLCHBX5FF7"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let sellerProducts = [];
+
+function statusText(product){
+if(product.status === "approved") return "<span class='approved'>تمت الموافقة</span>";
+if(product.status === "rejected") return "<span class='rejected'>مرفوض</span>";
+return "<span class='pending'>قيد المراجعة</span>";
+}
+
+function stockText(stock){
+stock = Number(stock || 0);
+if(stock <= 0) return "غير متوفر";
+if(stock <= 5) return stock + " - مخزون منخفض";
+return stock + " - متوفر";
+}
+
+function updateStats(){
+const statsBox = document.getElementById("statsBox");
+
+const total = sellerProducts.length;
+const approved = sellerProducts.filter(p => p.status === "approved").length;
+const pending = sellerProducts.filter(p => p.status !== "approved").length;
+const totalStock = sellerProducts.reduce((sum,p)=>sum + Number(p.stock || 0),0);
+const featured = sellerProducts.filter(p => p.featured === true).length;
+
+const avgRating =
+sellerProducts.length
+? (
+sellerProducts.reduce((sum,p)=>sum + Number(p.rating || 0),0) / sellerProducts.length
+).toFixed(1)
+: 0;
+
+statsBox.style.display = "block";
+statsBox.innerHTML = `
+<h2>📈 إحصائيات البائع</h2>
+<div class="stat">📦 كل المنتجات: ${total}</div>
+<div class="stat">✅ المقبولة: ${approved}</div>
+<div class="stat">⏳ قيد المراجعة: ${pending}</div>
+<div class="stat">🔥 المميزة: ${featured}</div>
+<div class="stat">📦 إجمالي المخزون: ${totalStock}</div>
+<div class="stat">⭐ متوسط التقييم: ${avgRating} / 5</div>
+`;
+}
+
+function renderProducts(){
+const box = document.getElementById("productsList");
+box.innerHTML = "";
+
+if(sellerProducts.length === 0){
+box.innerHTML = "<p>لا توجد منتجات لهذا الرقم</p>";
+return;
+}
+
+sellerProducts.forEach(product=>{
+box.innerHTML += `
+<div class="card">
+<img src="${product.image || 'https://picsum.photos/300/200'}">
+
+<h2>${product.name || "منتج بدون اسم"}</h2>
+
+<p>الحالة: ${statusText(product)}</p>
+<p>رقم الطلب: ${product.orderId || "غير متوفر"}</p>
+<p>💵 السعر: $${product.price || 0}</p>
+<p>📦 المخزون: ${stockText(product.stock)}</p>
+<p>⭐ التقييم: ${product.rating || 0} / 5</p>
+<p>🏪 المتجر: ${product.storeName || "غير محدد"}</p>
+<p>📍 المدينة: ${product.sellerCity || "غير محددة"}</p>
+<p>⭐ حالة المنتج: ${product.condition === "used" ? "مستعمل" : "جديد"}</p>
+<p>📝 ${product.description || ""}</p>
+
+${product.collectionName === "pendingProducts"
+? `<button onclick="deletePendingProduct('${product.id}')" style="background:#cc0000;">🗑️ حذف المنتج المعلّق</button>`
+: ""}
+</div>
+`;
+});
+}
+
+window.loadSellerDashboard = async function(){
+
+const phone = document.getElementById("sellerPhone").value.trim();
+const listBox = document.getElementById("productsList");
+
+sellerProducts = [];
+listBox.innerHTML = "";
+
+if(!phone){
+listBox.innerHTML = "<p>اكتب رقم الهاتف أولاً</p>";
+return;
+}
+
+listBox.innerHTML = "جاري التحميل...";
+
+const pendingSnapshot = await getDocs(collection(db,"pendingProducts"));
+
+pendingSnapshot.forEach(item=>{
+const product = {id:item.id,...item.data()};
+
+if((product.sellerPhone || "").trim() === phone){
+sellerProducts.push({
+...product,
+collectionName:"pendingProducts",
+status: product.status || "pending"
+});
+}
+});
+
+const approvedSnapshot = await getDocs(collection(db,"products"));
+
+approvedSnapshot.forEach(item=>{
+const product = {id:item.id,...item.data()};
+
+if((product.sellerPhone || "").trim() === phone){
+sellerProducts.push({
+...product,
+collectionName:"products",
+status:"approved"
+});
+}
+});
+
+updateStats();
+renderProducts();
+};
+
+window.deletePendingProduct = async function(id){
+
+if(!confirm("هل تريد حذف هذا المنتج المعلّق؟")) return;
+
+await deleteDoc(doc(db,"pendingProducts",id));
+
+alert("تم حذف المنتج");
+loadSellerDashboard();
+};
+</script>
+
+</body>
+</html>
