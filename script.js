@@ -58,8 +58,9 @@ ${product.featured ? `<div class="featured-badge">⭐ ${currentLang === "en" ? "
 <div id="cardReviews-${index}" style="font-size:14px;background:#f1f1f1;padding:8px;border-radius:8px;margin:8px 0;">
 جاري تحميل آخر التقييمات...
 </div>
-<p class="bestStore">🏪 ${currentLang === "en" ? "Best Store" : "أفضل متجر"}: ${cheapestStore}</p>
-
+<p class="bestStore">🏪 ${currentLang === "en" ? "Store" : "المتجر"}: ${product.storeName || cheapestStore}</p>
+<p>📍 ${currentLang === "en" ? "City" : "المدينة"}: ${product.sellerCity || "غير محددة"}</p>
+<p>⭐ ${currentLang === "en" ? "Condition" : "الحالة"}: ${product.condition === "used" ? "مستعمل" : "جديد"}</p>
 ${product.stores.map(store=>`<div class="store">${store}</div>`).join("")}
 
 <button onclick="showDetailsByIndex(${index})">${currentLang === "en" ? "View Product" : "عرض المنتج"}</button>
@@ -111,11 +112,26 @@ document.getElementById("popup").style.display = "block";
 document.getElementById("popupName").innerHTML = product.name;
 document.getElementById("popupImage").src = product.image;
 document.getElementById("popupPrice").innerHTML = "$" + product.price;
+
 currentReviewProduct = product.name;
 loadProductReviews(product.name);
+
 let stores = "";
-product.stores.forEach(store=> stores += `<p>${store}</p>`);
-stores += `<p>📦 ${currentLang === "en" ? "Stock" : "المخزون"}: ${product.stock > 0 ? product.stock : currentLang === "en" ? "Unavailable" : "غير متوفر"}</p>`;
+
+product.stores.forEach(store=>{
+stores += `<p>🏪 ${store}</p>`;
+});
+
+stores += `<p>📦 المخزون: ${product.stock > 0 ? product.stock : "غير متوفر"}</p>`;
+stores += `<p>🏬 المتجر: ${product.storeName || "غير محدد"}</p>`;
+stores += `<p>👤 البائع: ${product.sellerName || "غير محدد"}</p>`;
+stores += `<p>📍 المدينة: ${product.sellerCity || "غير محددة"}</p>`;
+stores += `<p>⭐ الحالة: ${product.condition === "used" ? "مستعمل" : "جديد"}</p>`;
+
+if(product.description){
+stores += `<p>📝 الوصف: ${product.description}</p>`;
+}
+
 if(Number(product.stock || 0) <= 0){
 stores += "<p style='color:red;font-weight:bold;'>❌ نفد المخزون</p>";
 }else if(Number(product.stock || 0) <= 5){
@@ -123,7 +139,9 @@ stores += "<p style='color:#ff9800;font-weight:bold;'>⚠️ مخزون منخف
 }else{
 stores += "<p style='color:green;font-weight:bold;'>✅ متوفر</p>";
 }
+
 document.getElementById("popupStores").innerHTML = stores;
+}
 }
 
 function closePopup(){
@@ -473,9 +491,10 @@ showToast(currentLang === "en" ? "Cart is empty" : "السلة فارغة");
 return;
 }
 
-const name = document.getElementById("customerName").value;
-const phone = document.getElementById("customerPhone").value;
-
+const sellerName = document.getElementById("sellerName").value.trim();
+const storeName = document.getElementById("storeName").value.trim();
+const sellerPhone = document.getElementById("sellerPhone").value.trim();
+const sellerCity = document.getElementById("sellerCity").value.trim();
 if(!name || !phone){
 showToast(currentLang === "en" ? "Enter name and phone number" : "اكتب الاسم ورقم الهاتف");
 return;
