@@ -19,8 +19,6 @@ button:disabled{background:#999;cursor:not-allowed;}
 #message{font-weight:bold;}
 .preview-card{display:none;text-align:right;background:#fafafa;border:1px solid #ddd;border-radius:12px;padding:12px;margin-top:15px;}
 .preview-card img{width:100%;max-height:230px;object-fit:cover;border-radius:10px;background:#eee;}
-.preview-line{margin:5px 0;color:#333;}
-.small-note{font-size:13px;color:#666;margin-top:5px;}
 .counter{text-align:left;font-size:13px;color:#666;margin-top:-4px;}
 .saved-note{background:#e8f5e9;color:#1b5e20;padding:8px;border-radius:8px;font-size:14px;margin:8px 0;display:none;}
 .order-box{display:none;background:#eef5ff;border:1px solid #bcd7ff;color:#003b88;padding:12px;border-radius:10px;margin-top:12px;font-weight:bold;}
@@ -58,7 +56,7 @@ button:disabled{background:#999;cursor:not-allowed;}
 
 <div class="warning">⚠️ الحد الأقصى للسعر 100,000$ والكمية 9,999.</div>
 
-<input type="file" id="productImage" accept="image/*" capture="environment">
+<input id="productImageUrl" placeholder="رابط صورة المنتج يبدأ بـ https://">
 <img id="imagePreview" alt="معاينة صورة المنتج">
 
 <select id="productCategory">
@@ -89,13 +87,13 @@ button:disabled{background:#999;cursor:not-allowed;}
 <div id="previewCard" class="preview-card">
 <img id="previewImage" src="" alt="صورة المنتج">
 <h3 id="previewName"></h3>
-<div class="preview-line" id="previewPrice"></div>
-<div class="preview-line" id="previewStock"></div>
-<div class="preview-line" id="previewSeller"></div>
-<div class="preview-line" id="previewCity"></div>
-<div class="preview-line" id="previewCondition"></div>
+<div id="previewPrice"></div>
+<div id="previewStock"></div>
+<div id="previewSeller"></div>
+<div id="previewCity"></div>
+<div id="previewCondition"></div>
 <p id="previewDescription"></p>
-<div class="small-note">هذه معاينة فقط، المنتج لن يظهر في الموقع إلا بعد الموافقة.</div>
+<div style="font-size:13px;color:#666;">هذه معاينة فقط، المنتج لن يظهر في الموقع إلا بعد الموافقة.</div>
 </div>
 
 </div>
@@ -109,13 +107,6 @@ collection,
 addDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-import {
-getStorage,
-ref,
-uploadBytes,
-getDownloadURL
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
-
 const firebaseConfig = {
 apiKey: "AIzaSyA4jGrncraaaktuaDpsO7nz1-qmrqYKM3k",
 authDomain: "pricehub-6d3c4.firebaseapp.com",
@@ -128,113 +119,30 @@ measurementId: "G-HLCHBX5FF7"
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const storage = getStorage(app);
 
-let selectedImageFile = null;
-let selectedImagePreview = "";
+const desc = document.getElementById("productDescription");
+const descCounter = document.getElementById("descCounter");
+const imageInput = document.getElementById("productImageUrl");
+const imagePreview = document.getElementById("imagePreview");
 
-document.getElementById("productImage").addEventListener("change",function(e){
-const file = e.target.files[0];
-const message = document.getElementById("message");
-
-if(!file) return;
-
-if(!file.type.startsWith("image/")){
-message.innerHTML = "⚠️ اختر ملف صورة فقط";
-selectedImageFile = null;
-selectedImagePreview = "";
-return;
-}
-
-selectedImageFile = file;
-
-const reader = new FileReader();
-
-reader.onload = function(event){
-selectedImagePreview = event.target.result;
-
-const preview = document.getElementById("imagePreview");
-preview.src = selectedImagePreview;
-preview.style.display = "block";
-
-message.innerHTML = "✅ تم اختيار الصورة";
-};
-
-reader.readAsDataURL(file);
+desc.addEventListener("input", function(){
+descCounter.innerHTML = desc.value.length;
 });
 
-async function uploadSelectedImage(){
-if(!selectedImageFile) return "";
+imageInput.addEventListener("input", function(){
+const url = imageInput.value.trim();
 
-const fileName =
-"products/" +
-Date.now() +
-"-" +
-Math.floor(Math.random() * 100000) +
-"-" +
-selectedImageFile.name.replaceAll(" ","-");
-
-const imageRef = ref(storage,fileName);
-
-await uploadBytes(imageRef,selectedImageFile);
-
-return await getDownloadURL(imageRef);
+if(url.startsWith("http")){
+imagePreview.src = url;
+imagePreview.style.display = "block";
+}else{
+imagePreview.style.display = "none";
 }
+});
 
-function isValidEmail(email){
-if(!email) return true;
-return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-function setText(id,value){
-document.getElementById(id).textContent = value;
-}
-
-function createOrderId(){
+function generateOrderId(){
 const now = new Date();
-const datePart =
-now.getFullYear().toString() +
-String(now.getMonth() + 1).padStart(2,"0") +
-String(now.getDate()).padStart(2,"0");
-
-const randomPart = Math.floor(1000 + Math.random() * 9000);
-return "PH-" + datePart + "-" + randomPart;
-}
-
-function getIsoDate(){
-return new Date().toISOString();
-}
-
-function saveSellerInfo(data){
-localStorage.setItem("pricehubSellerInfo", JSON.stringify({
-sellerName:data.sellerName,
-storeName:data.storeName,
-sellerPhone:data.sellerPhone,
-sellerEmail:data.sellerEmail,
-sellerCity:data.sellerCity
-}));
-}
-
-function loadSellerInfo(){
-const saved = localStorage.getItem("pricehubSellerInfo");
-if(!saved) return;
-
-try{
-const data = JSON.parse(saved);
-document.getElementById("sellerName").value = data.sellerName || "";
-document.getElementById("storeName").value = data.storeName || "";
-document.getElementById("sellerPhone").value = data.sellerPhone || "";
-document.getElementById("sellerEmail").value = data.sellerEmail || "";
-document.getElementById("sellerCity").value = data.sellerCity || "";
-document.getElementById("savedSellerNote").style.display = "block";
-}catch(error){
-localStorage.removeItem("pricehubSellerInfo");
-}
-}
-
-function updateDescriptionCounter(){
-const description = document.getElementById("productDescription").value;
-document.getElementById("descCounter").innerHTML = description.length;
+return "PH-" + now.getFullYear() + String(now.getMonth()+1).padStart(2,"0") + String(now.getDate()).padStart(2,"0") + "-" + Math.floor(1000 + Math.random() * 9000);
 }
 
 function getFormData(){
@@ -247,187 +155,139 @@ sellerCity: document.getElementById("sellerCity").value.trim(),
 name: document.getElementById("productName").value.trim(),
 price: Number(document.getElementById("productPrice").value),
 stock: Number(document.getElementById("productStock").value),
-image: selectedImagePreview,
+image: document.getElementById("productImageUrl").value.trim(),
 category: document.getElementById("productCategory").value,
 condition: document.getElementById("productCondition").value,
 description: document.getElementById("productDescription").value.trim()
 };
 }
 
-function validateProduct(data){
-if(!data.sellerName || !data.storeName || !data.sellerPhone || !data.sellerCity || !data.name || !selectedImageFile){
-return "⚠️ املأ كل الحقول المطلوبة واختر صورة للمنتج";
+function validateData(data){
+if(!data.sellerName || !data.storeName || !data.sellerPhone || !data.sellerCity){
+return "املأ معلومات البائع";
 }
 
-if(Number.isNaN(data.price) || data.price <= 0){
-return "⚠️ السعر يجب أن يكون أكبر من 0";
+if(!data.name || !data.price || data.stock < 0 || !data.image){
+return "املأ معلومات المنتج";
 }
 
-if(data.price > 100000){
-return "⚠️ السعر كبير جداً";
+if(data.price < 1 || data.price > 100000){
+return "السعر يجب أن يكون بين 1 و 100000";
 }
 
-if(Number.isNaN(data.stock) || data.stock < 0){
-return "⚠️ الكمية لا يمكن أن تكون أقل من 0";
+if(data.stock < 0 || data.stock > 9999){
+return "الكمية يجب أن تكون بين 0 و 9999";
 }
 
-if(data.stock > 9999){
-return "⚠️ الكمية كبيرة جداً";
-}
-
-if(data.sellerPhone.length < 7){
-return "⚠️ رقم الهاتف قصير جداً";
-}
-
-if(!isValidEmail(data.sellerEmail)){
-return "⚠️ البريد الإلكتروني غير صحيح";
+if(!data.image.startsWith("https://") && !data.image.startsWith("http://")){
+return "رابط الصورة يجب أن يبدأ بـ https://";
 }
 
 return "";
 }
 
-window.copyOrderId = async function(){
-const orderId = document.getElementById("orderIdText").innerText;
-const message = document.getElementById("message");
-
-if(!orderId) return;
-
-try{
-await navigator.clipboard.writeText(orderId);
-message.innerHTML = "✅ تم نسخ رقم الطلب";
-}catch(error){
-message.innerHTML = "رقم الطلب: " + orderId;
-}
-};
-
 window.showPreview = function(){
 const data = getFormData();
+const error = validateData(data);
 const message = document.getElementById("message");
-const error = validateProduct(data);
-
-document.getElementById("orderBox").style.display = "none";
 
 if(error){
-message.innerHTML = error;
+message.innerHTML = "⚠️ " + error;
+message.style.color = "red";
 return;
 }
 
 message.innerHTML = "";
+
 document.getElementById("previewCard").style.display = "block";
 document.getElementById("previewImage").src = data.image;
-
-setText("previewName", data.name);
-setText("previewPrice", "💵 السعر: $" + data.price);
-setText("previewStock", "📦 الكمية: " + data.stock);
-setText("previewSeller", "🏪 المتجر: " + data.storeName + " - " + data.sellerName);
-setText("previewCity", "📍 المدينة: " + data.sellerCity);
-setText("previewCondition", "⭐ الحالة: " + (data.condition === "new" ? "جديد" : "مستعمل"));
-setText("previewDescription", data.description || "لا يوجد وصف");
+document.getElementById("previewName").innerHTML = data.name;
+document.getElementById("previewPrice").innerHTML = "💰 السعر: $" + data.price;
+document.getElementById("previewStock").innerHTML = "📦 الكمية: " + data.stock;
+document.getElementById("previewSeller").innerHTML = "🏪 المتجر: " + data.storeName;
+document.getElementById("previewCity").innerHTML = "📍 المدينة: " + data.sellerCity;
+document.getElementById("previewCondition").innerHTML = "⭐ الحالة: " + (data.condition === "used" ? "مستعمل" : "جديد");
+document.getElementById("previewDescription").innerHTML = "📝 " + data.description;
 };
 
 window.submitProduct = async function(){
-
-const submitBtn = document.getElementById("submitBtn");
-const message = document.getElementById("message");
 const data = getFormData();
-const error = validateProduct(data);
-const orderId = createOrderId();
-const sentAt = getIsoDate();
-
-message.innerHTML = "";
-document.getElementById("orderBox").style.display = "none";
+const error = validateData(data);
+const message = document.getElementById("message");
+const submitBtn = document.getElementById("submitBtn");
 
 if(error){
-message.innerHTML = error;
+message.innerHTML = "⚠️ " + error;
+message.style.color = "red";
 return;
 }
-
-saveSellerInfo(data);
-
-submitBtn.disabled = true;
-submitBtn.innerHTML = "⏳ جاري الإرسال...";
 
 try{
+submitBtn.disabled = true;
+submitBtn.innerHTML = "⏳ جاري الإرسال...";
+message.innerHTML = "⏳ جاري إرسال المنتج...";
+message.style.color = "#333";
 
-message.innerHTML = "⏳ جاري رفع الصورة...";
-const uploadedImageUrl = await uploadSelectedImage();
+const orderId = generateOrderId();
 
-if(!uploadedImageUrl){
-message.innerHTML = "⚠️ اختر صورة للمنتج";
-submitBtn.disabled = false;
-submitBtn.innerHTML = "إرسال المنتج للمراجعة";
-return;
-}
-
-data.image = uploadedImageUrl;
-
-message.innerHTML = "⏳ جاري حفظ المنتج...";
-
-await addDoc(collection(db,"pendingProducts"),{
+await addDoc(collection(db,"pendingProducts"), {
+...data,
+rating: 5,
+featured: false,
+premiumSeller: false,
+sellerVerified: false,
+status: "pending",
+statusText: "قيد المراجعة",
 orderId: orderId,
-sentAt: sentAt,
+date: new Date().toLocaleString("ar"),
+stores: [data.storeName + " : $" + data.price]
+});
+
+localStorage.setItem("sellerInfo", JSON.stringify({
 sellerName: data.sellerName,
 storeName: data.storeName,
 sellerPhone: data.sellerPhone,
 sellerEmail: data.sellerEmail,
-sellerCity: data.sellerCity,
+sellerCity: data.sellerCity
+}));
 
-sellerVerified: false,
-
-name: data.name,
-price: data.price,
-stock: data.stock,
-image: data.image,
-category: data.category,
-condition: data.condition,
-description: data.description,
-rating: 5,
-featured: false,
-premiumSeller: false,
-sellerRating: 5,
-sellerProducts: 1,
-stores: [data.storeName + " : $" + data.price],
-status: "pending",
-statusText: "قيد المراجعة",
-date: new Date().toLocaleString(),
-updatedAt: sentAt
-});
-
-message.innerHTML = "✅ تم إرسال المنتج للمراجعة بنجاح. احتفظ برقم الطلب لمتابعة المنتج.";
-setText("orderIdText", orderId);
+document.getElementById("orderIdText").innerHTML = orderId;
 document.getElementById("orderBox").style.display = "block";
 
-document.getElementById("productName").value = "";
-document.getElementById("productPrice").value = "";
-document.getElementById("productStock").value = "";
-document.getElementById("productImage").value = "";
-document.getElementById("productDescription").value = "";
+message.innerHTML = "✅ تم إرسال المنتج للمراجعة بنجاح";
+message.style.color = "green";
 
-document.getElementById("productCategory").value = "phone";
-document.getElementById("productCondition").value = "new";
-document.getElementById("previewCard").style.display = "none";
-document.getElementById("imagePreview").style.display = "none";
-document.getElementById("imagePreview").src = "";
-document.getElementById("savedSellerNote").style.display = "block";
-
-selectedImageFile = null;
-selectedImagePreview = "";
-
-updateDescriptionCounter();
+submitBtn.innerHTML = "تم الإرسال ✅";
 
 }catch(error){
 console.error(error);
-message.innerHTML = "❌ فشل رفع الصورة أو حفظ المنتج. تأكد من تفعيل Firebase Storage و Rules";
-}
-
+message.innerHTML = "❌ حدث خطأ أثناء الإرسال";
+message.style.color = "red";
 submitBtn.disabled = false;
 submitBtn.innerHTML = "إرسال المنتج للمراجعة";
-
+}
 };
 
+window.copyOrderId = function(){
+const id = document.getElementById("orderIdText").innerText;
+navigator.clipboard.writeText(id);
+alert("تم نسخ رقم الطلب");
+};
+
+function loadSellerInfo(){
+const saved = JSON.parse(localStorage.getItem("sellerInfo") || "null");
+if(!saved) return;
+
+document.getElementById("sellerName").value = saved.sellerName || "";
+document.getElementById("storeName").value = saved.storeName || "";
+document.getElementById("sellerPhone").value = saved.sellerPhone || "";
+document.getElementById("sellerEmail").value = saved.sellerEmail || "";
+document.getElementById("sellerCity").value = saved.sellerCity || "";
+
+document.getElementById("savedSellerNote").style.display = "block";
+}
+
 loadSellerInfo();
-updateDescriptionCounter();
-document.getElementById("productDescription").addEventListener("input", updateDescriptionCounter);
 </script>
 
 </body>
