@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>أفضل البائعين - PriceHub</title>
+
+<style>
+body{
+font-family:Arial;
+background:#f5f5f5;
+padding:20px;
+direction:rtl;
+}
+
+.box{
+max-width:900px;
+margin:auto;
+}
+
+.card{
+background:white;
+padding:15px;
+margin:15px 0;
+border-radius:15px;
+box-shadow:0 5px 15px rgba(0,0,0,.1);
+}
+
+button{
+width:100%;
+padding:12px;
+margin:8px 0;
+border:none;
+border-radius:8px;
+background:#0066ff;
+color:white;
+font-size:16px;
+cursor:pointer;
+}
+
+.rank{
+font-size:24px;
+font-weight:bold;
+color:#0066ff;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+<h1>🏆 أفضل البائعين</h1>
+
+<a href="index.html">
+<button>⬅️ العودة للرئيسية</button>
+</a>
+
+<div id="sellersList">جاري التحميل...</div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+getFirestore,
+collection,
+getDocs
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+apiKey: "AIzaSyA4jGrncraaaktuaDpsO7nz1-qmrqYKM3k",
+authDomain: "pricehub-6d3c4.firebaseapp.com",
+projectId: "pricehub-6d3c4",
+storageBucket: "pricehub-6d3c4.firebasestorage.app",
+messagingSenderId: "991179979836",
+appId: "1:991179979836:web:cb23f4d31e55364d1ed739",
+measurementId: "G-HLCHBX5FF7"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+function openStore(storeName){
+localStorage.setItem("selectedStore", storeName);
+window.location.href = "store.html";
+}
+
+async function loadTopSellers(){
+
+const box = document.getElementById("sellersList");
+box.innerHTML = "جاري التحميل...";
+
+const snapshot = await getDocs(collection(db,"products"));
+let sellers = {};
+
+snapshot.forEach(doc=>{
+const product = doc.data();
+const storeName = product.storeName || "متجر غير معروف";
+
+if(!sellers[storeName]){
+sellers[storeName] = {
+storeName,
+sellerName: product.sellerName || "غير محدد",
+city: product.sellerCity || "غير محددة",
+products: 0,
+featured: 0,
+ratingSum: 0,
+stock: 0
+};
+}
+
+sellers[storeName].products++;
+sellers[storeName].ratingSum += Number(product.rating || 0);
+sellers[storeName].stock += Number(product.stock || 0);
+
+if(product.featured === true){
+sellers[storeName].featured++;
+}
+});
+
+let list = Object.values(sellers);
+
+list.forEach(seller=>{
+seller.avgRating = seller.products
+? seller.ratingSum / seller.products
+: 0;
+});
+
+list.sort((a,b)=>
+b.avgRating - a.avgRating ||
+b.products - a.products ||
+b.featured - a.featured
+);
+
+if(list.length === 0){
+box.innerHTML = "<p>لا يوجد بائعون حالياً</p>";
+return;
+}
+
+box.innerHTML = "";
+
+list.forEach((seller,index)=>{
+box.innerHTML += `
+<div class="card">
+<div class="rank">#${index + 1}</div>
+<h2>🏪 ${seller.storeName}</h2>
+<p>👤 البائع: ${seller.sellerName}</p>
+<p>📍 المدينة: ${seller.city}</p>
+<p>📦 عدد المنتجات: ${seller.products}</p>
+<p>🔥 منتجات مميزة: ${seller.featured}</p>
+<p>📦 إجمالي المخزون: ${seller.stock}</p>
+<p>⭐ متوسط التقييم: ${seller.avgRating.toFixed(1)} / 5</p>
+
+<button onclick="openStore('${seller.storeName}')">
+🏪 عرض المتجر
+</button>
+</div>
+`;
+});
+}
+
+window.openStore = openStore;
+loadTopSellers();
+</script>
+
+</body>
+</html>
