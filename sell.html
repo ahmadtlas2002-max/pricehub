@@ -12,6 +12,7 @@ background:#f5f5f5;
 padding:20px;
 direction:rtl;
 }
+
 .box{
 background:white;
 max-width:500px;
@@ -21,6 +22,7 @@ border-radius:15px;
 box-shadow:0 5px 15px rgba(0,0,0,.1);
 text-align:center;
 }
+
 input,select,textarea,button{
 width:100%;
 padding:12px;
@@ -30,11 +32,20 @@ border:1px solid #ccc;
 font-size:16px;
 box-sizing:border-box;
 }
+
 button{
 background:#0066ff;
 color:white;
 border:none;
 cursor:pointer;
+}
+
+.note{
+background:#fff3cd;
+padding:10px;
+border-radius:10px;
+margin:10px 0;
+font-weight:bold;
 }
 </style>
 </head>
@@ -42,8 +53,14 @@ cursor:pointer;
 <body>
 
 <div class="box">
+
 <h1>🛍️ بيع معنا</h1>
+
 <p>أرسل منتجك، وسيتم مراجعته قبل ظهوره في الموقع.</p>
+
+<div class="note">
+💡 نشر المنتج مجاني حالياً، وسيتم مراجعته قبل النشر.
+</div>
 
 <a href="index.html">
 <button type="button">⬅️ العودة للرئيسية</button>
@@ -51,9 +68,11 @@ cursor:pointer;
 
 <input id="sellerName" placeholder="اسم البائع">
 <input id="sellerPhone" placeholder="رقم الهاتف">
+
 <input id="productName" placeholder="اسم المنتج">
 <input id="productPrice" type="number" placeholder="السعر بالدولار">
 <input id="productStock" type="number" placeholder="الكمية المتوفرة">
+
 <input id="productImage" placeholder="رابط صورة المنتج">
 
 <select id="productCategory">
@@ -68,6 +87,7 @@ cursor:pointer;
 <button onclick="submitProduct()">إرسال المنتج للمراجعة</button>
 
 <p id="message"></p>
+
 </div>
 
 <script type="module">
@@ -102,11 +122,26 @@ const stock = Number(document.getElementById("productStock").value);
 const image = document.getElementById("productImage").value.trim();
 const category = document.getElementById("productCategory").value;
 const description = document.getElementById("productDescription").value.trim();
+const message = document.getElementById("message");
+
+message.innerHTML = "";
 
 if(!sellerName || !sellerPhone || !name || !price || stock < 0 || !image){
-document.getElementById("message").innerHTML = "املأ كل الحقول المطلوبة";
+message.innerHTML = "املأ كل الحقول المطلوبة";
 return;
 }
+
+if(price <= 0){
+message.innerHTML = "السعر يجب أن يكون أكبر من 0";
+return;
+}
+
+if(stock < 0){
+message.innerHTML = "الكمية لا يمكن أن تكون أقل من 0";
+return;
+}
+
+try{
 
 await addDoc(collection(db,"pendingProducts"),{
 sellerName,
@@ -119,13 +154,15 @@ category,
 description,
 rating: 5,
 featured: false,
+sellerRating: 5,
+sellerProducts: 1,
 stores: [sellerName + " : $" + price],
 status: "pending",
+statusText: "قيد المراجعة",
 date: new Date().toLocaleString()
 });
 
-document.getElementById("message").innerHTML =
-"✅ تم إرسال المنتج للمراجعة";
+message.innerHTML = "✅ تم إرسال المنتج للمراجعة";
 
 document.getElementById("sellerName").value = "";
 document.getElementById("sellerPhone").value = "";
@@ -134,6 +171,12 @@ document.getElementById("productPrice").value = "";
 document.getElementById("productStock").value = "";
 document.getElementById("productImage").value = "";
 document.getElementById("productDescription").value = "";
+
+}catch(error){
+console.error(error);
+message.innerHTML = "❌ فشل إرسال المنتج، تأكد من Firebase Rules";
+}
+
 };
 
 </script>
