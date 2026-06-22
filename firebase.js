@@ -30,7 +30,7 @@ const firebaseConfig = {
 apiKey: "AIzaSyA4jGrncraaaktuaDpsO7nz1-qmrqYKM3k",
 authDomain: "pricehub-6d3c4.firebaseapp.com",
 projectId: "pricehub-6d3c4",
-storageBucket: "pricehub-6d3c4.firebasestorage.app",
+storageBucket: "pricehub-6d3c4.appspot.com"
 messagingSenderId: "991179979836",
 appId: "1:991179979836:web:cb23f4d31e55364d1ed739",
 measurementId: "G-HLCHBX5FF7"
@@ -85,7 +85,10 @@ name: data.name || "",
 price: Number(data.price || 0),
 rating: Number(data.rating || 0),
 category: data.category || "other",
-image: data.image || "https://picsum.photos/300/200",
+image:
+(data.image && data.image.startsWith("http"))
+? data.image
+: "https://picsum.photos/300/200",
 featured: data.featured || false,
 premiumSeller: data.premiumSeller === true,
 stock: Number(data.stock || 0),
