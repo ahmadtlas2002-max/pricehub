@@ -651,7 +651,18 @@ if(window.loadCoupons){
 coupons = await window.loadCoupons();
 }
 },1000);
+container.innerHTML = `
+<div class="skeleton"></div>
+<div class="skeleton"></div>
+<div class="skeleton"></div>
+<div class="skeleton"></div>
+`;
 
+showProducts(products);
+updateFavCount();
+updateCartCount();
+updateStats();
+loadCompareOptions();
 showProducts(products);
 updateFavCount();
 updateCartCount();
