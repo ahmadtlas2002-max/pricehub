@@ -1027,3 +1027,38 @@ console.error(error);
 showToast("خطأ في الاتصال بسيرفر الدفع");
 }
 }
+function animateCounter(id,target){
+
+let element=document.getElementById(id);
+
+if(!element)return;
+
+let count=0;
+
+let speed=Math.ceil(target/50);
+
+let interval=setInterval(()=>{
+
+count+=speed;
+
+if(count>=target){
+
+count=target;
+clearInterval(interval);
+
+}
+
+element.textContent=count;
+
+},20);
+
+}
+
+window.addEventListener("load",()=>{
+
+animateCounter("productsCounter",250);
+animateCounter("ordersCounter",1200);
+animateCounter("sellersCounter",85);
+animateCounter("reviewsCounter",3400);
+
+});
