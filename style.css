@@ -392,3 +392,30 @@ font-size:14px;
 }
 
 }
+.search-pro{
+width:90%;
+max-width:900px;
+margin:25px auto;
+}
+
+.search-wrapper{
+background:white;
+display:flex;
+align-items:center;
+gap:10px;
+padding:10px 15px;
+border-radius:50px;
+box-shadow:0 4px 15px rgba(0,0,0,.08);
+}
+
+.search-wrapper span{
+font-size:22px;
+}
+
+.search-wrapper input{
+border:none;
+outline:none;
+margin:0;
+background:transparent;
+font-size:16px;
+}
