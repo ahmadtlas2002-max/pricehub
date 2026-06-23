@@ -1,637 +1,312 @@
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Arial,sans-serif;
-}
-
-body{
-background:#f5f7fb;
-direction:rtl;
-color:#333;
-}
-
-header{
-background:linear-gradient(135deg,#0066ff,#00b4ff);
-color:white;
-text-align:center;
-padding:35px 20px;
-box-shadow:0 4px 15px rgba(0,0,0,.1);
-}
-
-header h1{
-font-size:42px;
-margin-bottom:10px;
-}
-
-header p{
-font-size:18px;
-opacity:.9;
-}
-
-.hero,
-.why-us,
-.deals-slider,
-.categories,
-.testimonials{
-width:90%;
-max-width:1200px;
-margin:35px auto;
-}
-
-.hero{
-background:white;
-border-radius:25px;
-padding:50px 25px;
-text-align:center;
-box-shadow:0 5px 20px rgba(0,0,0,.08);
-}
-
-.hero h2{
-font-size:36px;
-margin-bottom:15px;
-}
-
-.hero p{
-font-size:18px;
-line-height:1.8;
-max-width:700px;
-margin:auto;
-}
-
-.hero-btn{
-margin-top:20px;
-background:#0066ff;
-color:white;
-padding:14px 30px;
-border-radius:50px;
-}
-
-.features,
-.statsBox,
-.main-actions,
-.why-grid,
-.category-grid,
-.testimonial-grid{
-width:90%;
-max-width:1200px;
-margin:20px auto;
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-gap:15px;
-}
-
-.feature,
-.stat,
-.why-card,
-.category-card,
-.testimonial-card{
-background:white;
-padding:22px;
-border-radius:20px;
-text-align:center;
-box-shadow:0 4px 15px rgba(0,0,0,.08);
-}
-
-.main-actions a{
-text-decoration:none;
-}
-
-button{
-width:100%;
-padding:14px;
-border:none;
-border-radius:12px;
-background:#0066ff;
-color:white;
-font-size:16px;
-font-weight:bold;
-cursor:pointer;
-transition:.3s;
-}
-
-button:hover,
-.card:hover,
-.category-card:hover{
-transform:translateY(-4px);
-}
-
-#userBox{
-width:90%;
-max-width:350px;
-margin:20px auto;
-background:white;
-padding:15px;
-border-radius:15px;
-text-align:center;
-font-weight:bold;
-box-shadow:0 4px 15px rgba(0,0,0,.08);
-}
-
-.search,
-.sortBox,
-.filterBox,
-#compareBox{
-width:90%;
-max-width:1200px;
-margin:20px auto;
-background:white;
-padding:20px;
-border-radius:20px;
-box-shadow:0 4px 15px rgba(0,0,0,.08);
-}
-
-input,
-select,
-textarea{
-width:100%;
-padding:12px;
-margin:8px 0;
-border:1px solid #ddd;
-border-radius:10px;
-font-size:15px;
-}
-
-.sortBox,
-.filterBox{
-display:flex;
-flex-wrap:wrap;
-gap:10px;
-}
-
-.sortBox button,
-.filterBox button{
-flex:1;
-min-width:150px;
-}
-
-#productCount{
-text-align:center;
-font-size:20px;
-font-weight:bold;
-margin:20px 0;
-}
-
-.container{
-width:90%;
-max-width:1300px;
-margin:25px auto;
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-gap:20px;
-}
-
-.card{
-background:white;
-border-radius:20px;
-overflow:hidden;
-box-shadow:0 5px 20px rgba(0,0,0,.08);
-transition:.3s;
-}
-
-.card img{
-width:100%;
-height:220px;
-object-fit:cover;
-}
-
-.content{
-padding:15px;
-}
-
-.price{
-font-size:26px;
-font-weight:bold;
-color:#00a651;
-}
-
-.why-us,
-.deals-slider,
-.categories,
-.testimonials{
-text-align:center;
-}
-
-.why-us h2,
-.deals-slider h2,
-.categories h2,
-.testimonials h2{
-margin-bottom:20px;
-font-size:28px;
-}
-
-.why-card h3{
-margin-bottom:10px;
-color:#0066ff;
-}
-
-.why-card p,
-.testimonial-card p{
-line-height:1.8;
-color:#555;
-}
-
-.deals-row{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-gap:15px;
-}
-
-.deal-card{
-background:linear-gradient(135deg,#ff5722,#ff9800);
-color:white;
-padding:25px;
-border-radius:20px;
-font-size:20px;
-font-weight:bold;
-text-align:center;
-cursor:pointer;
-box-shadow:0 4px 15px rgba(0,0,0,.12);
-}
-
-.category-card{
-font-size:40px;
-cursor:pointer;
-transition:.3s;
-}
-
-.category-card span{
-display:block;
-font-size:18px;
-margin-top:10px;
-font-weight:bold;
-}
-
-.testimonial-card h4{
-color:#0066ff;
-margin-top:10px;
-}
-
-.popup-content{
-background:white;
-padding:20px;
-border-radius:20px;
-width:90%;
-max-width:600px;
-max-height:90vh;
-overflow:auto;
-}
-
-#popup,
-#cartPopup,
-#favPopup{
-display:none;
-position:fixed;
-top:0;
-left:0;
-right:0;
-bottom:0;
-background:rgba(0,0,0,.6);
-justify-content:center;
-align-items:center;
-z-index:9999;
-}
-
-#popupImage{
-width:100%;
-max-height:300px;
-object-fit:cover;
-border-radius:15px;
-}
-
-#favCount,
-#cartCount{
-position:fixed;
-left:15px;
-background:white;
-padding:10px 15px;
-border-radius:30px;
-box-shadow:0 4px 15px rgba(0,0,0,.15);
-font-weight:bold;
-cursor:pointer;
-z-index:999;
-}
-
-#favCount{
-top:20px;
-}
-
-#cartCount{
-top:70px;
-}
-
-#darkBtn{
-position:fixed;
-bottom:20px;
-left:20px;
-width:auto;
-padding:12px 18px;
-border-radius:30px;
-z-index:999;
-}
-
-.footer{
-background:#0b1f3a;
-color:white;
-text-align:center;
-padding:35px 20px;
-margin-top:40px;
-}
-
-.footer h3{
-font-size:28px;
-margin-bottom:10px;
-}
-
-.footer-links{
-display:flex;
-justify-content:center;
-gap:15px;
-flex-wrap:wrap;
-margin:20px 0;
-}
-
-.footer-links a{
-text-decoration:none;
-color:white;
-background:rgba(255,255,255,.1);
-padding:10px 15px;
-border-radius:20px;
-}
-
-.copy{
-opacity:.7;
-font-size:14px;
-}
-
-@media(max-width:768px){
-
-header h1{
-font-size:30px;
-}
-
-.hero h2{
-font-size:26px;
-}
-
-.features,
-.statsBox,
-.main-actions,
-.why-grid,
-.category-grid,
-.testimonial-grid,
-.deals-row,
-.container{
-grid-template-columns:1fr;
-}
-
-#favCount,
-#cartCount{
-left:10px;
-font-size:14px;
-}
-
-}
-.search-pro{
-width:90%;
-max-width:900px;
-margin:25px auto;
-}
-
-.search-wrapper{
-background:white;
-display:flex;
-align-items:center;
-gap:10px;
-padding:10px 15px;
-border-radius:50px;
-box-shadow:0 4px 15px rgba(0,0,0,.08);
-}
-
-.search-wrapper span{
-font-size:22px;
-}
-
-.search-wrapper input{
-border:none;
-outline:none;
-margin:0;
-background:transparent;
-font-size:16px;
-}
-.filterBox{
-justify-content:center;
-}
-
-.filterBox button{
-background:#eef4ff;
-color:#0066ff;
-border:1px solid #d6e4ff;
-border-radius:30px;
-min-width:130px;
-}
-
-.filterBox button:hover{
-background:#0066ff;
-color:white;
-}
-.featured-title{
-text-align:center;
-margin:40px 0 20px;
-}
-
-.featured-title h2{
-font-size:32px;
-margin-bottom:8px;
-}
-
-.featured-title p{
-color:#666;
-font-size:16px;
-}
-.card{
-position:relative;
-}
-
-.card::before{
-content:"⭐ مميز";
-position:absolute;
-top:12px;
-right:12px;
-background:#ff9800;
-color:white;
-padding:6px 10px;
-border-radius:20px;
-font-size:12px;
-font-weight:bold;
-z-index:2;
-}
-.top-nav{
-position:sticky;
-top:0;
-z-index:1000;
-background:white;
-width:100%;
-padding:12px 5%;
-display:flex;
-justify-content:space-between;
-align-items:center;
-box-shadow:0 3px 12px rgba(0,0,0,.08);
-}
-
-.nav-logo{
-font-size:24px;
-font-weight:bold;
-color:#0066ff;
-}
-
-.nav-links{
-display:flex;
-gap:15px;
-flex-wrap:wrap;
-}
-
-.nav-links a{
-text-decoration:none;
-color:#333;
-font-weight:bold;
-}
-
-.nav-links a:hover{
-color:#0066ff;
-}
-
-@media(max-width:600px){
-.top-nav{
-flex-direction:column;
-gap:10px;
-}
-
-.nav-links{
-justify-content:center;
-}
-}
-.whatsapp-float{
-position:fixed;
-right:20px;
-bottom:20px;
-width:58px;
-height:58px;
-background:#25d366;
-color:white;
-border-radius:50%;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:28px;
-text-decoration:none;
-box-shadow:0 5px 18px rgba(0,0,0,.25);
-z-index:1000;
-}
-
-.whatsapp-float:hover{
-transform:scale(1.08);
-}
-.section-title{
-text-align:center;
-margin:30px 0 10px;
-font-size:28px;
-}
-
-#topBtn{
-position:fixed;
-left:20px;
-bottom:90px;
-width:55px;
-height:55px;
-border:none;
-border-radius:50%;
-background:#0066ff;
-color:white;
-font-size:24px;
-display:none;
-align-items:center;
-justify-content:center;
-cursor:pointer;
-box-shadow:0 4px 15px rgba(0,0,0,.2);
-z-index:999;
-}
-body.dark{
-background:#121212;
-color:#eee;
-}
-
-body.dark header{
-background:linear-gradient(135deg,#111,#333);
-}
-
-body.dark .hero,
-body.dark .feature,
-body.dark .stat,
-body.dark .why-card,
-body.dark .category-card,
-body.dark .testimonial-card,
-body.dark .search,
-body.dark .sortBox,
-body.dark .filterBox,
-body.dark #compareBox,
-body.dark .card,
-body.dark #userBox,
-body.dark .popup-content{
-background:#1e1e1e;
-color:#eee;
-}
-
-body.dark input,
-body.dark select,
-body.dark textarea{
-background:#2a2a2a;
-color:#fff;
-border-color:#444;
-}
-
-body.dark .footer{
-background:#050505;
-}
-
-body.dark .price{
-color:#4caf50;
-}
-.cart-item,
-.fav-item{
-background:#f5f7fb;
-padding:12px;
-border-radius:12px;
-margin:10px 0;
-display:flex;
-justify-content:space-between;
-align-items:center;
-gap:10px;
-}
-
-body.dark .cart-item,
-body.dark .fav-item{
-background:#2a2a2a;
-}
-
-.popup-content h2,
-.popup-content h3{
-margin-bottom:12px;
-}
-
-.popup-content button{
-margin-top:8px;
-}
-
-#cartTotal{
-background:#e8f5e9;
-color:#1b5e20;
-padding:12px;
-border-radius:12px;
-margin:12px 0;
-}
-
-body.dark #cartTotal{
-background:#16351f;
-color:#9be7a7;
-}
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0066ff">
+
+<title>PriceHub</title>
+
+<link rel="stylesheet" href="./style.css?v=100005">
+<link rel="manifest" href="manifest.json">
+</head>
+
+<body>
+<nav class="top-nav">
+  <div class="nav-logo">PriceHub</div>
+
+  <div class="nav-links">
+    <a href="index.html">الرئيسية</a>
+    <a href="offers.html">العروض</a>
+    <a href="sell.html">بيع معنا</a>
+    <a href="track.html">تتبع الطلب</a>
+  </div>
+</nav>
+<header>
+  <h1>PriceHub</h1>
+  <p>قارن الأسعار بين المتاجر والبائعين</p>
+</header>
+
+<section class="hero">
+  <div class="hero-content">
+    <h2>🔥 اعثر على أفضل سعر قبل الشراء</h2>
+    <p>قارن المنتجات، اكتشف العروض، واشترِ من البائع المناسب بسهولة.</p>
+    <a href="offers.html">
+      <button class="hero-btn">🚀 استكشف العروض</button>
+    </a>
+  </div>
+</section>
+
+<section class="features">
+  <div class="feature">💰 أفضل الأسعار</div>
+  <div class="feature">🚚 تتبع الطلبات</div>
+  <div class="feature">🏪 متاجر وبائعين</div>
+  <div class="feature">⭐ تقييمات المستخدمين</div>
+</section>
+
+<section class="why-us">
+  <h2>لماذا تختار PriceHub؟</h2>
+
+  <div class="why-grid">
+    <div class="why-card">
+      <h3>🔍 مقارنة سهلة</h3>
+      <p>اعرف السعر الأفضل بين المتاجر قبل الشراء.</p>
+    </div>
+
+    <div class="why-card">
+      <h3>🛒 طلب سريع</h3>
+      <p>أضف المنتج للسلة واطلبه بخطوات بسيطة.</p>
+    </div>
+
+    <div class="why-card">
+      <h3>📦 تتبع الطلب</h3>
+      <p>تابع حالة طلبك من الموقع مباشرة.</p>
+    </div>
+  </div>
+</section>
+
+<section class="main-actions">
+  <a href="sell.html"><button type="button">🛍️ بيع معنا</button></a>
+  <a href="seller-status.html"><button type="button">📋 حالة منتجاتي</button></a>
+  <a href="seller-dashboard.html"><button type="button">📊 لوحة البائع</button></a>
+  <a href="track.html"><button type="button">📦 تتبع الطلب</button></a>
+  <a href="offers.html"><button type="button">🔥 العروض المميزة</button></a>
+  <a href="top-sellers.html"><button type="button">🏆 أفضل البائعين</button></a>
+  <a href="profile.html" id="loginBtn"><button type="button">👤 حسابي</button></a>
+  <a href="myorders.html"><button type="button">📦 طلباتي</button></a>
+
+  <button type="button" id="installBtn">📲 تثبيت PriceHub</button>
+  <button type="button" onclick="toggleLanguage()">🌍 عربي / English</button>
+</section>
+
+<div id="userBox">👤 غير مسجل الدخول</div>
+
+<div id="favCount" onclick="openFavorites()">❤️ المفضلة: 0</div>
+<div id="cartCount" onclick="openCart()">🛒 السلة: 0</div>
+
+<button type="button" id="darkBtn" onclick="toggleDarkMode()">🌙 الوضع الليلي</button>
+
+<div id="featuredBox"></div>
+
+<section class="deals-slider">
+  <h2>🔥 عروض اليوم</h2>
+
+  <div class="deals-row">
+    <div class="deal-card" onclick="filterCategory('phone')">📱 خصومات على الهواتف</div>
+    <div class="deal-card" onclick="filterCategory('laptop')">💻 عروض اللابتوبات</div>
+    <div class="deal-card" onclick="filterCategory('gaming')">🎮 أجهزة وألعاب</div>
+    <div class="deal-card" onclick="filterFeaturedProducts()">⭐ منتجات مميزة</div>
+  </div>
+</section>
+
+<section class="categories">
+  <h2>📂 تصفح حسب التصنيف</h2>
+
+  <div class="category-grid">
+    <div class="category-card" onclick="filterCategory('phone')">
+      📱
+      <span>الهواتف</span>
+    </div>
+
+    <div class="category-card" onclick="filterCategory('laptop')">
+      💻
+      <span>اللابتوبات</span>
+    </div>
+
+    <div class="category-card" onclick="filterCategory('gaming')">
+      🎮
+      <span>الألعاب</span>
+    </div>
+
+    <div class="category-card" onclick="filterCategory('other')">
+      🛍️
+      <span>أخرى</span>
+    </div>
+  </div>
+</section>
+
+<section class="statsBox">
+
+<div class="stat">
+<h2 id="productsCounter">0</h2>
+<p>📦 منتج</p>
+</div>
+
+<div class="stat">
+<h2 id="ordersCounter">0</h2>
+<p>🛒 طلب</p>
+</div>
+
+<div class="stat">
+<h2 id="sellersCounter">0</h2>
+<p>🏪 بائع</p>
+</div>
+
+<div class="stat">
+<h2 id="reviewsCounter">0</h2>
+<p>⭐ تقييم</p>
+</div>
+
+</section>
+
+<section class="search-pro">
+  <div class="search-wrapper">
+    <span>🔍</span>
+    <input type="text" id="search" placeholder="ابحث عن منتج أو متجر أو مدينة...">
+  </div>
+</section>
+
+<section class="sortBox">
+  <button type="button" onclick="sortLow()">الأرخص أولاً</button>
+  <button type="button" onclick="sortHigh()">الأغلى أولاً</button>
+</section>
+<h2 class="section-title">تصفية المنتجات</h2>
+<section class="filterBox">
+  <button type="button" onclick="filterCategory('all')">الكل</button>
+  <button type="button" onclick="filterCategory('phone')">الهواتف</button>
+  <button type="button" onclick="filterCategory('gaming')">الألعاب</button>
+  <button type="button" onclick="filterCategory('laptop')">اللابتوبات</button>
+  <button type="button" onclick="filterNewProducts()">🆕 جديد</button>
+  <button type="button" onclick="filterUsedProducts()">♻️ مستعمل</button>
+  <button type="button" onclick="filterFeaturedProducts()">⭐ المميزة</button>
+</section>
+
+<div id="productCount">عدد المنتجات: 0</div>
+
+<section id="compareBox">
+  <h2>📊 مقارنة المنتجات</h2>
+  <select id="compare1"></select>
+  <select id="compare2"></select>
+  <button type="button" onclick="compareProducts()">مقارنة</button>
+  <button type="button" onclick="clearCompare()">مسح المقارنة</button>
+  <div id="compareResult"></div>
+</section>
+
+<section class="featured-title">
+  <h2>⭐ المنتجات المميزة</h2>
+  <p>أفضل المنتجات المختارة من البائعين</p>
+</section>
+
+<main class="container" id="products"></main>
+
+<section class="testimonials">
+  <h2>⭐ آراء المستخدمين</h2>
+
+  <div class="testimonial-grid">
+    <div class="testimonial-card">
+      <p>أفضل موقع استخدمته لمقارنة الأسعار، وفرت مبلغًا جيدًا قبل الشراء.</p>
+      <h4>— أحمد</h4>
+    </div>
+
+    <div class="testimonial-card">
+      <p>أعجبني نظام تتبع الطلبات وسهولة التواصل مع البائعين.</p>
+      <h4>— محمد</h4>
+    </div>
+
+    <div class="testimonial-card">
+      <p>التصميم جميل وسهل الاستخدام على الهاتف.</p>
+      <h4>— سارة</h4>
+    </div>
+  </div>
+</section>
+
+<div id="popup">
+  <div class="popup-content">
+    <h2 id="popupName"></h2>
+    <img id="popupImage" alt="صورة المنتج">
+    <h3 id="popupPrice"></h3>
+    <div id="popupStores"></div>
+
+    <hr>
+
+    <h3>⭐ التقييمات</h3>
+    <div id="reviewsBox"></div>
+
+    <select id="reviewRating">
+      <option value="5">⭐⭐⭐⭐⭐</option>
+      <option value="4">⭐⭐⭐⭐</option>
+      <option value="3">⭐⭐⭐</option>
+      <option value="2">⭐⭐</option>
+      <option value="1">⭐</option>
+    </select>
+
+    <textarea id="reviewText" placeholder="اكتب تعليقك"></textarea>
+
+    <button type="button" onclick="addReview()">إرسال التقييم</button>
+    <button type="button" onclick="closePopup()">إغلاق</button>
+  </div>
+</div>
+
+<div id="cartPopup">
+  <div class="popup-content">
+    <h2>🛒 السلة</h2>
+
+    <div id="cartItems"></div>
+    <h3 id="cartTotal"></h3>
+
+    <input id="couponCode" placeholder="كود الخصم">
+    <button type="button" onclick="applyCoupon()">🎟️ تطبيق الكوبون</button>
+    <p id="couponMessage"></p>
+
+    <input id="customerName" placeholder="اسم العميل">
+    <input id="customerPhone" placeholder="رقم الهاتف">
+
+    <button type="button" onclick="checkout()">📦 الدفع عند الاستلام</button>
+    <button type="button" onclick="payWithStripe()">💳 الدفع الإلكتروني</button>
+    <button type="button" onclick="clearCart()">🗑️ تفريغ السلة</button>
+    <button type="button" onclick="closeCart()">إغلاق السلة</button>
+  </div>
+</div>
+
+<div id="favPopup">
+  <div class="popup-content">
+    <h2>❤️ المفضلة</h2>
+    <div id="favItems"></div>
+    <button type="button" onclick="closeFavorites()">إغلاق المفضلة</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+<a class="whatsapp-float" href="https://wa.me/0760227749" target="_blank">
+  💬
+</a>
+<footer class="footer">
+  <h3>PriceHub</h3>
+  <p>منصة لمقارنة الأسعار بين المتاجر والبائعين</p>
+
+  <div class="footer-links">
+    <a href="contact.html">تواصل معنا</a>
+    <a href="privacy.html">سياسة الخصوصية</a>
+    <a href="terms.html">شروط الاستخدام</a>
+  </div>
+
+  <p class="copy">© 2026 PriceHub - جميع الحقوق محفوظة</p>
+</footer>
+
+<link rel="stylesheet" href="./style.css?v=100005">
+<script src="./script.js?v=100005"></script>
+<button id="topBtn" onclick="scrollToTop()">
+⬆️
+</button>
+<script>
+function scrollToTop(){
+window.scrollTo({
+top:0,
+behavior:"smooth"
+});
+}
+
+window.addEventListener("scroll",()=>{
+
+const btn=document.getElementById("topBtn");
+
+if(window.scrollY>500){
+btn.style.display="flex";
+}else{
+btn.style.display="none";
+}
+
+});
+</script>
+</body>
+</html>
