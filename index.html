@@ -1,179 +1,27 @@
-<!DOCTYPE html>
-<html lang="ar">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0066ff">
+<section class="categories">
+  <h2>📂 تصفح حسب التصنيف</h2>
 
-<title>PriceHub</title>
+  <div class="category-grid">
 
-<link rel="stylesheet" href="./style.css?v=100000">
-<link rel="manifest" href="manifest.json">
-</head>
+    <div class="category-card" onclick="filterCategory('phone')">
+      📱
+      <span>الهواتف</span>
+    </div>
 
-<body>
+    <div class="category-card" onclick="filterCategory('laptop')">
+      💻
+      <span>اللابتوبات</span>
+    </div>
 
-<header>
-  <h1>PriceHub</h1>
-  <p>قارن الأسعار بين المتاجر والبائعين</p>
-</header>
+    <div class="category-card" onclick="filterCategory('gaming')">
+      🎮
+      <span>الألعاب</span>
+    </div>
 
-<section class="hero">
-  <div class="hero-content">
-    <h2>🔥 اعثر على أفضل سعر قبل الشراء</h2>
-    <p>قارن المنتجات، اكتشف العروض، واشترِ من البائع المناسب بسهولة.</p>
+    <div class="category-card" onclick="filterCategory('other')">
+      🛍️
+      <span>أخرى</span>
+    </div>
 
-    <a href="offers.html">
-      <button class="hero-btn">🚀 استكشف العروض</button>
-    </a>
   </div>
 </section>
-
-<section class="features">
-  <div class="feature">💰 أفضل الأسعار</div>
-  <div class="feature">🚚 تتبع الطلبات</div>
-  <div class="feature">🏪 متاجر وبائعين</div>
-  <div class="feature">⭐ تقييمات المستخدمين</div>
-</section>
-
-<section class="main-actions">
-  <a href="sell.html"><button>🛍️ بيع معنا</button></a>
-  <a href="seller-status.html"><button>📋 حالة منتجاتي</button></a>
-  <a href="seller-dashboard.html"><button>📊 لوحة البائع</button></a>
-  <a href="track.html"><button>📦 تتبع الطلب</button></a>
-  <a href="offers.html"><button>🔥 العروض المميزة</button></a>
-  <a href="top-sellers.html"><button>🏆 أفضل البائعين</button></a>
-  <a href="profile.html" id="loginBtn"><button>👤 حسابي</button></a>
-  <a href="myorders.html"><button>📦 طلباتي</button></a>
-
-  <button id="installBtn">📲 تثبيت PriceHub</button>
-  <button onclick="toggleLanguage()">🌍 عربي / English</button>
-</section>
-
-<div id="userBox">
-  👤 غير مسجل الدخول
-</div>
-
-<div id="favCount" onclick="openFavorites()">❤️ المفضلة: 0</div>
-<div id="cartCount" onclick="openCart()">🛒 السلة: 0</div>
-
-<button id="darkBtn" onclick="toggleDarkMode()">🌙 الوضع الليلي</button>
-
-<div id="featuredBox"></div>
-
-<section class="statsBox">
-  <div class="stat">📦 المنتجات <span id="statProducts">0</span></div>
-  <div class="stat">⭐ مميزة <span id="statFeatured">0</span></div>
-  <div class="stat">❤️ المفضلة <span id="statFavs">0</span></div>
-  <div class="stat">🛒 السلة <span id="statCart">0</span></div>
-  <div class="stat">⭐ التقييم <span id="statRating">0</span></div>
-</section>
-
-<section class="search">
-  <input type="text" id="search" placeholder="ابحث عن منتج أو متجر أو مدينة...">
-</section>
-
-<section class="sortBox">
-  <button onclick="sortLow()">الأرخص أولاً</button>
-  <button onclick="sortHigh()">الأغلى أولاً</button>
-</section>
-
-<section class="filterBox">
-  <button onclick="filterCategory('all')">الكل</button>
-  <button onclick="filterCategory('phone')">الهواتف</button>
-  <button onclick="filterCategory('gaming')">الألعاب</button>
-  <button onclick="filterCategory('laptop')">اللابتوبات</button>
-  <button onclick="filterNewProducts()">🆕 جديد</button>
-  <button onclick="filterUsedProducts()">♻️ مستعمل</button>
-  <button onclick="filterFeaturedProducts()">⭐ المميزة</button>
-</section>
-
-<div id="productCount">عدد المنتجات: 0</div>
-
-<section id="compareBox">
-  <h2>📊 مقارنة المنتجات</h2>
-  <select id="compare1"></select>
-  <select id="compare2"></select>
-  <button onclick="compareProducts()">مقارنة</button>
-  <button onclick="clearCompare()">مسح المقارنة</button>
-  <div id="compareResult"></div>
-</section>
-
-<main class="container" id="products"></main>
-
-<div id="popup">
-  <div class="popup-content">
-    <h2 id="popupName"></h2>
-    <img id="popupImage">
-    <h3 id="popupPrice"></h3>
-    <div id="popupStores"></div>
-
-    <hr>
-
-    <h3>⭐ التقييمات</h3>
-    <div id="reviewsBox"></div>
-
-    <select id="reviewRating">
-      <option value="5">⭐⭐⭐⭐⭐</option>
-      <option value="4">⭐⭐⭐⭐</option>
-      <option value="3">⭐⭐⭐</option>
-      <option value="2">⭐⭐</option>
-      <option value="1">⭐</option>
-    </select>
-
-    <textarea id="reviewText" placeholder="اكتب تعليقك"></textarea>
-
-    <button onclick="addReview()">إرسال التقييم</button>
-    <button onclick="closePopup()">إغلاق</button>
-  </div>
-</div>
-
-<div id="cartPopup">
-  <div class="popup-content">
-    <h2>🛒 السلة</h2>
-
-    <div id="cartItems"></div>
-    <h3 id="cartTotal"></h3>
-
-    <input id="couponCode" placeholder="كود الخصم">
-    <button onclick="applyCoupon()">🎟️ تطبيق الكوبون</button>
-    <p id="couponMessage"></p>
-
-    <input id="customerName" placeholder="اسم العميل">
-    <input id="customerPhone" placeholder="رقم الهاتف">
-
-    <button onclick="checkout()">📦 الدفع عند الاستلام</button>
-    <button onclick="payWithStripe()">💳 الدفع الإلكتروني</button>
-    <button onclick="clearCart()">🗑️ تفريغ السلة</button>
-    <button onclick="closeCart()">إغلاق السلة</button>
-  </div>
-</div>
-
-<div id="favPopup">
-  <div class="popup-content">
-    <h2>❤️ المفضلة</h2>
-    <div id="favItems"></div>
-    <button onclick="closeFavorites()">إغلاق المفضلة</button>
-  </div>
-</div>
-
-<div id="toast"></div>
-
-<footer class="footer">
-  <h3>PriceHub</h3>
-  <p>منصة لمقارنة الأسعار بين المتاجر والبائعين</p>
-
-  <div class="footer-links">
-    <a href="contact.html">تواصل معنا</a>
-    <a href="privacy.html">سياسة الخصوصية</a>
-    <a href="terms.html">شروط الاستخدام</a>
-  </div>
-
-  <p class="copy">© 2026 PriceHub - جميع الحقوق محفوظة</p>
-</footer>
-
-<script type="module" src="./firebase.js?v=100000"></script>
-<script src="./script.js?v=100000"></script>
-
-</body>
-</html>
