@@ -16,7 +16,7 @@
 <meta property="og:description" content="قارن الأسعار بين المتاجر والبائعين واحصل على أفضل العروض.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://ahmadtlas2002-max.github.io/pricehub/">
-<link rel="stylesheet" href="./style.css?v=100015">
+<link rel="stylesheet" href="./style.css?v=100021">
 <link rel="manifest" href="manifest.json">
 </head>
 
@@ -87,7 +87,14 @@
   <button type="button" id="installBtn">📲 تثبيت PriceHub</button>
   <button type="button" onclick="toggleLanguage()">🌍 عربي / English</button>
 </section>
+<section class="seller-guide">
+  <h2>🛍️ هل تريد البيع على PriceHub؟</h2>
+  <p>أرسل منتجك للمراجعة، وبعد الموافقة سيظهر مباشرة في الموقع للزوار.</p>
 
+  <a href="sell.html">
+    <button type="button">ابدأ البيع الآن</button>
+  </a>
+</section>
 <div id="userBox">👤 غير مسجل الدخول</div>
 
 <div id="favCount" onclick="openFavorites()">❤️ المفضلة: 0</div>
@@ -139,7 +146,10 @@
     <h2 id="statProducts">0</h2>
     <p>📦 المنتجات</p>
   </div>
-
+<div class="stat">
+  <h2 id="visitsCounter">0</h2>
+  <p>👀 زيارات</p>
+</div>
   <div class="stat">
     <h2 id="statFeatured">0</h2>
     <p>⭐ مميزة</p>
@@ -287,6 +297,24 @@
 <a class="whatsapp-float" href="https://wa.me/0760227749" target="_blank">
   💬
 </a>
+<section class="faq-section">
+  <h2>❓ الأسئلة الشائعة</h2>
+
+  <div class="faq-item">
+    <h3>كيف أضيف منتج؟</h3>
+    <p>اضغط على "بيع معنا" واملأ بيانات المنتج.</p>
+  </div>
+
+  <div class="faq-item">
+    <h3>كيف أتتبع طلبي؟</h3>
+    <p>ادخل إلى صفحة تتبع الطلب وأدخل رقم الطلب.</p>
+  </div>
+
+  <div class="faq-item">
+    <h3>هل يمكن الدفع إلكترونياً؟</h3>
+    <p>نعم، عبر Stripe أو الدفع عند الاستلام.</p>
+  </div>
+</section>
 <footer class="footer">
   <h3>PriceHub</h3>
   <p>منصة لمقارنة الأسعار بين المتاجر والبائعين</p>
@@ -302,8 +330,8 @@
 
 <button id="topBtn" onclick="scrollToTop()">⬆️</button>
 
-<script type="module" src="./firebase.js?v=100015"></script>
-<script src="./script.js?v=100015"></script>
+<script type="module" src="./firebase.js?v=100021"></script>
+<script src="./script.js?v=100021"></script>
 
 </body>
 </html>
