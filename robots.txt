@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://ahmadtlas2002-max.github.io/pricehub/sitemap.xml
