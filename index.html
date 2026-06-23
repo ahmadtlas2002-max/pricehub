@@ -7,7 +7,7 @@
 
 <title>PriceHub</title>
 
-<link rel="stylesheet" href="./style.css?v=100006">
+<link rel="stylesheet" href="./style.css?v=100014">
 <link rel="manifest" href="manifest.json">
 </head>
 
@@ -91,11 +91,11 @@
 <section class="deals-slider">
   <h2>🔥 عروض اليوم</h2>
 
-  <div class="deals-row">
-    <div class="deal-card" onclick="filterCategory('phone')">📱 خصومات على الهواتف</div>
-    <div class="deal-card" onclick="filterCategory('laptop')">💻 عروض اللابتوبات</div>
-    <div class="deal-card" onclick="filterCategory('gaming')">🎮 أجهزة وألعاب</div>
-    <div class="deal-card" onclick="filterFeaturedProducts()">⭐ منتجات مميزة</div>
+  <div class="auto-slider">
+    <div class="slide active">📱 خصومات قوية على الهواتف</div>
+    <div class="slide">💻 عروض مميزة على اللابتوبات</div>
+    <div class="slide">🎮 أجهزة وألعاب بأسعار أفضل</div>
+    <div class="slide">⭐ منتجات مختارة لك</div>
   </div>
 </section>
 
@@ -126,27 +126,30 @@
 </section>
 
 <section class="statsBox">
+  <div class="stat">
+    <h2 id="statProducts">0</h2>
+    <p>📦 المنتجات</p>
+  </div>
 
-<div class="stat">
-<h2 id="productsCounter">0</h2>
-<p>📦 منتج</p>
-</div>
+  <div class="stat">
+    <h2 id="statFeatured">0</h2>
+    <p>⭐ مميزة</p>
+  </div>
 
-<div class="stat">
-<h2 id="ordersCounter">0</h2>
-<p>🛒 طلب</p>
-</div>
+  <div class="stat">
+    <h2 id="statFavs">0</h2>
+    <p>❤️ المفضلة</p>
+  </div>
 
-<div class="stat">
-<h2 id="sellersCounter">0</h2>
-<p>🏪 بائع</p>
-</div>
+  <div class="stat">
+    <h2 id="statCart">0</h2>
+    <p>🛒 السلة</p>
+  </div>
 
-<div class="stat">
-<h2 id="reviewsCounter">0</h2>
-<p>⭐ تقييم</p>
-</div>
-
+  <div class="stat">
+    <h2 id="statRating">0</h2>
+    <p>⭐ التقييم</p>
+  </div>
 </section>
 
 <section class="search-pro">
@@ -185,6 +188,11 @@
 <section class="featured-title">
   <h2>⭐ المنتجات المميزة</h2>
   <p>أفضل المنتجات المختارة من البائعين</p>
+</section>
+
+<section class="new-arrivals">
+  <h2>🆕 أحدث المنتجات</h2>
+  <p>آخر المنتجات المضافة إلى PriceHub</p>
 </section>
 
 <main class="container" id="products"></main>
@@ -283,8 +291,8 @@
   <p class="copy">© 2026 PriceHub - جميع الحقوق محفوظة</p>
 </footer>
 
-<link rel="stylesheet" href="./style.css?v=100006">
-<script src="./script.js?v=100006"></script>
+<<link rel="stylesheet" href="./style.css?v=100014">
+<script src="./script.js?v=100014"></script>
 <button id="topBtn" onclick="scrollToTop()">
 ⬆️
 </button>
