@@ -285,6 +285,28 @@
 
 <script type="module" src="./firebase.js?v=100002"></script>
 <script src="./script.js?v=100002"></script>
+<button id="topBtn" onclick="scrollToTop()">
+⬆️
+</button>
+<script>
+function scrollToTop(){
+window.scrollTo({
+top:0,
+behavior:"smooth"
+});
+}
 
+window.addEventListener("scroll",()=>{
+
+const btn=document.getElementById("topBtn");
+
+if(window.scrollY>500){
+btn.style.display="flex";
+}else{
+btn.style.display="none";
+}
+
+});
+</script>
 </body>
 </html>
