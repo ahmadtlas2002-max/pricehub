@@ -1,5 +1,117 @@
-<a href="contact.html">
-  <button style="width:90%;max-width:300px;display:block;margin:10px auto;background:#009688;">
-    📞 تواصل معنا
-  </button>
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تواصل معنا - PriceHub</title>
+
+<style>
+body{
+font-family:Arial;
+background:#f5f7fb;
+padding:20px;
+direction:rtl;
+}
+
+.box{
+background:white;
+max-width:650px;
+margin:auto;
+padding:25px;
+border-radius:18px;
+box-shadow:0 5px 20px rgba(0,0,0,.1);
+text-align:center;
+}
+
+input,textarea,button{
+width:100%;
+padding:12px;
+margin:8px 0;
+border-radius:10px;
+font-size:16px;
+box-sizing:border-box;
+}
+
+input,textarea{
+border:1px solid #ccc;
+}
+
+button{
+border:none;
+background:#0066ff;
+color:white;
+font-weight:bold;
+cursor:pointer;
+}
+
+.whatsapp{
+background:#25d366;
+}
+
+.email{
+background:#607d8b;
+}
+
+.back{
+background:#222;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+<h1>📞 تواصل معنا</h1>
+<p>يمكنك التواصل معنا عبر واتساب أو البريد الإلكتروني.</p>
+
+<a href="index.html">
+<button class="back" type="button">⬅️ العودة للرئيسية</button>
 </a>
+
+<a href="https://wa.me/46760227749" target="_blank">
+<button class="whatsapp" type="button">💬 تواصل عبر واتساب</button>
+</a>
+
+<a href="mailto:karamalshqr123@gmail.com">
+<button class="email" type="button">📧 إرسال بريد إلكتروني</button>
+</a>
+
+<hr>
+
+<h3>أرسل رسالة</h3>
+
+<input id="name" placeholder="اسمك">
+<input id="email" placeholder="بريدك الإلكتروني">
+<textarea id="message" rows="6" placeholder="اكتب رسالتك هنا"></textarea>
+
+<button type="button" onclick="sendMessage()">إرسال الرسالة</button>
+
+<p id="result"></p>
+</div>
+
+<script>
+function sendMessage(){
+const name = document.getElementById("name").value.trim();
+const email = document.getElementById("email").value.trim();
+const message = document.getElementById("message").value.trim();
+const result = document.getElementById("result");
+
+if(!name || !email || !message){
+result.innerHTML = "⚠️ املأ جميع الحقول";
+result.style.color = "red";
+return;
+}
+
+const subject = encodeURIComponent("رسالة من PriceHub");
+const body = encodeURIComponent(
+"الاسم: " + name + "\n" +
+"البريد: " + email + "\n\n" +
+"الرسالة:\n" + message
+);
+
+window.location.href = "mailto:karamalshqr123@gmail.com?subject=" + subject + "&body=" + body;
+}
+</script>
+
+</body>
+</html>
