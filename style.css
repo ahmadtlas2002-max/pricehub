@@ -449,3 +449,20 @@ margin-bottom:8px;
 color:#666;
 font-size:16px;
 }
+.card{
+position:relative;
+}
+
+.card::before{
+content:"⭐ مميز";
+position:absolute;
+top:12px;
+right:12px;
+background:#ff9800;
+color:white;
+padding:6px 10px;
+border-radius:20px;
+font-size:12px;
+font-weight:bold;
+z-index:2;
+}
