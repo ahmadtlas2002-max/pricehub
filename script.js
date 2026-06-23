@@ -1017,3 +1017,15 @@ animateCounter("sellersCounter",85);
 animateCounter("reviewsCounter",3400);
 
 });
+async function loadVisitsCounter(){
+if(!window.getVisits) return;
+
+const visits = await window.getVisits();
+const box = document.getElementById("visitsCounter");
+
+if(box){
+box.innerHTML = visits;
+}
+}
+
+setTimeout(loadVisitsCounter,2000);
