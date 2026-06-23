@@ -55,3 +55,93 @@ font-weight:bold;
 color:green;
 font-weight:bold;
 }
+@media(max-width:600px){
+
+body{
+padding-bottom:80px;
+}
+
+header{
+padding:22px 15px;
+border-radius:0 0 22px 22px;
+}
+
+header h1{
+font-size:34px;
+}
+
+.main-actions{
+grid-template-columns:1fr;
+width:92%;
+}
+
+.main-actions button{
+height:56px;
+font-size:17px;
+}
+
+#favCount,
+#cartCount{
+left:10px;
+font-size:14px;
+padding:8px 12px;
+}
+
+.products-grid,
+#products{
+width:94%;
+grid-template-columns:1fr;
+gap:16px;
+}
+
+.card img{
+height:200px;
+}
+
+.content h2{
+font-size:20px;
+}
+
+.price{
+font-size:24px;
+}
+
+}
+.footer{
+background:#0b1f3a;
+color:white;
+text-align:center;
+padding:30px 15px;
+margin-top:40px;
+}
+
+.footer h3{
+font-size:26px;
+margin-bottom:8px;
+}
+
+.footer p{
+opacity:.9;
+margin:8px 0;
+}
+
+.footer-links{
+display:flex;
+justify-content:center;
+gap:15px;
+flex-wrap:wrap;
+margin:15px 0;
+}
+
+.footer-links a{
+color:white;
+text-decoration:none;
+background:rgba(255,255,255,.12);
+padding:8px 14px;
+border-radius:20px;
+}
+
+.copy{
+font-size:13px;
+opacity:.7;
+}
