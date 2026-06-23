@@ -1029,3 +1029,23 @@ box.innerHTML = visits;
 }
 
 setTimeout(loadVisitsCounter,2000);
+function scrollToTop(){
+window.scrollTo({
+top:0,
+behavior:"smooth"
+});
+}
+
+window.addEventListener("scroll",()=>{
+
+const btn = document.getElementById("topBtn");
+
+if(!btn) return;
+
+if(window.scrollY > 500){
+btn.style.display = "flex";
+}else{
+btn.style.display = "none";
+}
+
+});
