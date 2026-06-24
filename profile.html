@@ -33,6 +33,7 @@ background:#0066ff;
 color:white;
 font-size:18px;
 cursor:pointer;
+font-weight:bold;
 }
 
 button:hover{
@@ -46,6 +47,26 @@ border-radius:10px;
 font-weight:bold;
 margin:10px 0;
 }
+
+.infoBox{
+background:#eef;
+padding:12px;
+border-radius:10px;
+margin:10px 0;
+}
+
+.pointsBox{
+background:#e8f5e9;
+padding:12px;
+border-radius:10px;
+margin-top:10px;
+font-weight:bold;
+}
+
+.message{
+font-weight:bold;
+margin-top:10px;
+}
 </style>
 </head>
 
@@ -55,17 +76,19 @@ margin:10px 0;
 
 <h1>👤 حسابي</h1>
 
-<p id="userEmail">غير مسجل الدخول</p>
+<p id="userEmail">جاري التحقق...</p>
 <p id="memberBadge">🥉 عضو جديد</p>
 <p id="ordersCount">📦 عدد الطلبات: 0</p>
 
-<div id="latestOrderStatus" style="background:#eef;padding:12px;border-radius:10px;margin:10px 0;">
-لا توجد إشعارات طلبات
+<div id="latestOrderStatus" class="infoBox">
+جاري تحميل بيانات الحساب...
 </div>
+
 <button onclick="trackLatestOrder()" style="background:#673ab7;">
 📦 تتبع آخر طلب
 </button>
-<div id="userPoints" style="background:#e8f5e9;padding:12px;border-radius:10px;margin-top:10px;font-weight:bold;">
+
+<div id="userPoints" class="pointsBox">
 🏆 نقاطك: 0
 </div>
 
@@ -73,12 +96,16 @@ margin:10px 0;
 🎁 استبدال 500 نقطة بكوبون خصم
 </button>
 
-<p id="redeemMessage"></p>
+<p id="redeemMessage" class="message"></p>
 
 <p id="favCountProfile">❤️ المفضلة: 0</p>
 
 <a href="myorders.html">
 <button>📦 طلباتي</button>
+</a>
+
+<a href="login.html">
+<button style="background:#ff9800;">🔐 تسجيل الدخول</button>
 </a>
 
 <a href="index.html">
@@ -123,31 +150,79 @@ const auth = getAuth(app);
 
 let userPointsValue = 0;
 let latestOrderId = "";
-window.logoutProfile = async function(){
-await signOut(auth);
-localStorage.removeItem("userEmail");
-window.location.href = "login.html";
-};
+let currentUserEmail = "";
 
 const favs = JSON.parse(localStorage.getItem("favorites")) || [];
 
 document.getElementById("favCountProfile").innerHTML =
 "❤️ المفضلة: " + favs.length;
 
+function setMemberBadge(points){
+if(points >= 1000){
+document.getElementById("memberBadge").innerHTML = "🥇 عضو ذهبي";
+}else if(points >= 500){
+document.getElementById("memberBadge").innerHTML = "🥈 عضو فضي";
+}else if(points >= 100){
+document.getElementById("memberBadge").innerHTML = "🥉 عضو برونزي";
+}else{
+document.getElementById("memberBadge").innerHTML = "🥉 عضو جديد";
+}
+}
+
+function getStatusColor(status){
+if(status === "قيد المعالجة"){
+return "#ff9800";
+}
+
+if(status === "تم التسليم"){
+return "#28a745";
+}
+
+if(status === "مدفوع"){
+return "#673ab7";
+}
+
+return "#2196f3";
+}
+
+window.logoutProfile = async function(){
+try{
+await signOut(auth);
+localStorage.removeItem("userEmail");
+window.location.href = "login.html";
+}catch(error){
+alert("حدث خطأ أثناء تسجيل الخروج");
+}
+};
+
 onAuthStateChanged(auth, async(user)=>{
 
 if(!user){
+currentUserEmail = "";
+latestOrderId = "";
+userPointsValue = 0;
+
 document.getElementById("userEmail").innerHTML = "غير مسجل الدخول";
 document.getElementById("ordersCount").innerHTML = "📦 عدد الطلبات: 0";
-document.getElementById("latestOrderStatus").innerHTML = "لا توجد إشعارات طلبات";
+document.getElementById("latestOrderStatus").innerHTML = `
+⚠️ سجّل الدخول لعرض طلباتك ونقاطك
+
+<a href="login.html">
+<button type="button">تسجيل الدخول</button>
+</a>
+`;
 document.getElementById("userPoints").innerHTML = "🏆 نقاطك: 0";
 document.getElementById("memberBadge").innerHTML = "🥉 عضو جديد";
 return;
 }
 
+currentUserEmail = user.email;
 localStorage.setItem("userEmail", user.email);
-document.getElementById("userEmail").innerHTML = "📧 " + user.email;
 
+document.getElementById("userEmail").innerHTML = "📧 " + user.email;
+document.getElementById("latestOrderStatus").innerHTML = "⏳ جاري تحميل آخر طلب...";
+
+try{
 const snapshot = await getDocs(collection(db,"orders"));
 
 let count = 0;
@@ -175,59 +250,73 @@ userPointsValue = Math.floor(totalSpent);
 document.getElementById("userPoints").innerHTML =
 "🏆 نقاطك: " + userPointsValue;
 
-if(userPointsValue >= 1000){
-document.getElementById("memberBadge").innerHTML = "🥇 عضو ذهبي";
-}else if(userPointsValue >= 500){
-document.getElementById("memberBadge").innerHTML = "🥈 عضو فضي";
-}else if(userPointsValue >= 100){
-document.getElementById("memberBadge").innerHTML = "🥉 عضو برونزي";
-}else{
-document.getElementById("memberBadge").innerHTML = "🥉 عضو جديد";
-}
+setMemberBadge(userPointsValue);
 
 if(latestOrder){
-
-let statusColor = "#2196f3";
 latestOrderId = latestOrder.orderId || "";
-if((latestOrder.status || "جديد") === "قيد المعالجة"){
-statusColor = "#ff9800";
-}
 
-if((latestOrder.status || "جديد") === "تم التسليم"){
-statusColor = "#28a745";
-}
+const status = latestOrder.status || "جديد";
+const statusColor = getStatusColor(status);
 
 document.getElementById("latestOrderStatus").innerHTML =
 "🔔 آخر طلب: " + (latestOrder.orderId || "غير موجود") +
 "<br><span style='display:inline-block;margin-top:8px;padding:6px 12px;border-radius:8px;color:white;background:" + statusColor + ";'>" +
-(latestOrder.status || "جديد") +
+status +
 "</span>";
 
 }else{
+latestOrderId = "";
 document.getElementById("latestOrderStatus").innerHTML =
 "لا توجد إشعارات طلبات";
+}
+
+}catch(error){
+console.error(error);
+document.getElementById("latestOrderStatus").innerHTML =
+"<span style='color:red;'>حدث خطأ في تحميل الطلبات. تأكد من Firebase Rules.</span>";
 }
 
 });
 
 window.redeemPoints = async function(){
 
+const redeemMessage = document.getElementById("redeemMessage");
+
+if(!currentUserEmail){
+redeemMessage.innerHTML = "⚠️ سجل الدخول أولاً";
+redeemMessage.style.color = "red";
+return;
+}
+
 if(userPointsValue < 500){
-document.getElementById("redeemMessage").innerHTML =
-"تحتاج 500 نقطة على الأقل";
+redeemMessage.innerHTML = "تحتاج 500 نقطة على الأقل";
+redeemMessage.style.color = "red";
 return;
 }
 
 const coupon = "LOYAL" + Math.floor(Math.random() * 10000);
 
+try{
 await addDoc(collection(db,"coupons"),{
 code: coupon,
-discount: 10
+discount: 10,
+email: currentUserEmail,
+date: new Date().toLocaleString()
 });
 
-document.getElementById("redeemMessage").innerHTML =
+redeemMessage.innerHTML =
 "🎉 كوبونك: " + coupon + "<br>تم حفظه ويعمل الآن في السلة بخصم 10%";
+
+redeemMessage.style.color = "green";
+
+}catch(error){
+console.error(error);
+redeemMessage.innerHTML =
+"حدث خطأ أثناء إنشاء الكوبون. تأكد من Firebase Rules.";
+redeemMessage.style.color = "red";
+}
 };
+
 window.trackLatestOrder = function(){
 
 if(!latestOrderId){
