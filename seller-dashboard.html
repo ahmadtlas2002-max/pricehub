@@ -26,7 +26,7 @@ border-radius:15px;
 box-shadow:0 5px 15px rgba(0,0,0,.1);
 }
 
-button,input{
+button,input,select{
 width:100%;
 padding:12px;
 margin:8px 0;
@@ -36,7 +36,7 @@ font-size:16px;
 box-sizing:border-box;
 }
 
-input{
+input,select{
 border:1px solid #ccc;
 }
 
@@ -87,8 +87,17 @@ font-weight:bold;
 
 <div class="searchBox">
 <p>اكتب رقم هاتفك لعرض منتجاتك وإحصائياتك.</p>
+
 <input id="sellerPhone" placeholder="رقم الهاتف / واتساب">
+
+<select id="statusFilter" onchange="renderProducts()">
+<option value="all">كل المنتجات</option>
+<option value="approved">المقبولة فقط</option>
+<option value="pending">قيد المراجعة فقط</option>
+</select>
+
 <button onclick="loadSellerDashboard()">عرض لوحة البائع</button>
+<button onclick="clearSellerDashboard()" style="background:#777;">مسح البيانات</button>
 </div>
 
 <div id="statsBox" class="statsBox" style="display:none;"></div>
@@ -124,15 +133,28 @@ const db = getFirestore(app);
 let sellerProducts = [];
 
 function statusText(product){
-if(product.status === "approved") return "<span class='approved'>تمت الموافقة</span>";
-if(product.status === "rejected") return "<span class='rejected'>مرفوض</span>";
+if(product.status === "approved"){
+return "<span class='approved'>تمت الموافقة</span>";
+}
+
+if(product.status === "rejected"){
+return "<span class='rejected'>مرفوض</span>";
+}
+
 return "<span class='pending'>قيد المراجعة</span>";
 }
 
 function stockText(stock){
 stock = Number(stock || 0);
-if(stock <= 0) return "غير متوفر";
-if(stock <= 5) return stock + " - مخزون منخفض";
+
+if(stock <= 0){
+return "غير متوفر";
+}
+
+if(stock <= 5){
+return stock + " - مخزون منخفض";
+}
+
 return stock + " - متوفر";
 }
 
@@ -153,6 +175,7 @@ sellerProducts.reduce((sum,p)=>sum + Number(p.rating || 0),0) / sellerProducts.l
 : 0;
 
 statsBox.style.display = "block";
+
 statsBox.innerHTML = `
 <h2>📈 إحصائيات البائع</h2>
 <div class="stat">📦 كل المنتجات: ${total}</div>
@@ -166,16 +189,29 @@ statsBox.innerHTML = `
 
 function renderProducts(){
 const box = document.getElementById("productsList");
+const filter = document.getElementById("statusFilter").value;
+
 box.innerHTML = "";
 
-if(sellerProducts.length === 0){
-box.innerHTML = "<p>لا توجد منتجات لهذا الرقم</p>";
+let list = sellerProducts;
+
+if(filter === "approved"){
+list = sellerProducts.filter(p => p.status === "approved");
+}
+
+if(filter === "pending"){
+list = sellerProducts.filter(p => p.status !== "approved");
+}
+
+if(list.length === 0){
+box.innerHTML = "<p>لا توجد منتجات مطابقة</p>";
 return;
 }
 
-sellerProducts.forEach(product=>{
+list.forEach(product=>{
 box.innerHTML += `
 <div class="card">
+
 <img src="${product.image || 'https://picsum.photos/300/200'}">
 
 <h2>${product.name || "منتج بدون اسم"}</h2>
@@ -190,9 +226,12 @@ box.innerHTML += `
 <p>⭐ حالة المنتج: ${product.condition === "used" ? "مستعمل" : "جديد"}</p>
 <p>📝 ${product.description || ""}</p>
 
+${product.featured ? "<p style='color:#ff9800;font-weight:bold;'>⭐ منتج مميز</p>" : ""}
+
 ${product.collectionName === "pendingProducts"
 ? `<button onclick="deletePendingProduct('${product.id}')" style="background:#cc0000;">🗑️ حذف المنتج المعلّق</button>`
 : ""}
+
 </div>
 `;
 });
@@ -211,7 +250,11 @@ listBox.innerHTML = "<p>اكتب رقم الهاتف أولاً</p>";
 return;
 }
 
+localStorage.setItem("sellerDashboardPhone", phone);
+
 listBox.innerHTML = "جاري التحميل...";
+
+try{
 
 const pendingSnapshot = await getDocs(collection(db,"pendingProducts"));
 
@@ -243,17 +286,41 @@ status:"approved"
 
 updateStats();
 renderProducts();
+
+}catch(error){
+console.error(error);
+listBox.innerHTML = "<p style='color:red;'>حدث خطأ في تحميل البيانات. تأكد من Firebase Rules.</p>";
+}
 };
 
 window.deletePendingProduct = async function(id){
 
 if(!confirm("هل تريد حذف هذا المنتج المعلّق؟")) return;
 
+try{
 await deleteDoc(doc(db,"pendingProducts",id));
-
 alert("تم حذف المنتج");
 loadSellerDashboard();
+}catch(error){
+console.error(error);
+alert("فشل حذف المنتج. تأكد من Firebase Rules.");
+}
 };
+
+window.clearSellerDashboard = function(){
+localStorage.removeItem("sellerDashboardPhone");
+document.getElementById("sellerPhone").value = "";
+document.getElementById("productsList").innerHTML = "";
+document.getElementById("statsBox").style.display = "none";
+sellerProducts = [];
+};
+
+const savedPhone = localStorage.getItem("sellerDashboardPhone");
+
+if(savedPhone){
+document.getElementById("sellerPhone").value = savedPhone;
+loadSellerDashboard();
+}
 </script>
 
 </body>
