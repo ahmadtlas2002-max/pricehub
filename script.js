@@ -1065,3 +1065,29 @@ return;
 
 window.location.href = link;
 }
+async function shareProduct(productName){
+
+const text =
+"شاهد هذا المنتج على PriceHub:\n\n" +
+productName + "\n\n" +
+window.location.href;
+
+if(navigator.share){
+
+try{
+await navigator.share({
+title: productName,
+text: text,
+url: window.location.href
+});
+}catch(error){
+console.log(error);
+}
+
+}else{
+
+await navigator.clipboard.writeText(text);
+showToast("📋 تم نسخ رابط المشاركة");
+
+}
+}
