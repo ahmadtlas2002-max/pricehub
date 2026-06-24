@@ -22,6 +22,19 @@ border-radius:15px;
 box-shadow:0 5px 15px rgba(0,0,0,.1);
 }
 
+button{
+width:100%;
+padding:12px;
+margin:8px 0;
+border:none;
+border-radius:8px;
+background:#0066ff;
+color:white;
+font-size:16px;
+cursor:pointer;
+font-weight:bold;
+}
+
 .order{
 background:#eee;
 padding:15px;
@@ -47,7 +60,7 @@ display:inline-block;
 <button>⬅️ العودة للرئيسية</button>
 </a>
 
-<div id="orders"></div>
+<div id="orders">جاري التحميل...</div>
 </div>
 
 <script type="module">
@@ -78,14 +91,41 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+function getStatusColor(status){
+if(status === "قيد المعالجة"){
+return "#ff9800";
+}
+
+if(status === "تم التسليم"){
+return "#28a745";
+}
+
+if(status === "مدفوع"){
+return "#673ab7";
+}
+
+return "#2196f3";
+}
+
 onAuthStateChanged(auth, async(user)=>{
 const box = document.getElementById("orders");
 
 if(!user){
-box.innerHTML = "<h3>⚠️ يجب تسجيل الدخول أولاً</h3>";
+box.innerHTML = `
+<h3>⚠️ يجب تسجيل الدخول أولاً</h3>
+
+<a href="login.html">
+<button>
+تسجيل الدخول
+</button>
+</a>
+`;
 return;
 }
 
+box.innerHTML = "جاري تحميل طلباتك...";
+
+try{
 const snapshot = await getDocs(collection(db,"orders"));
 
 let html = "";
@@ -97,35 +137,38 @@ const order = doc.data();
 if(order.customerEmail === user.email){
 found = true;
 
-let color = "#2196f3";
-
-if(order.status === "قيد المعالجة"){
-color = "#ff9800";
-}
-
-if(order.status === "تم التسليم"){
-color = "#28a745";
-}
+const status = order.status || "جديد";
+const color = getStatusColor(status);
 
 html += `
 <div class="order">
+
 <h3>
 <span class="status" style="background:${color}">
-${order.status || "جديد"}
+${status}
 </span>
 </h3>
+
 <p>
 🆔 رقم الطلب:
-${order.orderId || "غير موجود"}
+<strong>${order.orderId || "غير موجود"}</strong>
+</p>
 
 <button
-style="margin-right:10px;background:#009688;color:white;border:none;padding:5px 10px;border-radius:6px;cursor:pointer;"
+style="background:#009688;"
 onclick="copyOrderId('${order.orderId || ""}')">
-📋 نسخ
+📋 نسخ رقم الطلب
 </button>
-</p>
+
+<a href="track.html?orderId=${order.orderId || ""}">
+<button style="background:#673ab7;">
+📦 تتبع هذا الطلب
+</button>
+</a>
+
 <p>💰 المجموع: $${order.total || 0}</p>
 <p>📅 التاريخ: ${order.date || ""}</p>
+<p>💳 طريقة الدفع: ${order.paymentMethod || "غير محدد"}</p>
 
 <h4>المنتجات:</h4>
 <ul>
@@ -133,6 +176,7 @@ ${(order.items || []).map(item =>
 `<li>${item.name} - $${item.price}</li>`
 ).join("")}
 </ul>
+
 </div>
 `;
 }
@@ -143,17 +187,26 @@ html = "<h3>لا توجد طلبات مرتبطة بحسابك</h3>";
 }
 
 box.innerHTML = html;
+
+}catch(error){
+console.error(error);
+box.innerHTML = "<p style='color:red;'>حدث خطأ في تحميل الطلبات. تأكد من Firebase Rules.</p>";
+}
 });
-window.copyOrderId = function(orderId){
+
+window.copyOrderId = async function(orderId){
 
 if(!orderId){
 alert("لا يوجد رقم طلب");
 return;
 }
 
-navigator.clipboard.writeText(orderId);
-
+try{
+await navigator.clipboard.writeText(orderId);
 alert("تم نسخ رقم الطلب ✅");
+}catch(error){
+alert("تعذر نسخ رقم الطلب");
+}
 };
 </script>
 
