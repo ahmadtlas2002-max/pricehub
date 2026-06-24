@@ -432,7 +432,7 @@ toast.style.display = "block";
 
 setTimeout(()=>{
 toast.style.display = "none";
-},2000);
+},3000);
 }
 
 window.setFirebaseProducts = function(firebaseProducts){
@@ -586,12 +586,17 @@ if(navigator.clipboard){
 navigator.clipboard.writeText(order.orderId);
 }
 
+
+
 alert(
 "تم حفظ الطلب ✅\n\n" +
 "رقم الطلب: " + order.orderId +
-"\n\n📋 تم نسخ رقم الطلب تلقائياً"
+"\n\n📋 تم نسخ رقم الطلب تلقائياً\n" +
+"يمكنك تتبع الطلب من صفحة تتبع الطلب"
 );
-
+const trackLink = "track.html?orderId=" + encodeURIComponent(order.orderId);
+localStorage.setItem("lastOrderId", order.orderId);
+localStorage.setItem("lastTrackLink", trackLink);
 const stockUpdates = {};
 
 cart.forEach(item=>{
@@ -658,11 +663,6 @@ container.innerHTML = `
 <div class="skeleton"></div>
 `;
 
-showProducts(products);
-updateFavCount();
-updateCartCount();
-updateStats();
-loadCompareOptions();
 showProducts(products);
 updateFavCount();
 updateCartCount();
@@ -1009,14 +1009,7 @@ element.textContent=count;
 
 }
 
-window.addEventListener("load",()=>{
 
-animateCounter("productsCounter",250);
-animateCounter("ordersCounter",1200);
-animateCounter("sellersCounter",85);
-animateCounter("reviewsCounter",3400);
-
-});
 async function loadVisitsCounter(){
 if(!window.getVisits) return;
 
@@ -1049,3 +1042,26 @@ btn.style.display = "none";
 }
 
 });
+window.copyTrackedOrderId = async function(orderId){
+if(!orderId){
+alert("لا يوجد رقم طلب");
+return;
+}
+
+try{
+await navigator.clipboard.writeText(orderId);
+alert("✅ تم نسخ رقم الطلب");
+}catch(error){
+alert("تعذر نسخ رقم الطلب");
+}
+};
+function openLastOrder(){
+const link = localStorage.getItem("lastTrackLink");
+
+if(!link){
+showToast("لا يوجد طلب محفوظ للتتبع");
+return;
+}
+
+window.location.href = link;
+}
