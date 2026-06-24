@@ -28,7 +28,10 @@ document.body.innerHTML = `
 غير مسموح بالدخول
 </h1>
 `;
-throw new Error("Unauthorized admin access");
+
+window.ADMIN_ALLOWED = false;
+}else{
+window.ADMIN_ALLOWED = true;
 }
 </script>
 
@@ -187,6 +190,9 @@ throw new Error("Unauthorized admin access");
 </div>
 
 <script type="module">
+	if(window.ADMIN_ALLOWED !== true){
+throw new Error("Unauthorized admin access");
+}
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
 import {
