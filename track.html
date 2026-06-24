@@ -235,6 +235,19 @@ document.getElementById("phone").value = "";
 document.getElementById("orderId").value = "";
 document.getElementById("result").innerHTML = "";
 };
+window.copyTrackedOrderId = async function(orderId){
+if(!orderId){
+alert("لا يوجد رقم طلب");
+return;
+}
+
+try{
+await navigator.clipboard.writeText(orderId);
+alert("✅ تم نسخ رقم الطلب");
+}catch(error){
+alert("تعذر نسخ رقم الطلب");
+}
+};
 </script>
 
 </body>
