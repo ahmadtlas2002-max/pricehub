@@ -3,1039 +3,341 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PriceHub Admin</title>
+<meta name="theme-color" content="#0066ff">
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<title>PriceHub</title>
+<link rel="icon" href="data:,">
 
-<style>
-body{font-family:Arial;background:#f5f5f5;padding:20px;direction:rtl;}
-.admin-box{background:white;max-width:500px;margin:auto;padding:20px;border-radius:15px;box-shadow:0 5px 15px rgba(0,0,0,.1);}
-input,select,button{width:100%;padding:12px;margin:8px 0;border-radius:8px;border:1px solid #ccc;font-size:16px;box-sizing:border-box;}
-button{background:#0066ff;color:white;border:none;cursor:pointer;}
-button:hover{background:#0044cc;}
-.order-card{background:#eee;padding:15px;margin:10px 0;border-radius:12px;}
-</style>
+<meta name="description" content="PriceHub منصة لمقارنة الأسعار بين المتاجر والبائعين وتتبع الطلبات والعروض.">
+<meta name="keywords" content="PriceHub, مقارنة أسعار, عروض, منتجات, متاجر, بائعين">
+<meta name="author" content="PriceHub">
+
+<meta property="og:title" content="PriceHub">
+<meta property="og:description" content="قارن الأسعار بين المتاجر والبائعين واحصل على أفضل العروض.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://ahmadtlas2002-max.github.io/pricehub/">
+<link rel="stylesheet" href="./style.css?v=100023">
+<link rel="manifest" href="manifest.json">
 </head>
 
 <body>
+<nav class="top-nav">
+  <div class="nav-logo">PriceHub</div>
 
-<script>
-const adminPassword = prompt("أدخل كلمة مرور لوحة الإدارة");
+  <div class="nav-links">
+    <a href="index.html">الرئيسية</a>
+    <a href="offers.html">العروض</a>
+    <a href="sell.html">بيع معنا</a>
+    <a href="track.html">تتبع الطلب</a>
+  </div>
+</nav>
+<header>
+  <h1>PriceHub</h1>
+  <p>قارن الأسعار بين المتاجر والبائعين</p>
+</header>
 
-if(adminPassword !== "Hosen1980"){
-document.body.innerHTML = `
-<h1 style="text-align:center;margin-top:50px;font-family:Arial;">
-غير مسموح بالدخول
-</h1>
-`;
-throw new Error("Unauthorized admin access");
-}
-</script>
+<section class="hero">
+  <div class="hero-content">
+    <h2>🔥 اعثر على أفضل سعر قبل الشراء</h2>
+    <p>قارن المنتجات، اكتشف العروض، واشترِ من البائع المناسب بسهولة.</p>
+    <a href="offers.html">
+      <button class="hero-btn">🚀 استكشف العروض</button>
+    </a>
+  </div>
+</section>
 
-<div class="admin-box">
-<h1>لوحة إدارة PriceHub</h1>
+<section class="features">
+  <div class="feature">💰 أفضل الأسعار</div>
+  <div class="feature">🚚 تتبع الطلبات</div>
+  <div class="feature">🏪 متاجر وبائعين</div>
+  <div class="feature">⭐ تقييمات المستخدمين</div>
+</section>
 
-<div style="background:#eef;padding:15px;border-radius:12px;margin:10px 0;">
-<h3>📊 ملخص الإدارة</h3>
-<p id="dashboardProducts">المنتجات: 0</p>
-<p id="dashboardOutOfStock">غير متوفر: 0</p>
-<p id="dashboardLowStock">مخزون منخفض: 0</p>
-<p id="dashboardOrders">الطلبات: 0</p>
-<p id="dashboardRevenue">الأرباح: $0</p>
-<p id="todayRevenue">أرباح اليوم: $0</p>
-<p id="monthRevenue">أرباح هذا الشهر: $0</p>
-<p id="todayOrders">طلبات اليوم: 0</p>
-<p id="monthOrders">طلبات هذا الشهر: 0</p>
-<p id="avgOrderValue">متوسط الطلب: $0</p>
-<p id="topProduct">الأكثر مبيعًا: لا يوجد</p>
+<section class="why-us">
+  <h2>لماذا تختار PriceHub؟</h2>
 
-<div id="topProductsList" style="background:#fff;padding:10px;border-radius:10px;margin-top:10px;text-align:right;">
-أفضل المنتجات ستظهر هنا
-</div>
+  <div class="why-grid">
+    <div class="why-card">
+      <h3>🔍 مقارنة سهلة</h3>
+      <p>اعرف السعر الأفضل بين المتاجر قبل الشراء.</p>
+    </div>
 
-<p id="topCustomer">أفضل عميل: لا يوجد</p>
-<p id="newOrderAlert" style="display:none;background:#ffeb3b;padding:10px;border-radius:8px;font-weight:bold;">
-🔔 يوجد طلب جديد!
-</p>
+    <div class="why-card">
+      <h3>🛒 طلب سريع</h3>
+      <p>أضف المنتج للسلة واطلبه بخطوات بسيطة.</p>
+    </div>
 
-<canvas id="ordersChart"></canvas>
+    <div class="why-card">
+      <h3>📦 تتبع الطلب</h3>
+      <p>تابع حالة طلبك من الموقع مباشرة.</p>
+    </div>
+  </div>
+</section>
 
-<audio id="newOrderSound">
-<source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" type="audio/ogg">
-</audio>
-</div>
+<section class="main-actions">
+  <a href="sell.html"><button type="button">🛍️ بيع معنا</button></a>
+  <a href="seller-status.html"><button type="button">📋 حالة منتجاتي</button></a>
+  <a href="seller-dashboard.html"><button type="button">📊 لوحة البائع</button></a>
+  <a href="track.html"><button type="button">📦 تتبع الطلب</button></a>
 
-<a href="index.html"><button type="button">⬅️ العودة للموقع</button></a>
-<button onclick="logoutAdmin()" style="background:#cc0000;">تسجيل الخروج</button>
-
-<hr>
-
-<h2>🛍️ منتجات بانتظار الموافقة</h2>
-
-<button onclick="loadPendingProducts()" style="background:#795548;">
-🔄 تحديث المنتجات المرسلة
+<button type="button" onclick="openLastOrder()" style="background:#009688;">
+📦 تتبع آخر طلب
 </button>
 
-<div id="pendingProductsList"></div>
+<a href="offers.html"><button type="button">🔥 العروض المميزة</button></a>
+  <a href="offers.html"><button type="button">🔥 العروض المميزة</button></a>
+  <a href="top-sellers.html"><button type="button">🏆 أفضل البائعين</button></a>
+  <a href="profile.html" id="loginBtn"><button type="button">👤 حسابي</button></a>
+  <a href="myorders.html"><button type="button">📦 طلباتي</button></a>
 
-<hr>
+  <button type="button" id="installBtn">📲 تثبيت PriceHub</button>
+  <button type="button" onclick="toggleLanguage()">🌍 عربي / English</button>
+</section>
+<section class="seller-guide">
+  <h2>🛍️ هل تريد البيع على PriceHub؟</h2>
+  <p>أرسل منتجك للمراجعة، وبعد الموافقة سيظهر مباشرة في الموقع للزوار.</p>
 
-<h2>➕ إضافة منتج يدويًا</h2>
+  <a href="sell.html">
+    <button type="button">ابدأ البيع الآن</button>
+  </a>
+</section>
+<div id="userBox">👤 غير مسجل الدخول</div>
 
-<input id="name" placeholder="اسم المنتج">
-<input id="price" type="number" placeholder="السعر">
-<input id="stock" type="number" placeholder="الكمية المتوفرة">
-<input id="store" placeholder="اسم المتجر">
-<input id="rating" type="number" step="0.1" placeholder="التقييم">
+<div id="favCount" onclick="openFavorites()">❤️ المفضلة: 0</div>
+<div id="cartCount" onclick="openCart()">🛒 السلة: 0</div>
 
-<select id="category">
-<option value="phone">هواتف</option>
-<option value="gaming">ألعاب</option>
-<option value="laptop">لابتوبات</option>
-<option value="other">أخرى</option>
-</select>
+<button type="button" id="darkBtn" onclick="toggleDarkMode()">🌙 الوضع الليلي</button>
 
-<label><input id="featured" type="checkbox"> ⭐ منتج مميز</label>
+<div id="featuredBox"></div>
 
-<input id="image" placeholder="رابط الصورة">
-<img id="previewImage" style="width:100%;margin-top:10px;display:none;border-radius:10px;">
+<section class="deals-slider">
+  <h2>🔥 عروض اليوم</h2>
 
-<button id="saveBtn" onclick="saveProduct()">إضافة المنتج</button>
-<button id="cancelBtn" onclick="cancelEdit()" style="display:none;background:#777;">إلغاء التعديل</button>
+  <div class="auto-slider">
+    <div class="slide active">📱 خصومات قوية على الهواتف</div>
+    <div class="slide">💻 عروض مميزة على اللابتوبات</div>
+    <div class="slide">🎮 أجهزة وألعاب بأسعار أفضل</div>
+    <div class="slide">⭐ منتجات مختارة لك</div>
+  </div>
+</section>
 
-<p id="message"></p>
+<section class="categories">
+  <h2>📂 تصفح حسب التصنيف</h2>
 
-<hr>
+  <div class="category-grid">
+    <div class="category-card" onclick="filterCategory('phone')">
+      📱
+      <span>الهواتف</span>
+    </div>
 
-<h2>المنتجات الحالية</h2>
-<p id="adminCount">عدد المنتجات: 0</p>
-<p id="categoryStats"></p>
+    <div class="category-card" onclick="filterCategory('laptop')">
+      💻
+      <span>اللابتوبات</span>
+    </div>
 
-<button onclick="loadAdminProducts()">🔄 تحديث القائمة</button>
-<button onclick="exportProductsCSV()" style="background:#009688;">⬇️ تصدير المنتجات CSV</button>
+    <div class="category-card" onclick="filterCategory('gaming')">
+      🎮
+      <span>الألعاب</span>
+    </div>
 
-<input id="adminSearch" placeholder="ابحث عن منتج في لوحة الإدارة...">
+    <div class="category-card" onclick="filterCategory('other')">
+      🛍️
+      <span>أخرى</span>
+    </div>
+  </div>
+</section>
 
-<select id="adminCategoryFilter">
-<option value="all">كل التصنيفات</option>
-<option value="phone">هواتف</option>
-<option value="gaming">ألعاب</option>
-<option value="laptop">لابتوبات</option>
-<option value="other">أخرى</option>
-</select>
+<section class="statsBox">
+  <div class="stat">
+    <h2 id="statProducts">0</h2>
+    <p>📦 المنتجات</p>
+  </div>
+<div class="stat">
+  <h2 id="visitsCounter">0</h2>
+  <p>👀 زيارات</p>
+</div>
+  <div class="stat">
+    <h2 id="statFeatured">0</h2>
+    <p>⭐ مميزة</p>
+  </div>
 
-<select id="stockFilter">
-<option value="all">كل حالات المخزون</option>
-<option value="low">مخزون منخفض</option>
-<option value="out">غير متوفر</option>
-</select>
+  <div class="stat">
+    <h2 id="statFavs">0</h2>
+    <p>❤️ المفضلة</p>
+  </div>
 
-<select id="featuredFilter">
-<option value="all">كل المنتجات</option>
-<option value="featured">المميزة فقط</option>
-<option value="normal">غير المميزة</option>
-</select>
+  <div class="stat">
+    <h2 id="statCart">0</h2>
+    <p>🛒 السلة</p>
+  </div>
 
-<div id="productsList"></div>
+  <div class="stat">
+    <h2 id="statRating">0</h2>
+    <p>⭐ التقييم</p>
+  </div>
+</section>
 
-<hr>
+<section class="search-pro">
+  <div class="search-wrapper">
+    <span>🔍</span>
+    <input type="text" id="search" placeholder="ابحث عن منتج أو متجر أو مدينة...">
+  </div>
+</section>
 
-<h2>📦 الطلبات</h2>
-<p id="orderStats"></p>
-<h3 id="totalRevenue">💰 إجمالي الأرباح: $0</h3>
+<section class="sortBox">
+  <button type="button" onclick="sortLow()">الأرخص أولاً</button>
+  <button type="button" onclick="sortHigh()">الأغلى أولاً</button>
+</section>
+<h2 class="section-title">تصفية المنتجات</h2>
+<section class="filterBox">
+  <button type="button" onclick="filterCategory('all')">الكل</button>
+  <button type="button" onclick="filterCategory('phone')">الهواتف</button>
+  <button type="button" onclick="filterCategory('gaming')">الألعاب</button>
+  <button type="button" onclick="filterCategory('laptop')">اللابتوبات</button>
+  <button type="button" onclick="filterNewProducts()">🆕 جديد</button>
+  <button type="button" onclick="filterUsedProducts()">♻️ مستعمل</button>
+  <button type="button" onclick="filterFeaturedProducts()">⭐ المميزة</button>
+</section>
 
-<select id="orderStatusFilter">
-<option value="all">كل الطلبات</option>
-<option value="جديد">جديد</option>
-<option value="قيد المعالجة">قيد المعالجة</option>
-<option value="تم التسليم">تم التسليم</option>
-</select>
+<div id="productCount">عدد المنتجات: 0</div>
 
-<input id="orderSearch" placeholder="ابحث باسم العميل أو رقم الهاتف أو رقم الطلب...">
-<input id="orderDateFilter" type="date">
+<section id="compareBox">
+  <h2>📊 مقارنة المنتجات</h2>
+  <select id="compare1"></select>
+  <select id="compare2"></select>
+  <button type="button" onclick="compareProducts()">مقارنة</button>
+  <button type="button" onclick="clearCompare()">مسح المقارنة</button>
+  <div id="compareResult"></div>
+</section>
 
-<button onclick="loadOrders()">🔄 تحديث الطلبات</button>
-<button onclick="exportOrdersCSV()" style="background:#008000;">⬇️ تصدير الطلبات CSV</button>
+<section class="featured-title">
+  <h2>⭐ المنتجات المميزة</h2>
+  <p>أفضل المنتجات المختارة من البائعين</p>
+</section>
 
-<div id="ordersList"></div>
+<section class="new-arrivals">
+  <h2>🆕 أحدث المنتجات</h2>
+  <p>آخر المنتجات المضافة إلى PriceHub</p>
+</section>
 
-<hr>
+<main class="container" id="products"></main>
 
-<h2>🎟️ إدارة الكوبونات</h2>
+<section class="testimonials">
+  <h2>⭐ آراء المستخدمين</h2>
 
-<input id="couponCodeAdmin" placeholder="كود الكوبون مثل PRICE10">
-<input id="couponDiscountAdmin" type="number" placeholder="نسبة الخصم">
+  <div class="testimonial-grid">
+    <div class="testimonial-card">
+      <p>أفضل موقع استخدمته لمقارنة الأسعار، وفرت مبلغًا جيدًا قبل الشراء.</p>
+      <h4>— أحمد</h4>
+    </div>
 
-<button onclick="addCouponAdmin()">إضافة كوبون</button>
+    <div class="testimonial-card">
+      <p>أعجبني نظام تتبع الطلبات وسهولة التواصل مع البائعين.</p>
+      <h4>— محمد</h4>
+    </div>
 
-<div id="couponsList"></div>
+    <div class="testimonial-card">
+      <p>التصميم جميل وسهل الاستخدام على الهاتف.</p>
+      <h4>— سارة</h4>
+    </div>
+  </div>
+</section>
 
-<hr>
+<div id="popup">
+  <div class="popup-content">
+    <h2 id="popupName"></h2>
+    <img id="popupImage" alt="صورة المنتج">
+    <h3 id="popupPrice"></h3>
+    <div id="popupStores"></div>
 
-<h2>⭐ إدارة التقييمات</h2>
+    <hr>
 
-<div style="background:#eef;padding:12px;border-radius:10px;margin:10px 0;">
-<p id="reviewsCount">عدد التقييمات: 0</p>
-<p id="reviewsAverage">متوسط التقييم: 0 / 5</p>
-<p id="mostReviewedProduct">الأكثر تقييمًا: لا يوجد</p>
+    <h3>⭐ التقييمات</h3>
+    <div id="reviewsBox"></div>
+
+    <select id="reviewRating">
+      <option value="5">⭐⭐⭐⭐⭐</option>
+      <option value="4">⭐⭐⭐⭐</option>
+      <option value="3">⭐⭐⭐</option>
+      <option value="2">⭐⭐</option>
+      <option value="1">⭐</option>
+    </select>
+
+    <textarea id="reviewText" placeholder="اكتب تعليقك"></textarea>
+
+    <button type="button" onclick="addReview()">إرسال التقييم</button>
+    <button type="button" onclick="closePopup()">إغلاق</button>
+  </div>
 </div>
 
-<button onclick="loadReviewsAdmin()">🔄 تحديث التقييمات</button>
-<button onclick="exportReviewsCSV()" style="background:#009688;">⬇️ تصدير التقييمات CSV</button>
+<div id="cartPopup">
+  <div class="popup-content">
+    <h2>🛒 السلة</h2>
 
-<div id="reviewsAdminList"></div>
+    <div id="cartItems"></div>
+    <h3 id="cartTotal"></h3>
+
+    <input id="couponCode" placeholder="كود الخصم">
+    <button type="button" onclick="applyCoupon()">🎟️ تطبيق الكوبون</button>
+    <p id="couponMessage"></p>
+
+    <input id="customerName" placeholder="اسم العميل">
+    <input id="customerPhone" placeholder="رقم الهاتف">
+
+    <button type="button" onclick="checkout()">📦 الدفع عند الاستلام</button>
+    <button type="button" onclick="payWithStripe()">💳 الدفع الإلكتروني</button>
+    <button type="button" onclick="clearCart()">🗑️ تفريغ السلة</button>
+    <button type="button" onclick="closeCart()">إغلاق السلة</button>
+  </div>
 </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-
-import {
-getFirestore,
-collection,
-addDoc,
-getDocs,
-deleteDoc,
-doc,
-updateDoc
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-const firebaseConfig = {
-apiKey: "AIzaSyA4jGrncraaaktuaDpsO7nz1-qmrqYKM3k",
-authDomain: "pricehub-6d3c4.firebaseapp.com",
-projectId: "pricehub-6d3c4",
-storageBucket: "pricehub-6d3c4.appspot.com",
-messagingSenderId: "991179979836",
-appId: "1:991179979836:web:cb23f4d31e55364d1ed739",
-measurementId: "G-HLCHBX5FF7"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-let editingId = null;
-let adminProducts = [];
-let lastOrdersCount = 0;
-let ordersChart = null;
-
-window.saveProduct = async function(){
-
-const name = document.getElementById("name").value.trim();
-const price = Number(document.getElementById("price").value);
-const stock = Number(document.getElementById("stock").value);
-const store = document.getElementById("store").value.trim();
-const rating = Number(document.getElementById("rating").value);
-const category = document.getElementById("category").value;
-const image = document.getElementById("image").value.trim();
-const featured = document.getElementById("featured").checked;
-
-if(!name || !price || stock < 0 || !rating || !store || !image){
-document.getElementById("message").innerHTML = "املأ كل الحقول";
-return;
-}
-
-if(rating < 0 || rating > 5){
-document.getElementById("message").innerHTML = "التقييم يجب أن يكون بين 0 و 5";
-return;
-}
-
-const productData = {
-name,
-price,
-stock,
-rating,
-category,
-image,
-featured,
-premiumSeller:false,
-condition:"new",
-storeName:store,
-sellerName:store,
-sellerPhone:"",
-sellerEmail:"",
-sellerCity:"",
-sellerRating:rating,
-sellerVerified:false,
-stores:[store + " : $" + price],
-status:"approved",
-statusText:"تمت الموافقة"
-};
-
-if(editingId){
-await updateDoc(doc(db,"products",editingId),productData);
-document.getElementById("message").innerHTML = "تم تحديث المنتج ✅";
-editingId = null;
-}else{
-await addDoc(collection(db,"products"),productData);
-document.getElementById("message").innerHTML = "تمت إضافة المنتج ✅";
-}
-
-clearForm();
-loadAdminProducts();
-};
-
-function clearForm(){
-document.getElementById("name").value = "";
-document.getElementById("price").value = "";
-document.getElementById("stock").value = "";
-document.getElementById("store").value = "";
-document.getElementById("rating").value = "";
-document.getElementById("image").value = "";
-document.getElementById("featured").checked = false;
-document.getElementById("previewImage").src = "";
-document.getElementById("previewImage").style.display = "none";
-document.getElementById("saveBtn").innerHTML = "إضافة المنتج";
-document.getElementById("cancelBtn").style.display = "none";
-}
-
-window.loadAdminProducts = async function(){
-
-const snapshot = await getDocs(collection(db,"products"));
-adminProducts = [];
-
-snapshot.forEach((item)=>{
-adminProducts.push({id:item.id,...item.data()});
-});
-
-applyAdminFilters();
-updateCategoryStats();
-
-document.getElementById("dashboardProducts").innerHTML =
-"المنتجات: " + adminProducts.length;
-
-document.getElementById("dashboardOutOfStock").innerHTML =
-"غير متوفر: " + adminProducts.filter(p => Number(p.stock || 0) <= 0).length;
-
-document.getElementById("dashboardLowStock").innerHTML =
-"مخزون منخفض: " + adminProducts.filter(p => Number(p.stock || 0) > 0 && Number(p.stock || 0) <= 5).length;
-};
-
-function showAdminProducts(list){
-
-const box = document.getElementById("productsList");
-document.getElementById("adminCount").innerHTML = "عدد المنتجات: " + list.length;
-box.innerHTML = "";
-
-if(list.length === 0){
-box.innerHTML = "<p>لا توجد منتجات مطابقة</p>";
-return;
-}
-
-list.forEach(product=>{
-box.innerHTML += `
-<div style="background:#eee;padding:10px;margin:10px 0;border-radius:12px;">
-<img src="${(product.image && product.image.startsWith('http')) ? product.image : 'https://picsum.photos/300/200'}" style="width:100%;max-height:150px;object-fit:cover;border-radius:8px;margin-bottom:10px;">
-
-<strong>${product.name || "منتج بدون اسم"}</strong><br>
-$${product.price || 0}<br>
-📦 الكمية: ${product.stock || 0}<br>
-
-${Number(product.stock || 0) <= 0
-? "<span style='color:red;font-weight:bold;'>❌ غير متوفر</span><br>"
-: Number(product.stock || 0) <= 5
-? "<span style='color:#ff9800;font-weight:bold;'>⚠️ مخزون منخفض</span><br>"
-: "<span style='color:green;font-weight:bold;'>✅ متوفر</span><br>"
-}
-
-⭐ ${product.rating || 0}<br>
-📦 ${product.category || "other"}<br>
-🏪 ${product.storeName || "غير محدد"}<br>
-${product.sellerVerified ? "✔ بائع موثق<br>" : ""}
-${product.featured ? "⭐ منتج مميز<br>" : ""}
-${product.premiumSeller ? "👑 Premium<br>" : ""}
-
-<button onclick="increaseStock('${product.id}', ${Number(product.stock || 0)})">➕ زيادة المخزون</button>
-<button onclick="decreaseStock('${product.id}', ${Number(product.stock || 0)})">➖ إنقاص المخزون</button>
-<button onclick="editProductData('${product.id}')">تعديل</button>
-<button onclick="deleteProduct('${product.id}')" style="background:#cc0000;">حذف</button>
+<div id="favPopup">
+  <div class="popup-content">
+    <h2>❤️ المفضلة</h2>
+    <div id="favItems"></div>
+    <button type="button" onclick="closeFavorites()">إغلاق المفضلة</button>
+  </div>
 </div>
-`;
-});
-}
 
-window.editProductData = function(id){
-
-const product = adminProducts.find(p => p.id === id);
-if(!product) return;
-
-editingId = product.id;
-
-document.getElementById("name").value = product.name || "";
-document.getElementById("price").value = product.price || "";
-document.getElementById("stock").value = product.stock || 0;
-document.getElementById("rating").value = product.rating || "";
-document.getElementById("category").value = product.category || "phone";
-document.getElementById("image").value = product.image || "";
-document.getElementById("store").value = product.storeName || "Firebase Store";
-document.getElementById("featured").checked = product.featured || false;
-
-if(product.image){
-document.getElementById("previewImage").src = product.image;
-document.getElementById("previewImage").style.display = "block";
-}
-
-document.getElementById("saveBtn").innerHTML = "تحديث المنتج";
-document.getElementById("cancelBtn").style.display = "block";
-};
-
-window.deleteProduct = async function(id){
-if(!confirm("هل أنت متأكد من حذف المنتج؟")) return;
-await deleteDoc(doc(db,"products",id));
-loadAdminProducts();
-};
-
-function applyAdminFilters(){
-
-const searchText = document.getElementById("adminSearch").value.toLowerCase();
-const category = document.getElementById("adminCategoryFilter").value;
-const stockFilter = document.getElementById("stockFilter").value;
-const featuredFilter = document.getElementById("featuredFilter").value;
-
-let filtered = adminProducts.filter(p =>
-(p.name || "").toLowerCase().includes(searchText) ||
-(p.storeName || "").toLowerCase().includes(searchText) ||
-(p.sellerName || "").toLowerCase().includes(searchText)
-);
-
-if(category !== "all") filtered = filtered.filter(p => p.category === category);
-if(stockFilter === "low") filtered = filtered.filter(p => Number(p.stock || 0) > 0 && Number(p.stock || 0) <= 5);
-if(stockFilter === "out") filtered = filtered.filter(p => Number(p.stock || 0) <= 0);
-
-if(featuredFilter === "featured") filtered = filtered.filter(p => p.featured === true);
-if(featuredFilter === "normal") filtered = filtered.filter(p => p.featured !== true);
-
-showAdminProducts(filtered);
-}
-
-function updateCategoryStats(){
-document.getElementById("categoryStats").innerHTML =
-`📱 الهواتف: ${adminProducts.filter(p => p.category === "phone").length}<br>
-🎮 الألعاب: ${adminProducts.filter(p => p.category === "gaming").length}<br>
-💻 اللابتوبات: ${adminProducts.filter(p => p.category === "laptop").length}<br>
-📦 أخرى: ${adminProducts.filter(p => p.category === "other").length}`;
-}
-
-document.getElementById("adminSearch").addEventListener("input",applyAdminFilters);
-document.getElementById("adminCategoryFilter").addEventListener("change",applyAdminFilters);
-document.getElementById("stockFilter").addEventListener("change",applyAdminFilters);
-document.getElementById("featuredFilter").addEventListener("change",applyAdminFilters);
-
-window.cancelEdit = function(){
-editingId = null;
-clearForm();
-};
-
-window.logoutAdmin = function(){
-location.reload();
-};
-
-function updateOrderStats(orders){
-
-const newOrders = orders.filter(o => (o.status || "جديد") === "جديد").length;
-const processing = orders.filter(o => o.status === "قيد المعالجة").length;
-const delivered = orders.filter(o => o.status === "تم التسليم").length;
-
-const revenue = orders.reduce((sum,o)=>sum + Number(o.total || 0),0);
-const today = new Date();
-const todayKey = today.toISOString().slice(0,10);
-const monthKey = today.toISOString().slice(0,7);
-
-let todayRevenue = 0;
-let monthRevenue = 0;
-let todayOrders = 0;
-let monthOrders = 0;
-
-orders.forEach(o=>{
-const orderDate = new Date(o.date);
-
-if(!isNaN(orderDate)){
-const orderDay = orderDate.toISOString().slice(0,10);
-const orderMonth = orderDate.toISOString().slice(0,7);
-
-if(orderDay === todayKey){
-todayRevenue += Number(o.total || 0);
-todayOrders++;
-}
-
-if(orderMonth === monthKey){
-monthRevenue += Number(o.total || 0);
-monthOrders++;
-}
-}
-});
-
-const avgOrderValue = orders.length ? revenue / orders.length : 0;
-
-document.getElementById("todayRevenue").innerHTML = "أرباح اليوم: $" + todayRevenue.toFixed(2);
-document.getElementById("monthRevenue").innerHTML = "أرباح هذا الشهر: $" + monthRevenue.toFixed(2);
-document.getElementById("todayOrders").innerHTML = "طلبات اليوم: " + todayOrders;
-document.getElementById("monthOrders").innerHTML = "طلبات هذا الشهر: " + monthOrders;
-document.getElementById("avgOrderValue").innerHTML = "متوسط الطلب: $" + avgOrderValue.toFixed(2);
-
-const sales = {};
-
-orders.forEach(order=>{
-(order.items || []).forEach(item=>{
-sales[item.name] = (sales[item.name] || 0) + 1;
-});
-});
-
-let topName = "لا يوجد";
-let topCount = 0;
-
-for(const name in sales){
-if(sales[name] > topCount){
-topName = name;
-topCount = sales[name];
-}
-}
-
-document.getElementById("topProduct").innerHTML =
-"🏆 الأكثر مبيعًا: " + topName + " (" + topCount + " مبيعات)";
-
-const sortedProducts = Object.entries(sales).sort((a,b)=>b[1]-a[1]).slice(0,5);
-
-let topProductsHTML = "<strong>🏆 أفضل 5 منتجات:</strong><br>";
-
-if(sortedProducts.length === 0){
-topProductsHTML += "لا توجد مبيعات بعد";
-}else{
-sortedProducts.forEach((item,index)=>{
-topProductsHTML += (index + 1) + ". " + item[0] + " (" + item[1] + " مبيعات)<br>";
-});
-}
-
-document.getElementById("topProductsList").innerHTML = topProductsHTML;
-
-document.getElementById("orderStats").innerHTML =
-`🟡 جديد: ${newOrders}<br>🔵 قيد المعالجة: ${processing}<br>🟢 تم التسليم: ${delivered}`;
-
-document.getElementById("totalRevenue").innerHTML =
-"💰 إجمالي الأرباح: $" + revenue.toFixed(2);
-
-document.getElementById("dashboardOrders").innerHTML =
-"الطلبات: " + orders.length;
-
-document.getElementById("dashboardRevenue").innerHTML =
-"الأرباح: $" + revenue.toFixed(2);
-
-const customers = {};
-
-orders.forEach(order=>{
-const customer = order.customerName || order.customerEmail || "غير معروف";
-
-if(!customers[customer]){
-customers[customer] = {count:0,total:0};
-}
-
-customers[customer].count++;
-customers[customer].total += Number(order.total || 0);
-});
-
-let topCustomer = "لا يوجد";
-let topCustomerTotal = 0;
-let topCustomerOrders = 0;
-
-for(const name in customers){
-if(customers[name].total > topCustomerTotal){
-topCustomer = name;
-topCustomerTotal = customers[name].total;
-topCustomerOrders = customers[name].count;
-}
-}
-
-document.getElementById("topCustomer").innerHTML =
-"أفضل عميل: " + topCustomer +
-" | الطلبات: " + topCustomerOrders +
-" | المشتريات: $" + topCustomerTotal.toFixed(2);
-}
-
-function updateOrdersChart(orders){
-
-const ctx = document.getElementById("ordersChart");
-if(!ctx) return;
-
-if(ordersChart) ordersChart.destroy();
-
-ordersChart = new Chart(ctx,{
-type:"bar",
-data:{
-labels:["جديد","قيد المعالجة","تم التسليم"],
-datasets:[{
-label:"عدد الطلبات",
-data:[
-orders.filter(o => (o.status || "جديد") === "جديد").length,
-orders.filter(o => o.status === "قيد المعالجة").length,
-orders.filter(o => o.status === "تم التسليم").length
-]
-}]
-}
-});
-}
-
-window.loadOrders = async function(){
-
-const ordersList = document.getElementById("ordersList");
-ordersList.innerHTML = "";
-
-const snapshot = await getDocs(collection(db,"orders"));
-const orders = [];
-
-snapshot.forEach(orderDoc=>{
-orders.push({id:orderDoc.id,...orderDoc.data()});
-});
-
-orders.sort((a,b)=> new Date(b.date || 0) - new Date(a.date || 0));
-
-if(lastOrdersCount > 0 && orders.length > lastOrdersCount){
-document.getElementById("newOrderAlert").style.display = "block";
-
-const sound = document.getElementById("newOrderSound");
-if(sound){
-sound.play().catch(()=>{});
-}
-}
-
-lastOrdersCount = orders.length;
-
-updateOrderStats(orders);
-updateOrdersChart(orders);
-
-const selectedStatus = document.getElementById("orderStatusFilter").value;
-const searchText = document.getElementById("orderSearch").value.toLowerCase();
-const selectedDate = document.getElementById("orderDateFilter").value;
-
-let visibleOrders = orders;
-
-if(selectedStatus !== "all"){
-visibleOrders = visibleOrders.filter(o => (o.status || "جديد") === selectedStatus);
-}
-
-visibleOrders = visibleOrders.filter(o =>
-(o.customerName || "").toLowerCase().includes(searchText) ||
-(o.customerPhone || "").toLowerCase().includes(searchText) ||
-(o.orderId || "").toLowerCase().includes(searchText)
-);
-
-if(selectedDate){
-visibleOrders = visibleOrders.filter(o => {
-
-if(!o.date) return false;
-
-const orderDate = new Date(o.date);
-
-if(isNaN(orderDate)) return true;
-
-const formatted =
-orderDate.getFullYear() + "-" +
-String(orderDate.getMonth()+1).padStart(2,"0") + "-" +
-String(orderDate.getDate()).padStart(2,"0");
-
-return formatted === selectedDate;
-});
-}
-
-if(visibleOrders.length === 0){
-ordersList.innerHTML = "<p>لا توجد طلبات</p>";
-return;
-}
-
-visibleOrders.forEach(order=>{
-const status = order.status || "جديد";
-
-ordersList.innerHTML += `
-<div class="order-card">
-<strong>رقم الطلب:</strong> ${order.orderId || "غير موجود"}<br>
-<strong>العميل:</strong> ${order.customerName || ""}<br>
-<strong>الهاتف:</strong> ${order.customerPhone || ""}<br>
-<strong>المجموع النهائي:</strong> $${order.total || 0}<br>
-<strong>عدد المنتجات:</strong> ${(order.items || []).length}<br>
-<strong>التاريخ:</strong> ${order.date || ""}<br><br>
-
-<strong>المنتجات:</strong>
-<ul>
-${(order.items || []).map(p => `<li>${p.name} - $${p.price}</li>`).join("")}
-</ul>
-
-<strong>الحالة:</strong> ${status}<br>
-
-<select onchange="updateOrderStatus('${order.id}', this.value)">
-<option value="جديد" ${status === "جديد" ? "selected" : ""}>جديد</option>
-<option value="قيد المعالجة" ${status === "قيد المعالجة" ? "selected" : ""}>قيد المعالجة</option>
-<option value="تم التسليم" ${status === "تم التسليم" ? "selected" : ""}>تم التسليم</option>
-</select>
-
-<button onclick="deleteOrder('${order.id}')" style="background:#cc0000;">🗑️ حذف الطلب</button>
-</div>
-`;
-});
-};
-
-window.updateOrderStatus = async function(id,status){
-await updateDoc(doc(db,"orders",id),{status});
-loadOrders();
-};
-
-window.deleteOrder = async function(id){
-if(!confirm("هل تريد حذف هذا الطلب؟")) return;
-await deleteDoc(doc(db,"orders",id));
-loadOrders();
-};
-
-window.exportOrdersCSV = async function(){
-
-const snapshot = await getDocs(collection(db,"orders"));
-let csv = "رقم الطلب,العميل,الهاتف,المجموع,التاريخ,الحالة\n";
-
-snapshot.forEach(orderDoc=>{
-const o = orderDoc.data();
-csv += `"${o.orderId || orderDoc.id}","${o.customerName || ""}","${o.customerPhone || ""}","${o.total || 0}","${o.date || ""}","${o.status || "جديد"}"\n`;
-});
-
-const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-const link = document.createElement("a");
-link.href = URL.createObjectURL(blob);
-link.download = "pricehub-orders.csv";
-link.click();
-};
-
-window.exportProductsCSV = function(){
-
-let csv = "الاسم,السعر,المخزون,التقييم,التصنيف,مميز,الصورة\n";
-
-adminProducts.forEach(product=>{
-csv += `"${product.name || ""}","${product.price || 0}","${product.stock || 0}","${product.rating || 0}","${product.category || ""}","${product.featured ? "نعم" : "لا"}","${product.image || ""}"\n`;
-});
-
-const blob = new Blob([csv],{type:"text/csv;charset=utf-8;"});
-const link = document.createElement("a");
-link.href = URL.createObjectURL(blob);
-link.download = "pricehub-products.csv";
-link.click();
-
-URL.revokeObjectURL(link.href);
-};
-
-window.addCouponAdmin = async function(){
-
-const code = document.getElementById("couponCodeAdmin").value.trim().toUpperCase();
-const discount = Number(document.getElementById("couponDiscountAdmin").value);
-
-if(!code || discount <= 0){
-alert("اكتب الكود ونسبة الخصم");
-return;
-}
-
-await addDoc(collection(db,"coupons"),{code,discount});
-
-document.getElementById("couponCodeAdmin").value = "";
-document.getElementById("couponDiscountAdmin").value = "";
-
-loadCouponsAdmin();
-};
-
-window.loadCouponsAdmin = async function(){
-
-const box = document.getElementById("couponsList");
-box.innerHTML = "";
-
-const snapshot = await getDocs(collection(db,"coupons"));
-
-if(snapshot.empty){
-box.innerHTML = "<p>لا توجد كوبونات</p>";
-return;
-}
-
-snapshot.forEach(couponDoc=>{
-const coupon = couponDoc.data();
-
-box.innerHTML += `
-<div style="background:#eee;padding:10px;margin:8px 0;border-radius:8px;">
-<strong>${coupon.code}</strong><br>
-خصم: ${coupon.discount}%<br>
-<button onclick="deleteCouponAdmin('${couponDoc.id}')" style="background:#cc0000;">حذف الكوبون</button>
-</div>
-`;
-});
-};
-
-window.deleteCouponAdmin = async function(id){
-if(!confirm("هل تريد حذف هذا الكوبون؟")) return;
-await deleteDoc(doc(db,"coupons",id));
-loadCouponsAdmin();
-};
-
-window.loadReviewsAdmin = async function(){
-
-const box = document.getElementById("reviewsAdminList");
-
-if(!box) return;
-
-box.innerHTML = "جاري التحميل...";
-
-try{
-const snapshot = await getDocs(collection(db,"reviews"));
-const reviewsArray = [];
-
-snapshot.forEach(reviewDoc=>{
-reviewsArray.push({id: reviewDoc.id,...reviewDoc.data()});
-});
-
-updateReviewsStats(reviewsArray);
-
-if(reviewsArray.length === 0){
-box.innerHTML = "<p>لا توجد تقييمات</p>";
-return;
-}
-
-box.innerHTML = "";
-
-reviewsArray.forEach(review=>{
-box.innerHTML += `
-<div style="background:#eee;padding:12px;margin:10px 0;border-radius:10px;">
-<strong>المنتج:</strong> ${review.productName || ""}<br>
-<strong>التقييم:</strong> ⭐ ${review.rating || 0}<br>
-<strong>المستخدم:</strong> ${review.email || ""}<br>
-<strong>التعليق:</strong> ${review.text || ""}<br><br>
-
-<button style="background:#cc0000;" onclick="deleteReview('${review.id}')">حذف</button>
-</div>
-`;
-});
-
-}catch(error){
-console.error(error);
-box.innerHTML = "<p style='color:red;'>حدث خطأ في تحميل التقييمات. تأكد من Firebase Rules.</p>";
-}
-};
-
-function updateReviewsStats(reviews){
-
-const reviewsCount = document.getElementById("reviewsCount");
-const reviewsAverage = document.getElementById("reviewsAverage");
-const mostReviewedProduct = document.getElementById("mostReviewedProduct");
-
-if(!reviewsCount || !reviewsAverage || !mostReviewedProduct) return;
-
-reviewsCount.innerHTML = "عدد التقييمات: " + reviews.length;
-
-const avg = reviews.length
-? reviews.reduce((sum,r)=>sum + Number(r.rating || 0),0) / reviews.length
-: 0;
-
-reviewsAverage.innerHTML = "متوسط التقييم: " + avg.toFixed(1) + " / 5";
-
-const counts = {};
-
-reviews.forEach(r=>{
-const name = r.productName || "غير معروف";
-counts[name] = (counts[name] || 0) + 1;
-});
-
-let topProduct = "لا يوجد";
-let topCount = 0;
-
-for(const name in counts){
-if(counts[name] > topCount){
-topProduct = name;
-topCount = counts[name];
-}
-}
-
-mostReviewedProduct.innerHTML =
-"الأكثر تقييمًا: " + topProduct + " (" + topCount + ")";
-}
-
-window.deleteReview = async function(id){
-if(!confirm("حذف التقييم؟")) return;
-
-try{
-await deleteDoc(doc(db,"reviews",id));
-loadReviewsAdmin();
-}catch(error){
-console.error(error);
-alert("فشل حذف التقييم. تأكد من Firebase Rules.");
-}
-};
-
-window.exportReviewsCSV = async function(){
-
-const snapshot = await getDocs(collection(db,"reviews"));
-let csv = "المنتج,التقييم,المستخدم,التعليق,التاريخ\n";
-
-snapshot.forEach(reviewDoc=>{
-const r = reviewDoc.data();
-csv += `"${r.productName || ""}","${r.rating || 0}","${r.email || ""}","${r.text || ""}","${r.date || ""}"\n`;
-});
-
-const blob = new Blob([csv],{type:"text/csv;charset=utf-8;"});
-const link = document.createElement("a");
-link.href = URL.createObjectURL(blob);
-link.download = "pricehub-reviews.csv";
-link.click();
-
-URL.revokeObjectURL(link.href);
-};
-
-window.increaseStock = async function(id,currentStock){
-await updateDoc(doc(db,"products",id),{stock: currentStock + 1});
-loadAdminProducts();
-};
-
-window.decreaseStock = async function(id,currentStock){
-const newStock = Math.max(currentStock - 1,0);
-await updateDoc(doc(db,"products",id),{stock: newStock});
-loadAdminProducts();
-};
-
-window.loadPendingProducts = async function(){
-
-const box = document.getElementById("pendingProductsList");
-box.innerHTML = "جاري التحميل...";
-
-const snapshot = await getDocs(collection(db,"pendingProducts"));
-
-box.innerHTML = "";
-
-if(snapshot.empty){
-box.innerHTML = "<p>لا توجد منتجات بانتظار الموافقة</p>";
-return;
-}
-
-snapshot.forEach(item=>{
-const product = {id:item.id,...item.data()};
-
-box.innerHTML += `
-<div class="order-card">
-<img src="${product.image || 'https://picsum.photos/300/200'}" style="width:100%;max-height:180px;object-fit:cover;border-radius:10px;">
-
-<h3>${product.name || "منتج بدون اسم"}</h3>
-
-<p><strong>رقم الطلب:</strong> ${product.orderId || "غير موجود"}</p>
-<p>💰 السعر: $${product.price || 0}</p>
-<p>📦 الكمية: ${product.stock || 0}</p>
-<p>📱 التصنيف: ${product.category || "other"}</p>
-<p>⭐ الحالة: ${product.condition === "used" ? "مستعمل" : "جديد"}</p>
-
-<hr>
-
-<p>👤 البائع: ${product.sellerName || "غير محدد"}</p>
-<p>🏪 المتجر: ${product.storeName || "غير محدد"}</p>
-<p>📞 الهاتف: ${product.sellerPhone || "غير محدد"}</p>
-<p>📧 البريد: ${product.sellerEmail || "غير موجود"}</p>
-<p>📍 المدينة: ${product.sellerCity || "غير محدد"}</p>
-
-<p>
-${product.sellerVerified
-? "<span style='color:green;font-weight:bold;'>✔ بائع موثق</span>"
-: "<span style='color:#777;'>بائع غير موثق</span>"}
-</p>
-
-<hr>
-
-<p>📝 الوصف: ${product.description || "لا يوجد وصف"}</p>
-<p>📅 تاريخ الإرسال: ${product.date || "غير معروف"}</p>
-
-<button onclick="approvePendingProduct('${product.id}')" style="background:#008000;">
-✅ موافقة ونشر
-</button>
-
-<button onclick="verifyPendingSeller('${product.id}')" style="background:#009688;">
-✔ توثيق البائع ونشر
-</button>
-
-<button onclick="rejectPendingProduct('${product.id}')" style="background:#cc0000;">
-❌ رفض وحذف
-</button>
-</div>
-`;
-});
-};
-
-window.approvePendingProduct = async function(id){
-await publishPendingProduct(id,false);
-};
-
-window.verifyPendingSeller = async function(id){
-await publishPendingProduct(id,true);
-};
-
-async function publishPendingProduct(id, verified){
-
-const snapshot = await getDocs(collection(db,"pendingProducts"));
-let selected = null;
-
-snapshot.forEach(item=>{
-if(item.id === id){
-selected = {id:item.id,...item.data()};
-}
-});
-
-if(!selected){
-alert("لم يتم العثور على المنتج");
-return;
-}
-
-await addDoc(collection(db,"products"),{
-orderId: selected.orderId || "",
-sentAt: selected.sentAt || "",
-approvedAt: new Date().toISOString(),
-
-name: selected.name || "",
-price: Number(selected.price || 0),
-stock: Number(selected.stock || 0),
-rating: Number(selected.rating || 5),
-category: selected.category || "other",
-condition: selected.condition || "new",
-image: selected.image || "https://picsum.photos/300/200",
-featured: selected.featured || false,
-premiumSeller: selected.premiumSeller || false,
-description: selected.description || "",
-
-sellerName: selected.sellerName || "",
-storeName: selected.storeName || selected.sellerName || "متجر PriceHub",
-sellerPhone: selected.sellerPhone || "",
-sellerEmail: selected.sellerEmail || "",
-sellerCity: selected.sellerCity || "",
-sellerRating: Number(selected.sellerRating || 5),
-sellerVerified: verified === true,
-
-stores: selected.stores || [
-(selected.storeName || selected.sellerName || "متجر PriceHub") + " : $" + Number(selected.price || 0)
-],
-
-status: "approved",
-statusText: "تمت الموافقة"
-});
-
-await deleteDoc(doc(db,"pendingProducts",id));
-
-alert(verified ? "✅ تم توثيق البائع ونشر المنتج" : "✅ تم نشر المنتج");
-loadPendingProducts();
-loadAdminProducts();
-}
-
-window.rejectPendingProduct = async function(id){
-
-if(!confirm("هل تريد رفض وحذف هذا المنتج؟")) return;
-
-await deleteDoc(doc(db,"pendingProducts",id));
-
-alert("❌ تم رفض المنتج وحذفه");
-loadPendingProducts();
-};
-
-document.getElementById("orderStatusFilter").addEventListener("change",loadOrders);
-document.getElementById("orderSearch").addEventListener("input",loadOrders);
-document.getElementById("orderDateFilter").addEventListener("change",loadOrders);
-
-loadAdminProducts();
-loadPendingProducts();
-loadOrders();
-loadCouponsAdmin();
-loadReviewsAdmin();
-
-setInterval(loadOrders,30000);
-</script>
+<div id="toast"></div>
+<a class="whatsapp-float" href="https://wa.me/46760227749" target="_blank">
+  💬
+</a>
+<section class="faq-section">
+  <h2>❓ الأسئلة الشائعة</h2>
+
+  <div class="faq-item">
+    <h3>كيف أضيف منتج؟</h3>
+    <p>اضغط على "بيع معنا" واملأ بيانات المنتج.</p>
+  </div>
+
+  <div class="faq-item">
+    <h3>كيف أتتبع طلبي؟</h3>
+    <p>ادخل إلى صفحة تتبع الطلب وأدخل رقم الطلب.</p>
+  </div>
+
+  <div class="faq-item">
+    <h3>هل يمكن الدفع إلكترونياً؟</h3>
+    <p>نعم، عبر Stripe أو الدفع عند الاستلام.</p>
+  </div>
+</section>
+<footer class="footer">
+  <h3>PriceHub</h3>
+  <p>منصة لمقارنة الأسعار بين المتاجر والبائعين</p>
+
+  <div class="footer-links">
+    <a href="contact.html">تواصل معنا</a>
+    <a href="privacy.html">سياسة الخصوصية</a>
+    <a href="terms.html">شروط الاستخدام</a>
+  </div>
+
+  <p class="copy">© 2026 PriceHub - جميع الحقوق محفوظة</p>
+</footer>
+
+<button id="topBtn" onclick="scrollToTop()">⬆️</button>
+
+<script type="module" src="./firebase.js?v=100023"></script>
+<script src="./script.js?v=100023"></script>
 
 </body>
 </html>
