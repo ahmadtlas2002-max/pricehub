@@ -106,6 +106,10 @@ margin-top:15px;
 
 <button onclick="checkStatus()">عرض منتجاتي</button>
 
+<button onclick="clearStatusSearch()" style="background:#777;">
+🧹 مسح البحث
+</button>
+
 <div id="result"></div>
 </div>
 
@@ -177,7 +181,15 @@ ${statusText}
 <p>📍 المدينة: ${product.sellerCity || "غير محدد"}</p>
 <p>⭐ الحالة: ${product.condition === "used" ? "مستعمل" : "جديد"}</p>
 <p>📝 الوصف: ${product.description || "لا يوجد وصف"}</p>
-<p class="small">رقم الطلب: ${product.orderId || "غير متوفر"}</p>
+
+<p class="small">
+رقم الطلب: ${product.orderId || "غير متوفر"}
+</p>
+
+<button type="button" onclick="copyStatusOrderId('${product.orderId || ""}')" style="background:#673ab7;">
+📋 نسخ رقم الطلب
+</button>
+
 <p class="small">تاريخ الإرسال: ${product.date || "غير معروف"}</p>
 </div>
 `;
@@ -191,6 +203,10 @@ const result = document.getElementById("result");
 
 result.innerHTML = "";
 
+if(phone){
+localStorage.setItem("sellerStatusPhone", phone);
+}
+
 if(!phone && !orderId){
 result.innerHTML = "<p>⚠️ اكتب رقم الهاتف أو رقم الطلب</p>";
 return;
@@ -198,6 +214,7 @@ return;
 
 result.innerHTML = "<p>⏳ جاري البحث...</p>";
 
+try{
 let found = [];
 
 const pendingSnapshot = await getDocs(collection(db,"pendingProducts"));
@@ -236,8 +253,40 @@ html += renderProduct(product);
 });
 
 result.innerHTML = html;
+
+}catch(error){
+console.error(error);
+result.innerHTML = "<p style='color:red;'>حدث خطأ أثناء البحث. تأكد من Firebase Rules.</p>";
+}
 };
 
+window.copyStatusOrderId = async function(orderId){
+if(!orderId){
+alert("لا يوجد رقم طلب");
+return;
+}
+
+try{
+await navigator.clipboard.writeText(orderId);
+alert("✅ تم نسخ رقم الطلب");
+}catch(error){
+alert("تعذر نسخ رقم الطلب");
+}
+};
+
+window.clearStatusSearch = function(){
+document.getElementById("sellerPhone").value = "";
+document.getElementById("orderId").value = "";
+document.getElementById("result").innerHTML = "";
+localStorage.removeItem("sellerStatusPhone");
+};
+
+const savedStatusPhone = localStorage.getItem("sellerStatusPhone");
+
+if(savedStatusPhone){
+document.getElementById("sellerPhone").value = savedStatusPhone;
+checkStatus();
+}
 </script>
 
 </body>
